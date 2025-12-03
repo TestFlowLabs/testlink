@@ -9,12 +9,14 @@ use TestFlowLabs\TestLink\Console\ArgumentParser;
 use TestFlowLabs\TestLink\Validator\LinkValidator;
 use TestFlowLabs\TestLink\Scanner\AttributeScanner;
 use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
+use TestFlowLabs\TestLink\Placeholder\PlaceholderScanner;
+use TestFlowLabs\TestLink\Placeholder\PlaceholderRegistry;
 
 /**
  * Validate command - validates coverage link synchronization.
  *
- * Checks for duplicate links (same link in both PHPUnit attributes and Pest chains)
- * and reports overall coverage link health.
+ * Checks for duplicate links (same link in both PHPUnit attributes and Pest chains),
+ * detects unresolved placeholders, and reports overall coverage link health.
  */
 final class ValidateCommand
 {
@@ -23,19 +25,25 @@ final class ValidateCommand
      */
     public function execute(ArgumentParser $parser, Output $output): int
     {
-        $attributeRegistry = $this->scanAttributes($parser->getString('path'));
+        $path = $parser->getString('path');
+
+        $attributeRegistry = $this->scanAttributes($path);
         $runtimeRegistry   = TestLinkRegistry::getInstance();
 
         $validator = new LinkValidator();
         $result    = $validator->validate($attributeRegistry, $runtimeRegistry);
 
-        $isJson = $parser->hasOption('json');
+        // Scan for unresolved placeholders
+        $placeholderRegistry = $this->scanPlaceholders($path);
+
+        $isJson  = $parser->hasOption('json');
+        $isStrict = $parser->hasOption('strict');
 
         if ($isJson) {
-            return $this->outputJson($result, $output);
+            return $this->outputJson($result, $placeholderRegistry, $output);
         }
 
-        return $this->outputConsole($result, $output);
+        return $this->outputConsole($result, $placeholderRegistry, $output, $isStrict);
     }
 
     /**
@@ -56,13 +64,43 @@ final class ValidateCommand
     }
 
     /**
+     * Scan for unresolved placeholders.
+     */
+    private function scanPlaceholders(?string $path): PlaceholderRegistry
+    {
+        $registry = new PlaceholderRegistry();
+        $scanner  = new PlaceholderScanner();
+
+        if ($path !== null) {
+            $scanner->setProjectRoot($path);
+        }
+
+        $scanner->scan($registry);
+
+        return $registry;
+    }
+
+    /**
      * Output as JSON.
      *
      * @param  array{valid: bool, attributeLinks: array<string, list<string>>, runtimeLinks: array<string, list<string>>, duplicates: list<array{test: string, method: string}>, totalLinks: int}  $result
      */
-    private function outputJson(array $result, Output $output): int
+    private function outputJson(array $result, PlaceholderRegistry $placeholderRegistry, Output $output): int
     {
-        $json = json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        $placeholderIds = $placeholderRegistry->getAllPlaceholderIds();
+
+        $unresolvedPlaceholders = array_map(fn (string $id): array => [
+            'id'              => $id,
+            'productionCount' => count($placeholderRegistry->getProductionEntries($id)),
+            'testCount'       => count($placeholderRegistry->getTestEntries($id)),
+        ], $placeholderIds);
+
+        $outputData = [
+            ...$result,
+            'unresolvedPlaceholders' => $unresolvedPlaceholders,
+        ];
+
+        $json = json_encode($outputData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         $output->writeln($json !== false ? $json : '{}');
 
         return $result['valid'] ? 0 : 1;
@@ -73,9 +111,11 @@ final class ValidateCommand
      *
      * @param  array{valid: bool, attributeLinks: array<string, list<string>>, runtimeLinks: array<string, list<string>>, duplicates: list<array{test: string, method: string}>, totalLinks: int}  $result
      */
-    private function outputConsole(array $result, Output $output): int
+    private function outputConsole(array $result, PlaceholderRegistry $placeholderRegistry, Output $output, bool $strict): int
     {
         $output->title('Validation Report');
+
+        $hasErrors = false;
 
         // Report duplicates if any
         if ($result['duplicates'] !== []) {
@@ -92,6 +132,32 @@ final class ValidateCommand
             $output->warning('Consider using only one linking method per test.');
             $output->newLine();
 
+            $hasErrors = true;
+        }
+
+        // Report unresolved placeholders
+        $placeholderIds = $placeholderRegistry->getAllPlaceholderIds();
+
+        if ($placeholderIds !== []) {
+            $output->section('Unresolved Placeholders');
+
+            foreach ($placeholderIds as $id) {
+                $prodCount = count($placeholderRegistry->getProductionEntries($id));
+                $testCount = count($placeholderRegistry->getTestEntries($id));
+                $output->writeln('    '.$output->yellow('⚠')." {$id}  ({$prodCount} production, {$testCount} tests)");
+            }
+
+            $output->newLine();
+            $output->warning('Run "testlink pair" to resolve placeholders.');
+            $output->newLine();
+
+            if ($strict) {
+                $hasErrors = true;
+            }
+        }
+
+        // Return early if there are errors
+        if ($hasErrors) {
             return 1;
         }
 
