@@ -37,6 +37,8 @@ TestLink creates bidirectional links between your tests and production code. Kno
 composer require testflowlabs/testlink
 ```
 
+This automatically installs [test-attributes](https://github.com/TestFlowLabs/test-attributes) which provides `#[LinksAndCovers]` and `#[Links]` attributes for PHPUnit.
+
 > **Note:** Install as a production dependency (without `--dev`) if you use `#[TestedBy]` on production code. PHP needs the attribute class available when loading those classes.
 
 ### Link from Production Code (Recommended)
@@ -112,8 +114,6 @@ class UserServiceTest extends TestCase
 
 ## CLI Commands
 
-### Standalone CLI
-
 ```bash
 # Show coverage links report
 testlink report
@@ -136,28 +136,6 @@ testlink report --json
 # Show help
 testlink --help
 testlink sync --help
-```
-
-### Pest Plugin
-
-```bash
-# Show coverage links report
-pest --coverage-links
-
-# Validate bidirectional sync
-pest --validate-coverage-links
-
-# Auto-sync from #[TestedBy] to linksAndCovers()
-pest --sync-coverage-links
-
-# Preview sync changes (dry run)
-pest --sync-coverage-links --dry-run
-
-# Export as JSON
-pest --coverage-links-json
-
-# Show help
-pest --help-testlink
 ```
 
 ### Sample Output
