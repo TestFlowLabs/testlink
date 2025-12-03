@@ -4,7 +4,7 @@ layout: home
 hero:
   name: TestLink
   text: Test Coverage Traceability
-  tagline: Framework-agnostic test-to-code linking for PHP. Works with Pest and PHPUnit.
+  tagline: Framework-agnostic test traceability for PHP.
   image:
     src: /testlink-logo.png
     alt: TestLink Logo
