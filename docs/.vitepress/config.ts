@@ -60,6 +60,14 @@ export default defineConfig({
         ]
       },
       {
+        text: 'Workflow',
+        collapsed: false,
+        items: [
+          { text: 'TDD with TestLink', link: '/workflow/tdd' },
+          { text: 'BDD with TestLink', link: '/workflow/bdd' },
+        ]
+      },
+      {
         text: 'Best Practices',
         collapsed: false,
         items: [
