@@ -9,26 +9,32 @@ TestLink supports both frameworks individually or together in hybrid projects.
 
 ## Install via Composer
 
-### Using `#[TestedBy]` on Production Code (Recommended)
-
-If you plan to use `#[TestedBy]` attributes on your production code, install as a **production** dependency:
+TestLink uses a two-package architecture:
 
 ```bash
-composer require testflowlabs/testlink
-```
+# Production dependency - attributes for production code
+composer require testflowlabs/test-attributes
 
-This is necessary because PHP needs the `TestedBy` attribute class available when loading your production classes.
-
-### CLI Tools Only
-
-If you only use the CLI tools (`testlink report`, `testlink validate`, etc.) without `#[TestedBy]` attributes on production code:
-
-```bash
+# Dev dependency - CLI tools, scanners, validators
 composer require --dev testflowlabs/testlink
 ```
 
-::: tip Dependency Note
-Both installations automatically include the `testflowlabs/test-attributes` package, which provides `#[LinksAndCovers]` and `#[Links]` attributes for your test code.
+### Why Two Packages?
+
+The `test-attributes` package must be a **production** dependency because:
+
+- `#[TestedBy]` attributes are placed on production code (services, controllers, models)
+- `#[LinksAndCovers]` and `#[Links]` attributes may reference production classes
+- PHP needs these attribute classes available when autoloading your code
+
+The `testlink` package can be a **dev** dependency because:
+
+- It only provides CLI tools (`testlink report`, `testlink validate`, `testlink sync`)
+- These tools run during development and CI/CD, not in production
+- It includes scanners, validators, and sync functionality
+
+::: warning Important
+If you install `testlink` as a dev dependency but don't install `test-attributes` as a production dependency, your application will fail to load production classes that use `#[TestedBy]` attributes in production environments.
 :::
 
 ## Verify Installation

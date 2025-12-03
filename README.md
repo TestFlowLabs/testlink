@@ -34,18 +34,23 @@ TestLink creates bidirectional links between your tests and production code. Kno
 ### Installation
 
 ```bash
-composer require testflowlabs/testlink
+# Production dependency - attributes for production code
+composer require testflowlabs/test-attributes
+
+# Dev dependency - CLI tools, scanners, validators
+composer require --dev testflowlabs/testlink
 ```
 
-This automatically installs [test-attributes](https://github.com/TestFlowLabs/test-attributes) which provides `#[LinksAndCovers]` and `#[Links]` attributes for PHPUnit.
+**Why two packages?**
 
-> **Note:** Install as a production dependency (without `--dev`) if you use `#[TestedBy]` on production code. PHP needs the attribute class available when loading those classes.
+- `test-attributes` must be a **production** dependency because `#[TestedBy]`, `#[LinksAndCovers]`, and `#[Links]` attributes are placed on production classes. PHP needs these attribute classes available when autoloading your production code.
+- `testlink` can be a **dev** dependency because it only provides CLI tools (`testlink report`, `testlink validate`, `testlink sync`) that run during development.
 
 ### Link from Production Code (Recommended)
 
 ```php
 // app/Services/UserService.php
-use TestFlowLabs\TestLink\Attribute\TestedBy;
+use TestFlowLabs\TestingAttributes\TestedBy;
 
 class UserService
 {

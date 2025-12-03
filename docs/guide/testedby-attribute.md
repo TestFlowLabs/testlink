@@ -18,7 +18,7 @@ When both directions are in sync, validation passes. When they're out of sync, v
 
 namespace App\Services;
 
-use TestFlowLabs\TestLink\Attribute\TestedBy;
+use TestFlowLabs\TestingAttributes\TestedBy;
 
 class UserService
 {
@@ -64,7 +64,7 @@ public function create(string $name, string $email): User
 
 namespace App\Services;
 
-use TestFlowLabs\TestLink\Attribute\TestedBy;
+use TestFlowLabs\TestingAttributes\TestedBy;
 
 class OrderService
 {

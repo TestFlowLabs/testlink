@@ -179,7 +179,7 @@ public function create(): User
 namespace App\Services;
 
 use App\Tests\Unit\Services\PaymentServiceTest;
-use TestFlowLabs\TestLink\Attribute\TestedBy;
+use TestFlowLabs\TestingAttributes\TestedBy;
 
 class PaymentService
 {

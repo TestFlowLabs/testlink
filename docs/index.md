@@ -42,7 +42,7 @@ Mark production methods with the tests that cover them:
 
 namespace App\Services;
 
-use TestFlowLabs\TestLink\Attribute\TestedBy;
+use TestFlowLabs\TestingAttributes\TestedBy;
 
 class UserService
 {
