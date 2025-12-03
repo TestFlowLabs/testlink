@@ -295,6 +295,70 @@ testlink pair --placeholder=invalid
 
 **Solution:** Ensure placeholder starts with `@` followed by a letter
 
+## Detecting Unresolved Placeholders
+
+The `testlink validate` command automatically detects unresolved placeholders in your codebase:
+
+```bash
+testlink validate
+```
+
+Output when placeholders are found:
+
+```
+  Validation Report
+  ─────────────────
+
+  Unresolved Placeholders
+  ───────────────────────
+
+    ⚠ @user-create  (1 production, 2 tests)
+    ⚠ @A  (2 production, 0 tests)
+
+    ⚠ Run "testlink pair" to resolve placeholders.
+
+  Link Summary
+  ────────────
+
+    PHPUnit attribute links: 5
+    Pest method chain links: 10
+    Total links: 15
+
+  ✓ All links are valid!
+```
+
+### Normal vs Strict Mode
+
+| Mode | Placeholders Found | Exit Code |
+|------|-------------------|-----------|
+| Normal | Warning only | 0 |
+| `--strict` | Fails validation | 1 |
+
+Use `--strict` in CI/CD to ensure no placeholders are committed:
+
+```bash
+testlink validate --strict
+```
+
+### JSON Output
+
+For CI/CD integration, the JSON output includes placeholder information:
+
+```bash
+testlink validate --json
+```
+
+```json
+{
+  "valid": true,
+  "totalLinks": 15,
+  "unresolvedPlaceholders": [
+    {"id": "@user-create", "productionCount": 1, "testCount": 2},
+    {"id": "@A", "productionCount": 2, "testCount": 0}
+  ]
+}
+```
+
 ## Complete Example
 
 ### Step 1: Start with Placeholders

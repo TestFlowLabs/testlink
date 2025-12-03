@@ -54,7 +54,7 @@ Options:
 
 #### Validate
 
-Verify all coverage links are synchronized:
+Verify all coverage links are synchronized and detect unresolved placeholders:
 
 ```bash
 testlink validate
@@ -66,31 +66,66 @@ Success output:
   Validation Report
   ─────────────────
 
-  ✓ All links are synchronized!
+  Link Summary
+  ────────────
+
+    PHPUnit attribute links: 5
+    Pest method chain links: 10
+    Total links: 15
+
+  ✓ All links are valid!
 ```
 
-Failure output:
+Output with unresolved placeholders:
 
 ```
   Validation Report
   ─────────────────
 
-  Missing Link Calls in Tests
-  These #[TestedBy] attributes have no corresponding link calls:
+  Unresolved Placeholders
+  ───────────────────────
 
-    ✗ App\Services\UserService::create
-      → Tests\Unit\UserServiceTest::it creates user
+    ⚠ @user-create  (1 production, 2 tests)
+    ⚠ @A  (2 production, 0 tests)
 
-  Validation failed. Run "testlink sync" to fix issues.
+    ⚠ Run "testlink pair" to resolve placeholders.
+
+  Link Summary
+  ────────────
+
+    PHPUnit attribute links: 5
+    Pest method chain links: 10
+    Total links: 15
+
+  ✓ All links are valid!
+```
+
+Failure output (duplicate links):
+
+```
+  Validation Report
+  ─────────────────
+
+  Duplicate Links Found
+  ─────────────────────
+
+    ! Tests\Unit\UserServiceTest::test_creates_user
+      → App\Services\UserService::create
+
+  ⚠ Consider using only one linking method per test.
 ```
 
 Options:
 
 | Option | Description |
 |--------|-------------|
-| `--strict` | Fail on warnings |
+| `--strict` | Fail on warnings (including unresolved placeholders) |
 | `--json` | Output as JSON |
 | `--path=<dir>` | Limit scan to directory |
+
+::: tip Placeholder Detection
+The validate command automatically detects unresolved placeholders. In normal mode, this shows a warning but doesn't fail. Use `--strict` to fail when placeholders are found.
+:::
 
 #### Sync
 
