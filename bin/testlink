@@ -1,0 +1,45 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * TestLink CLI - Framework-agnostic test traceability tool.
+ *
+ * This is the entry point for the standalone CLI.
+ * For Pest integration, use the plugin via pest --help-test-link.
+ */
+
+// Find and load autoloader
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',           // Development
+    __DIR__ . '/../../../autoload.php',            // Installed as dependency
+    __DIR__ . '/../../../../vendor/autoload.php',  // Installed in vendor/bin
+];
+
+$loaded = false;
+
+foreach ($autoloadPaths as $autoloadPath) {
+    if (file_exists($autoloadPath)) {
+        require_once $autoloadPath;
+        $loaded = true;
+        break;
+    }
+}
+
+if (!$loaded) {
+    fwrite(
+        STDERR,
+        "Error: Could not find Composer autoloader.\n" .
+        "Run 'composer install' in the project root.\n"
+    );
+    exit(1);
+}
+
+// Run the application
+use TestFlowLabs\PestTestLink\Console\Application;
+
+$app = new Application();
+$exitCode = $app->run($argv);
+
+exit($exitCode);
