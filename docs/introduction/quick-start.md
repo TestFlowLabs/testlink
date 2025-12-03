@@ -146,9 +146,3 @@ public function test_complete_checkout_flow(): void
 ```
 
 :::
-
-## What's Next?
-
-- [Linking from Tests](/guide/covers-method-helper) - Learn all linking options
-- [CLI Commands](/guide/cli-commands) - Master the CLI
-- [Best Practices](/best-practices/) - Write better coverage links
