@@ -122,8 +122,3 @@ PhpStorm automatically recognizes PHP 8 attributes. If needed:
 
 Install PHP Intelephense or PHP Tools extension for attribute support.
 
-## Next Steps
-
-- [Quick Start](/introduction/quick-start) - Create your first coverage links
-- [Linking from Tests](/guide/covers-method-helper) - Link tests to production code
-- [CLI Commands](/guide/cli-commands) - Learn all available commands

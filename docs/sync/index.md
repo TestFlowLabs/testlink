@@ -84,8 +84,3 @@ Sync will report errors for:
 
 These errors are reported but don't stop processing of other files.
 
-## Next Steps
-
-- [Sync Command](/sync/sync-command) - Detailed command reference
-- [Dry Run Mode](/sync/dry-run) - Preview changes safely
-- [Pruning Orphans](/sync/pruning) - Clean up stale links
