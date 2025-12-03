@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use TestFlowLabs\TestLink\Attribute\TestedBy;
+use TestFlowLabs\TestingAttributes\TestedBy;
 
 describe('TestedBy Attribute', function (): void {
     it('can be instantiated with class and method', function (): void {

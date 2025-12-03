@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Fixtures\ProductionCode;
 
-use TestFlowLabs\TestLink\Attribute\TestedBy;
+use TestFlowLabs\TestingAttributes\TestedBy;
 
 /**
  * Example production code with bidirectional links.

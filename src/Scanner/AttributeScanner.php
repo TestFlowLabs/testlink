@@ -9,7 +9,7 @@ use ReflectionMethod;
 use ReflectionAttribute;
 use Composer\Autoload\ClassLoader;
 use TestFlowLabs\TestingAttributes\Links;
-use TestFlowLabs\TestLink\Attribute\TestedBy;
+use TestFlowLabs\TestingAttributes\TestedBy;
 use TestFlowLabs\TestingAttributes\LinksAndCovers;
 use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
 
