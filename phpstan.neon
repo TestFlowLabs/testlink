@@ -3,4 +3,8 @@ parameters:
     paths:
         - src
 
+    ignoreErrors:
+        # Trait is used at runtime via Plugin::uses()
+        - '#Trait TestFlowLabs\\TestLink\\Runtime\\TestLinkTrait is used zero times#'
+
     reportUnmatchedIgnoredErrors: true

@@ -1,31 +1,53 @@
 {
-    "name": "pestphp/pest-plugin-template",
-    "description": "My awesome plugin",
+    "name": "testflowlabs/testlink",
+    "description": "Framework-agnostic test traceability for PHP. Supports Pest and PHPUnit with bidirectional code-to-test linking.",
     "keywords": [
         "php",
-        "framework",
         "pest",
-        "unit",
-        "test",
+        "phpunit",
         "testing",
-        "plugin"
+        "coverage",
+        "traceability",
+        "testlink"
     ],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "TestFlowLabs",
+            "email": "hello@testflowlabs.com"
+        }
+    ],
+    "bin": [
+        "bin/testlink"
+    ],
     "require": {
         "php": "^8.3",
+        "nikic/php-parser": "^5.0",
+        "testflowlabs/test-attributes": "dev-master"
+    },
+    "suggest": {
+        "pestphp/pest": "For Pest testing framework integration",
+        "phpunit/phpunit": "For PHPUnit testing framework integration"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.26",
         "pestphp/pest": "^4.0.0",
-        "pestphp/pest-plugin": "^4.0.0"
+        "pestphp/pest-dev-tools": "^4.0.0",
+        "pestphp/pest-plugin": "^4.0.0",
+        "pestphp/pest-plugin-type-coverage": "^4.0"
     },
     "autoload": {
         "psr-4": {
-            "Pest\\PluginName\\": "src/"
+            "TestFlowLabs\\TestLink\\": "src/"
         },
         "files": [
             "src/Autoload.php"
         ]
     },
-    "require-dev": {
-        "pestphp/pest-dev-tools": "^4.0.0"
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -37,17 +59,20 @@
         }
     },
     "scripts": {
-        "refacto": "rector",
-        "lint": "pint",
-        "test:refacto": "rector --dry-run",
-        "test:lint": "pint --test",
-        "test:types": "phpstan analyse --ansi",
-        "test:unit": "pest --colors=always",
+        "rector": "rector",
+        "pint": "pint --parallel",
+        "test:rector": "rector --dry-run",
+        "test:pint": "pint --parallel --test",
+        "test:phpstan": "phpstan analyse --ansi",
+        "test:unit": "pest --parallel --coverage --min=60",
+        "test:types": "pest --type-coverage --parallel",
+        "test:mutation": "pest --mutate --parallel --everything --covered-only --min=50",
         "test": [
-            "@test:refacto",
-            "@test:lint",
-            "@test:types",
-            "@test:unit"
+            "@test:rector",
+            "@test:pint",
+            "@test:phpstan",
+            "@test:unit",
+            "@test:types"
         ]
     }
 }
