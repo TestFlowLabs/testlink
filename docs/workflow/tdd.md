@@ -205,6 +205,89 @@ Validation Report:
   Bidirectional links: 1
 ```
 
+## Using Placeholders for Faster Iteration
+
+During rapid TDD cycles, writing full class references can slow you down. **Placeholders** let you establish links quickly, then resolve them later.
+
+### With Placeholders
+
+Instead of full references during development:
+
+::: code-group
+
+```php [Test - Pest (with placeholder)]
+test('calculates total with tax', function () {
+    $calculator = new PriceCalculator();
+
+    expect($calculator->withTax(100, 0.20))->toBe(120.0);
+})->linksAndCovers('@tax');  // Quick placeholder
+```
+
+```php [Production (with placeholder)]
+use TestFlowLabs\TestingAttributes\TestedBy;
+
+class PriceCalculator
+{
+    #[TestedBy('@tax')]  // Quick placeholder
+    public function withTax(float $price, float $taxRate): float
+    {
+        return $price * (1 + $taxRate);
+    }
+}
+```
+
+:::
+
+### Resolve When Ready
+
+After several TDD cycles, resolve all placeholders at once:
+
+```bash
+# Preview what will change
+testlink pair --dry-run
+
+# Apply changes
+testlink pair
+```
+
+The placeholders become real class references:
+
+::: code-group
+
+```php [Test - Pest (resolved)]
+test('calculates total with tax', function () {
+    $calculator = new PriceCalculator();
+
+    expect($calculator->withTax(100, 0.20))->toBe(120.0);
+})->linksAndCovers(PriceCalculator::class.'::withTax');
+```
+
+```php [Production (resolved)]
+use TestFlowLabs\TestingAttributes\TestedBy;
+
+class PriceCalculator
+{
+    #[TestedBy('Tests\Unit\PriceCalculationTest', 'it calculates total with tax')]
+    public function withTax(float $price, float $taxRate): float
+    {
+        return $price * (1 + $taxRate);
+    }
+}
+```
+
+:::
+
+### When to Use Placeholders
+
+| Situation | Recommendation |
+|-----------|----------------|
+| Rapid iteration, design unstable | Use placeholders (`@A`, `@B`) |
+| Single focused feature | Use descriptive placeholder (`@price-calc`) |
+| Design is stable | Use full class references directly |
+| Before committing | Run `testlink pair` to resolve |
+
+See the [Placeholder Pairing Guide](/guide/placeholder-pairing) for complete documentation.
+
 ## When to Add Links
 
 | Phase | Focus | Links? |

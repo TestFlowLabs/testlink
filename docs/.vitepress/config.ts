@@ -45,6 +45,7 @@ export default defineConfig({
         items: [
           { text: 'Test Coverage Links', link: '/guide/test-coverage-links' },
           { text: 'Linking from Tests', link: '/guide/covers-method-helper' },
+          { text: 'Placeholder Pairing', link: '/guide/placeholder-pairing' },
           { text: 'CLI Commands', link: '/guide/cli-commands' },
           { text: 'Validation', link: '/guide/validation' },
         ]

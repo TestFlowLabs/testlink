@@ -268,6 +268,61 @@ Validation Report:
   Bidirectional links: 2
 ```
 
+## Using Placeholders in BDD
+
+When developing multiple scenarios that map to the same service, placeholders speed up the workflow:
+
+### During Development
+
+```php
+// tests/Feature/ShoppingCartTest.php
+
+describe('Shopping Cart', function () {
+
+    test('add item to empty cart', function () {
+        $cart = new CartService();
+        $cart->add(['price' => 29.99]);
+        expect($cart->total())->toBe(29.99);
+    })->linksAndCovers('@cart');  // Placeholder
+
+    test('add multiple items', function () {
+        $cart = new CartService();
+        $cart->add(['price' => 10.00]);
+        $cart->add(['price' => 20.00]);
+        expect($cart->total())->toBe(30.00);
+    })->linksAndCovers('@cart');  // Same placeholder
+
+    test('apply discount code', function () {
+        // ...
+    })->linksAndCovers('@discount');  // Different feature
+
+});
+```
+
+```php
+// app/Services/CartService.php
+
+class CartService
+{
+    #[TestedBy('@cart')]  // Links to all tests with @cart
+    public function add(array $item): void
+    {
+        // ...
+    }
+}
+```
+
+### Resolve Before Committing
+
+```bash
+testlink pair --dry-run  # Preview
+testlink pair            # Apply
+```
+
+The `@cart` placeholder links the `add()` method to both "add item to empty cart" and "add multiple items" tests automatically (N:M matching).
+
+See the [Placeholder Pairing Guide](/guide/placeholder-pairing) for complete documentation.
+
 ## With pest-plugin-bdd Step Definitions
 
 If using Gherkin step definitions:

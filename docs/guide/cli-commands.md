@@ -137,6 +137,71 @@ testlink sync --path=src/Services
 testlink sync --framework=phpunit
 ```
 
+#### Pair
+
+Resolve placeholder markers (`@A`, `@user-create`) into real test-production links:
+
+```bash
+testlink pair
+```
+
+Placeholders are temporary markers used during rapid TDD/BDD development. Instead of writing full class references, you use short markers that get resolved later.
+
+Output:
+
+```
+  Pairing Placeholders
+  ────────────────────
+
+  Scanning for placeholders...
+
+  Found Placeholders
+  ──────────────────
+
+    ✓ @user-create  1 production × 2 tests = 2 links
+    ✓ @A  2 production × 3 tests = 6 links
+
+  Production Files
+  ────────────────
+
+    src/Services/UserService.php
+      @user-create → UserServiceTest::it creates a user
+
+  Test Files
+  ──────────
+
+    tests/Unit/UserServiceTest.php
+      @user-create → UserService::create
+
+  ✓ Pairing complete. Modified 2 file(s) with 8 change(s).
+```
+
+Options:
+
+| Option | Description |
+|--------|-------------|
+| `--dry-run` | Preview changes without applying |
+| `--placeholder=@X` | Resolve only the specified placeholder |
+
+Examples:
+
+```bash
+# Preview all placeholder resolutions
+testlink pair --dry-run
+
+# Apply all placeholder resolutions
+testlink pair
+
+# Resolve only a specific placeholder
+testlink pair --placeholder=@user-create
+```
+
+::: tip Placeholder Syntax
+Placeholders must start with `@` followed by a letter. Valid examples: `@A`, `@B`, `@user-create`, `@MyFeature123`.
+
+See the [Placeholder Pairing Guide](/guide/placeholder-pairing) for detailed usage.
+:::
+
 ### Global Options
 
 Available for all commands:
