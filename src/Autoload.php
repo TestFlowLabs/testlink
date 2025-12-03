@@ -2,17 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Pest\PluginName;
+namespace TestFlowLabs\TestLink;
 
-use Pest\Plugin;
-use PHPUnit\Framework\TestCase;
+use TestFlowLabs\TestLink\Runtime\TestLinkTrait;
 
-Plugin::uses(Example::class);
-
-/**
- * @return TestCase
- */
-function example(string $argument)
-{
-    return test()->example(...func_get_args()); // @phpstan-ignore-line
+// Register the trait for Pest tests (if Pest is available)
+if (class_exists(\Pest\Plugin::class)) {
+    \Pest\Plugin::uses(TestLinkTrait::class);
 }
