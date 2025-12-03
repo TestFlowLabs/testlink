@@ -6,6 +6,7 @@ namespace TestFlowLabs\TestLink\Console;
 
 use Composer\InstalledVersions;
 use TestFlowLabs\TestLink\Adapter\CompositeAdapter;
+use TestFlowLabs\TestLink\Console\Command\PairCommand;
 use TestFlowLabs\TestLink\Console\Command\SyncCommand;
 use TestFlowLabs\TestLink\Console\Command\ReportCommand;
 use TestFlowLabs\TestLink\Console\Command\ValidateCommand;
@@ -97,12 +98,15 @@ final class Application
         $reportCommand   = new ReportCommand();
         $validateCommand = new ValidateCommand();
         $syncCommand     = new SyncCommand();
+        $pairCommand     = new PairCommand();
 
         $this->commands['report'] = fn (ArgumentParser $parser, Output $output): int => $reportCommand->execute($parser, $output);
 
         $this->commands['validate'] = fn (ArgumentParser $parser, Output $output): int => $validateCommand->execute($parser, $output);
 
         $this->commands['sync'] = fn (ArgumentParser $parser, Output $output): int => $syncCommand->execute($parser, $output);
+
+        $this->commands['pair'] = fn (ArgumentParser $parser, Output $output): int => $pairCommand->execute($parser, $output);
     }
 
     /**
@@ -146,6 +150,7 @@ final class Application
         $this->output->listItem($this->output->cyan('report').'      Show coverage links report');
         $this->output->listItem($this->output->cyan('validate').'    Validate coverage link synchronization');
         $this->output->listItem($this->output->cyan('sync').'        Sync coverage links across test files');
+        $this->output->listItem($this->output->cyan('pair').'        Resolve placeholder markers into real links');
     }
 
     /**
@@ -160,6 +165,7 @@ final class Application
             'report'   => $this->showReportHelp(),
             'validate' => $this->showValidateHelp(),
             'sync'     => $this->showSyncHelp(),
+            'pair'     => $this->showPairHelp(),
             default    => $this->showHelp(),
         };
 
@@ -238,6 +244,43 @@ final class Application
         $this->output->writeln('    testlink sync');
         $this->output->writeln('    testlink sync --link-only');
         $this->output->writeln('    testlink sync --prune --force');
+        $this->output->newLine();
+    }
+
+    /**
+     * Show pair command help.
+     */
+    private function showPairHelp(): void
+    {
+        $this->output->section('PAIR COMMAND');
+        $this->output->writeln('    testlink pair [options]');
+        $this->output->newLine();
+        $this->output->writeln('  Resolve placeholder markers (@A, @user-create) into real test-production links.');
+        $this->output->newLine();
+
+        $this->output->section('PLACEHOLDER SYNTAX');
+        $this->output->writeln('    Production code:');
+        $this->output->writeln("      #[TestedBy('@A')]");
+        $this->output->writeln("      #[TestedBy('@user-create')]");
+        $this->output->newLine();
+        $this->output->writeln('    Test code (Pest):');
+        $this->output->writeln("      ->linksAndCovers('@A')");
+        $this->output->writeln("      ->links('@user-create')");
+        $this->output->newLine();
+        $this->output->writeln('    Test code (PHPUnit):');
+        $this->output->writeln("      #[LinksAndCovers('@A')]");
+        $this->output->writeln("      #[Links('@user-create')]");
+        $this->output->newLine();
+
+        $this->output->section('OPTIONS');
+        $this->output->listItem('--dry-run               Preview changes without modifying files');
+        $this->output->listItem('--placeholder=<id>      Resolve only a specific placeholder (e.g., @A)');
+        $this->output->newLine();
+
+        $this->output->section('EXAMPLES');
+        $this->output->writeln('    testlink pair --dry-run');
+        $this->output->writeln('    testlink pair');
+        $this->output->writeln('    testlink pair --placeholder=@A');
         $this->output->newLine();
     }
 
