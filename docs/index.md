@@ -33,11 +33,9 @@ features:
 
 ## Quick Example
 
-### Production Code
+::: code-group
 
-Mark production methods with the tests that cover them:
-
-```php
+```php [Production Code]
 <?php
 
 namespace App\Services;
@@ -54,12 +52,6 @@ class UserService
     }
 }
 ```
-
-### Test Code
-
-Link your tests to production methods:
-
-::: code-group
 
 ```php [Pest]
 test('creates a new user', function () {
@@ -141,12 +133,3 @@ Summary:
 ```
 
 :::
-
-## Part of the TestFlowLabs Ecosystem
-
-TestLink works seamlessly with other TestFlowLabs packages:
-
-- **[test-attributes](https://github.com/testflowlabs/test-attributes)** - PHP attributes for test metadata (`#[LinksAndCovers]`, `#[Links]`, etc.)
-- **[pest-plugin-bdd](https://github.com/testflowlabs/pest-plugin-bdd)** - BDD testing with Gherkin feature files
-
-Together, these packages provide a complete testing workflow from behavior specification to implementation validation.
