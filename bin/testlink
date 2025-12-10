@@ -37,7 +37,7 @@ if (!$loaded) {
 }
 
 // Run the application
-use TestFlowLabs\PestTestLink\Console\Application;
+use TestFlowLabs\TestLink\Console\Application;
 
 $app = new Application();
 $exitCode = $app->run($argv);
