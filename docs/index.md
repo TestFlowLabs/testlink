@@ -31,8 +31,6 @@ features:
     details: Generate TestedBy from tests or LinksAndCovers from production code automatically.
 ---
 
-## Quick Example
-
 ::: code-group
 
 ```php [Production Code]
@@ -53,7 +51,7 @@ class UserService
 }
 ```
 
-```php [Pest]
+```php [Test Code (Pest)]
 test('creates a new user', function () {
     $user = app(UserService::class)->create([
         'name' => 'John',
@@ -70,7 +68,7 @@ test('validates user email', function () {
 })->linksAndCovers(UserService::class.'::create');
 ```
 
-```php [PHPUnit]
+```php [Test Code (PHPUnit)]
 use TestFlowLabs\TestingAttributes\LinksAndCovers;
 
 class UserServiceTest extends TestCase
@@ -98,15 +96,7 @@ class UserServiceTest extends TestCase
 }
 ```
 
-:::
-
-### CLI Commands
-
-Use the standalone CLI that works with any framework:
-
-::: code-group
-
-```bash [Validate Links]
+```bash [CLI: Validate]
 $ testlink validate
 
 Validation Report:
@@ -117,7 +107,7 @@ Validation Report:
   Total links: 2
 ```
 
-```bash [Generate Report]
+```bash [CLI: Report]
 $ testlink report
 
 Coverage Links Report
