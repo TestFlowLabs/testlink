@@ -102,18 +102,7 @@ class UserServiceTest extends TestCase
 }
 ```
 
-```bash [CLI: Validate]
-$ testlink validate
-
-Validation Report:
-  ✓ All links are valid!
-
-  PHPUnit attribute links: 2
-  Pest method chain links: 0
-  Total links: 2
-```
-
-```bash [CLI: Report]
+```bash [CLI: report]
 $ testlink report
 
 Coverage Links Report
@@ -126,6 +115,42 @@ UserService::create
 Summary:
   Methods: 1
   Tests: 2
+```
+
+```bash [CLI: validate]
+$ testlink validate
+
+Validation Report:
+  ✓ All links are valid!
+
+  PHPUnit attribute links: 2
+  Pest method chain links: 0
+  Total links: 2
+```
+
+```bash [CLI: sync]
+$ testlink sync --dry-run
+
+Sync Preview
+────────────
+
+  + tests/UserServiceTest.php
+    → Adding linksAndCovers(UserService::create)
+      to: test_creates_a_new_user
+
+No changes applied (dry run).
+Run without --dry-run to apply.
+```
+
+```bash [CLI: pair]
+$ testlink pair
+
+Pairing Placeholders
+────────────────────
+
+  ✓ @user-create  1 production × 2 tests = 2 links
+
+  Modified 2 file(s) with 2 change(s).
 ```
 
 :::
