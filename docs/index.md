@@ -20,21 +20,27 @@ features:
   - icon: 🔗
     title: Bidirectional Links
     details: Create explicit links between production code and tests using TestedBy and LinksAndCovers attributes.
+    link: /guide/test-coverage-links
   - icon: 🎯
     title: Framework Agnostic
     details: Works seamlessly with Pest, PHPUnit, or both in the same project. No lock-in to a single framework.
+    link: /guide/covers-method-helper
   - icon: ✅
     title: Link Validation
     details: Validate that all links are synchronized and catch broken references before they reach production.
+    link: /guide/validation
   - icon: 🔄
     title: Auto-Sync
     details: Automatically generate missing links in either direction. Keep production and test code in sync.
+    link: /sync/
   - icon: 🚀
     title: CI/CD Ready
     details: JSON output, exit codes, and strict mode for seamless integration with GitHub Actions, GitLab CI, and more.
+    link: /best-practices/ci-integration
   - icon: 🛠️
     title: Standalone CLI
     details: Simple command-line interface with report, validate, sync, and pair commands. No runtime overhead.
+    link: /guide/cli-commands
 ---
 
 ::: code-group
