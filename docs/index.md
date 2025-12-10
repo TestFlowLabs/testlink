@@ -19,16 +19,22 @@ hero:
 features:
   - icon: 🔗
     title: Bidirectional Links
-    details: Link tests to production and production to tests. TestedBy on code, LinksAndCovers on tests.
+    details: Create explicit links between production code and tests using TestedBy and LinksAndCovers attributes.
   - icon: 🎯
     title: Framework Agnostic
-    details: Works with Pest, PHPUnit, or both in the same project. Use your preferred testing framework.
+    details: Works seamlessly with Pest, PHPUnit, or both in the same project. No lock-in to a single framework.
   - icon: ✅
-    title: Strict Validation
-    details: Ensure bidirectional links are synchronized. Catch mismatches before they reach production.
+    title: Link Validation
+    details: Validate that all links are synchronized and catch broken references before they reach production.
   - icon: 🔄
-    title: Bidirectional Sync
-    details: Generate TestedBy from tests or LinksAndCovers from production code automatically.
+    title: Auto-Sync
+    details: Automatically generate missing links in either direction. Keep production and test code in sync.
+  - icon: 🚀
+    title: CI/CD Ready
+    details: JSON output, exit codes, and strict mode for seamless integration with GitHub Actions, GitLab CI, and more.
+  - icon: 🛠️
+    title: Standalone CLI
+    details: Simple command-line interface with report, validate, sync, and pair commands. No runtime overhead.
 ---
 
 ::: code-group
