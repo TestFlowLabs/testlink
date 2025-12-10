@@ -79,7 +79,7 @@ final readonly class PlaceholderResult
     {
         $files = array_unique(
             array_map(
-                fn (PlaceholderAction $action) => $action->getProductionFilePath(),
+                fn (PlaceholderAction $action): string => $action->getProductionFilePath(),
                 $this->actions
             )
         );
@@ -98,7 +98,7 @@ final readonly class PlaceholderResult
     {
         $files = array_unique(
             array_map(
-                fn (PlaceholderAction $action) => $action->getTestFilePath(),
+                fn (PlaceholderAction $action): string => $action->getTestFilePath(),
                 $this->actions
             )
         );
@@ -136,7 +136,7 @@ final readonly class PlaceholderResult
         return array_values(
             array_filter(
                 $this->actions,
-                fn (PlaceholderAction $action) => $action->getProductionFilePath() === $filePath
+                fn (PlaceholderAction $action): bool => $action->getProductionFilePath() === $filePath
             )
         );
     }
@@ -151,7 +151,7 @@ final readonly class PlaceholderResult
         return array_values(
             array_filter(
                 $this->actions,
-                fn (PlaceholderAction $action) => $action->getTestFilePath() === $filePath
+                fn (PlaceholderAction $action): bool => $action->getTestFilePath() === $filePath
             )
         );
     }

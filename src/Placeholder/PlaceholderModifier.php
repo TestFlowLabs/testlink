@@ -94,7 +94,7 @@ final class PlaceholderModifier
 
         foreach ($actionsByPlaceholder as $placeholderId => $placeholderActions) {
             $testIdentifiers = array_map(
-                fn (PlaceholderAction $a) => $a->getTestIdentifier(),
+                fn (PlaceholderAction $a): string => $a->getTestIdentifier(),
                 $placeholderActions
             );
 
@@ -148,7 +148,7 @@ final class PlaceholderModifier
 
         foreach ($actionsByPlaceholder as $placeholderId => $placeholderActions) {
             $productionMethods = array_map(
-                fn (PlaceholderAction $a) => $a->getProductionMethodIdentifier(),
+                fn (PlaceholderAction $a): string => $a->getProductionMethodIdentifier(),
                 $placeholderActions
             );
 
@@ -195,11 +195,7 @@ final class PlaceholderModifier
             $replacements = [];
             foreach ($testIdentifiers as $testId) {
                 [$testClass, $testMethod] = $this->parseTestIdentifier($testId);
-                if ($testMethod !== null) {
-                    $replacements[] = "#[TestedBy('{$testClass}', '{$testMethod}')]";
-                } else {
-                    $replacements[] = "#[TestedBy('{$testClass}')]";
-                }
+                $replacements[]           = $testMethod !== null ? "#[TestedBy('{$testClass}', '{$testMethod}')]" : "#[TestedBy('{$testClass}')]";
             }
 
             $replacement = implode("\n    ", $replacements);
@@ -275,11 +271,7 @@ final class PlaceholderModifier
             }
 
             // Detect indentation from the matched line
-            if (preg_match('/^(\s*)#\[(LinksAndCovers|Links)/m', $code, $indentMatch)) {
-                $indent = $indentMatch[1];
-            } else {
-                $indent = '    ';
-            }
+            $indent = preg_match('/^(\s*)#\[(LinksAndCovers|Links)/m', $code, $indentMatch) ? $indentMatch[1] : '    ';
 
             $replacement = implode("\n".$indent, $replacements);
             $result      = preg_replace($pattern, $replacement, $code, 1);
@@ -410,7 +402,7 @@ final class PlaceholderModifier
         }
 
         // Add use statements
-        $useStatements = array_map(fn ($class) => "use {$class};", $classesToAdd);
+        $useStatements = array_map(fn ($class): string => "use {$class};", $classesToAdd);
 
         if (isset($lines[$insertLine - 1]) && preg_match('/^namespace\s+/', $lines[$insertLine - 1])) {
             array_splice($lines, $insertLine, 0, ['', ...$useStatements]);

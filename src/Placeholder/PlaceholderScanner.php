@@ -391,7 +391,7 @@ final class PlaceholderScanner
             if ($node instanceof Node\Stmt\Expression) {
                 $funcCall = $this->extractRootTestCall($node->expr);
 
-                if ($funcCall !== null) {
+                if ($funcCall instanceof \PhpParser\Node\Expr\FuncCall) {
                     $calls[] = $funcCall;
                 }
             }
@@ -537,7 +537,7 @@ final class PlaceholderScanner
 
         // Capitalize first letter of each segment
         $parts = explode('\\', $namespace);
-        $parts = array_map('ucfirst', $parts);
+        $parts = array_map(ucfirst(...), $parts);
 
         return implode('\\', $parts);
     }

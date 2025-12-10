@@ -36,7 +36,7 @@ final class ValidateCommand
         // Scan for unresolved placeholders
         $placeholderRegistry = $this->scanPlaceholders($path);
 
-        $isJson  = $parser->hasOption('json');
+        $isJson   = $parser->hasOption('json');
         $isStrict = $parser->hasOption('strict');
 
         if ($isJson) {

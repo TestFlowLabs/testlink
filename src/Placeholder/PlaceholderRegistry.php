@@ -71,7 +71,6 @@ final class PlaceholderRegistry
             filePath: $filePath,
             line: $line,
             type: 'production',
-            framework: null,
         );
 
         $this->productionEntries[$placeholder][] = $entry;
@@ -185,7 +184,7 @@ final class PlaceholderRegistry
      */
     public function getProductionEntryCount(): int
     {
-        return array_sum(array_map('count', $this->productionEntries));
+        return array_sum(array_map(count(...), $this->productionEntries));
     }
 
     /**
@@ -193,6 +192,6 @@ final class PlaceholderRegistry
      */
     public function getTestEntryCount(): int
     {
-        return array_sum(array_map('count', $this->testEntries));
+        return array_sum(array_map(count(...), $this->testEntries));
     }
 }

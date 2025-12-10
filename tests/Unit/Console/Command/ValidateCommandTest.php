@@ -2,11 +2,10 @@
 
 declare(strict_types=1);
 
-use TestFlowLabs\TestLink\Console\Command\ValidateCommand;
-use TestFlowLabs\TestLink\Console\ArgumentParser;
 use TestFlowLabs\TestLink\Console\Output;
-use TestFlowLabs\TestLink\Placeholder\PlaceholderRegistry;
 use TestFlowLabs\TestLink\Placeholder\PlaceholderScanner;
+use TestFlowLabs\TestLink\Console\Command\ValidateCommand;
+use TestFlowLabs\TestLink\Placeholder\PlaceholderRegistry;
 use Tests\Fixtures\Placeholder\Production\PlaceholderUserService;
 
 describe('ValidateCommand', function (): void {
@@ -224,17 +223,17 @@ describe('ValidateCommand', function (): void {
                 $placeholderIds = $registry->getAllPlaceholderIds();
 
                 return [
-                    'exists'           => true,
-                    'has_user_create'  => in_array('@user-create', $placeholderIds, true),
-                    'has_integration'  => in_array('@integration', $placeholderIds, true),
-                    'has_nested'       => in_array('@nested', $placeholderIds, true),
+                    'exists'          => true,
+                    'has_user_create' => in_array('@user-create', $placeholderIds, true),
+                    'has_integration' => in_array('@integration', $placeholderIds, true),
+                    'has_nested'      => in_array('@nested', $placeholderIds, true),
                 ];
             })
             ->toMatchArray([
-                'exists'           => true,
-                'has_user_create'  => true,
-                'has_integration'  => true,
-                'has_nested'       => true,
+                'exists'          => true,
+                'has_user_create' => true,
+                'has_integration' => true,
+                'has_nested'      => true,
             ]);
     });
 
@@ -261,17 +260,17 @@ describe('ValidateCommand', function (): void {
                 $placeholderIds = $registry->getAllPlaceholderIds();
 
                 return [
-                    'has_phpunit_test'   => in_array('@phpunit-test', $placeholderIds, true),
-                    'has_phpunit_links'  => in_array('@phpunit-links', $placeholderIds, true),
-                    'has_X'              => in_array('@X', $placeholderIds, true),
-                    'has_Y'              => in_array('@Y', $placeholderIds, true),
+                    'has_phpunit_test'  => in_array('@phpunit-test', $placeholderIds, true),
+                    'has_phpunit_links' => in_array('@phpunit-links', $placeholderIds, true),
+                    'has_X'             => in_array('@X', $placeholderIds, true),
+                    'has_Y'             => in_array('@Y', $placeholderIds, true),
                 ];
             })
             ->toMatchArray([
-                'has_phpunit_test'   => true,
-                'has_phpunit_links'  => true,
-                'has_X'              => true,
-                'has_Y'              => true,
+                'has_phpunit_test'  => true,
+                'has_phpunit_links' => true,
+                'has_X'             => true,
+                'has_Y'             => true,
             ]);
     });
 });
