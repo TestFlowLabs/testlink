@@ -217,7 +217,6 @@ describe('ValidateCommand', function (): void {
                 // Use reflection to call the private scanPestFile method
                 $reflection = new ReflectionClass($scanner);
                 $method     = $reflection->getMethod('scanPestFile');
-                $method->setAccessible(true);
                 $method->invoke($scanner, $fixturePath, $registry);
 
                 $placeholderIds = $registry->getAllPlaceholderIds();
@@ -247,7 +246,6 @@ describe('ValidateCommand', function (): void {
                 // Use reflection to call the private scanPhpUnitClass method
                 $reflection = new ReflectionClass($scanner);
                 $method     = $reflection->getMethod('scanPhpUnitClass');
-                $method->setAccessible(true);
 
                 // Load the fixture class first
                 $fixturePath = dirname(__DIR__, 3).'/Fixtures/Placeholder/Tests/PlaceholderPhpUnitFixture.php';
