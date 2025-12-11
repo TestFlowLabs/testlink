@@ -271,4 +271,149 @@ describe('ValidateCommand', function (): void {
                 'has_Y'             => true,
             ]);
     });
+
+    describe('command execution', function (): void {
+        beforeEach(function (): void {
+            $this->command = new ValidateCommand();
+            $this->parser  = new \TestFlowLabs\TestLink\Console\ArgumentParser();
+            $this->output  = new Output();
+        });
+
+        it('returns exit code as int')
+            ->linksAndCovers(ValidateCommand::class.'::execute')
+            ->expect(function () {
+                $this->parser->parse(['testlink', 'validate']);
+
+                return $this->command->execute($this->parser, $this->output);
+            })
+            ->toBeInt();
+
+        it('accepts --json flag')
+            ->linksAndCovers(ValidateCommand::class.'::execute')
+            ->expect(function () {
+                $this->parser->parse(['testlink', 'validate', '--json']);
+
+                return $this->parser->hasOption('json');
+            })
+            ->toBeTrue();
+
+        it('accepts --strict flag')
+            ->linksAndCovers(ValidateCommand::class.'::execute')
+            ->expect(function () {
+                $this->parser->parse(['testlink', 'validate', '--strict']);
+
+                return $this->parser->hasOption('strict');
+            })
+            ->toBeTrue();
+
+        it('accepts --path option')
+            ->linksAndCovers(ValidateCommand::class.'::execute')
+            ->expect(function () {
+                $this->parser->parse(['testlink', 'validate', '--path=/src']);
+
+                return $this->parser->getString('path');
+            })
+            ->toBe('/src');
+
+        it('returns exit code 0 with --json flag')
+            ->linksAndCovers(ValidateCommand::class.'::execute')
+            ->expect(function () {
+                $this->parser->parse(['testlink', 'validate', '--json', '--path=/nonexistent']);
+
+                return $this->command->execute($this->parser, $this->output);
+            })
+            ->toBe(0);
+    });
+
+    describe('empty project', function (): void {
+        beforeEach(function (): void {
+            $this->command = new ValidateCommand();
+            $this->parser  = new \TestFlowLabs\TestLink\Console\ArgumentParser();
+            $this->output  = new Output();
+        });
+
+        it('returns exit code 0 for empty project')
+            ->linksAndCovers(ValidateCommand::class.'::execute')
+            ->expect(function () {
+                $this->parser->parse(['testlink', 'validate', '--path=/nonexistent/empty/project']);
+
+                return $this->command->execute($this->parser, $this->output);
+            })
+            ->toBe(0);
+
+        it('returns exit code 0 for empty project with --json')
+            ->linksAndCovers(ValidateCommand::class.'::execute')
+            ->expect(function () {
+                $this->parser->parse(['testlink', 'validate', '--json', '--path=/nonexistent/empty/project']);
+
+                return $this->command->execute($this->parser, $this->output);
+            })
+            ->toBe(0);
+    });
+
+    describe('LinkValidator integration', function (): void {
+        it('creates valid validation result structure')
+            ->linksAndCovers(\TestFlowLabs\TestLink\Validator\LinkValidator::class.'::validate')
+            ->expect(function () {
+                $validator         = new \TestFlowLabs\TestLink\Validator\LinkValidator();
+                $attributeRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+                $runtimeRegistry   = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+
+                $result = $validator->validate($attributeRegistry, $runtimeRegistry);
+
+                return [
+                    'has_valid'           => array_key_exists('valid', $result),
+                    'has_attributeLinks'  => array_key_exists('attributeLinks', $result),
+                    'has_runtimeLinks'    => array_key_exists('runtimeLinks', $result),
+                    'has_duplicates'      => array_key_exists('duplicates', $result),
+                    'has_totalLinks'      => array_key_exists('totalLinks', $result),
+                ];
+            })
+            ->toMatchArray([
+                'has_valid'           => true,
+                'has_attributeLinks'  => true,
+                'has_runtimeLinks'    => true,
+                'has_duplicates'      => true,
+                'has_totalLinks'      => true,
+            ]);
+
+        it('returns valid true for empty registries')
+            ->linksAndCovers(\TestFlowLabs\TestLink\Validator\LinkValidator::class.'::validate')
+            ->expect(function () {
+                $validator         = new \TestFlowLabs\TestLink\Validator\LinkValidator();
+                $attributeRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+                $runtimeRegistry   = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+
+                $result = $validator->validate($attributeRegistry, $runtimeRegistry);
+
+                return $result['valid'];
+            })
+            ->toBeTrue();
+
+        it('returns zero duplicates for empty registries')
+            ->linksAndCovers(\TestFlowLabs\TestLink\Validator\LinkValidator::class.'::validate')
+            ->expect(function () {
+                $validator         = new \TestFlowLabs\TestLink\Validator\LinkValidator();
+                $attributeRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+                $runtimeRegistry   = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+
+                $result = $validator->validate($attributeRegistry, $runtimeRegistry);
+
+                return count($result['duplicates']);
+            })
+            ->toBe(0);
+
+        it('returns zero totalLinks for empty registries')
+            ->linksAndCovers(\TestFlowLabs\TestLink\Validator\LinkValidator::class.'::validate')
+            ->expect(function () {
+                $validator         = new \TestFlowLabs\TestLink\Validator\LinkValidator();
+                $attributeRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+                $runtimeRegistry   = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+
+                $result = $validator->validate($attributeRegistry, $runtimeRegistry);
+
+                return $result['totalLinks'];
+            })
+            ->toBe(0);
+    });
 });
