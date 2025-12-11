@@ -117,7 +117,26 @@ Verify all coverage links are synchronized and detect unresolved placeholders:
 testlink validate
 ```
 
-Success output:
+Output (empty project - no links yet):
+
+```
+  Validation Report
+  ─────────────────
+
+  Link Summary
+    PHPUnit attribute links: 0
+    Pest method chain links: 0
+    Total links: 0
+
+  No coverage links found.
+
+  Add coverage links to your test files:
+
+    Pest:    ->linksAndCovers(UserService::class.'::create')
+    PHPUnit: #[LinksAndCovers(UserService::class, 'create')]
+```
+
+Success output (with links):
 
 ```
   Validation Report
@@ -192,6 +211,19 @@ Synchronize `#[TestedBy]` attributes to test files:
 testlink sync
 ```
 
+Output (empty project - nothing to sync):
+
+```
+  Syncing Coverage Links
+  ──────────────────────
+  Running in dry-run mode. No files will be modified.
+
+  Scanning test files for coverage links...
+
+  No links found to sync.
+  No changes needed. All links are up to date.
+```
+
 This reads all `#[TestedBy]` attributes and adds corresponding links to test files:
 - **Pest**: Adds `->linksAndCovers()` method calls
 - **PHPUnit**: Adds `#[LinksAndCovers]` attributes
@@ -239,7 +271,24 @@ testlink pair
 
 Placeholders are temporary markers used during rapid TDD/BDD development. Instead of writing full class references, you use short markers that get resolved later.
 
-Output:
+Output (empty project - no placeholders):
+
+```
+  Pairing Placeholders
+  ────────────────────
+  Running in dry-run mode. No files will be modified.
+
+  Scanning for placeholders...
+
+  No placeholders found.
+
+  Placeholders use @syntax, for example:
+    Production: #[TestedBy('@A')]
+    Test (Pest): ->linksAndCovers('@A')
+    Test (PHPUnit): #[LinksAndCovers('@A')]
+```
+
+Output (with placeholders):
 
 ```
   Pairing Placeholders
@@ -349,6 +398,28 @@ The standalone `testlink` CLI is recommended because:
 - Better for CI/CD pipelines
 - Consistent behavior across projects
 :::
+
+## Error Handling
+
+### Unknown Command
+
+```bash
+testlink unknown
+```
+
+Output:
+
+```
+  Unknown command: unknown
+
+  COMMANDS
+    • report      Show coverage links report
+    • validate    Validate coverage link synchronization
+    • sync        Sync coverage links across test files
+    • pair        Resolve placeholder markers into real links
+```
+
+Exit code: `1`
 
 ## Exit Codes
 
