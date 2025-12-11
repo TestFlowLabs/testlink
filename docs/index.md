@@ -111,52 +111,72 @@ class UserServiceTest extends TestCase
 ```bash [CLI: report]
 $ testlink report
 
-Coverage Links Report
-─────────────────────
+  Coverage Links Report
+  ─────────────────────
 
-UserService::create
-  → UserServiceTest::test_creates_a_new_user
-  → UserServiceTest::test_validates_user_email
+  App\Services\UserService
 
-Summary:
-  Methods: 1
-  Tests: 2
+    create()
+      → Tests\Unit\UserServiceTest::test_creates_a_new_user
+      → Tests\Unit\UserServiceTest::test_validates_user_email
+
+  Summary
+    Methods with tests: 1
+    Total test links: 2
 ```
 
 ```bash [CLI: validate]
 $ testlink validate
 
-Validation Report:
-  ✓ All links are valid!
+  Validation Report
+  ─────────────────
 
-  PHPUnit attribute links: 2
-  Pest method chain links: 0
-  Total links: 2
+  Link Summary
+    PHPUnit attribute links: 2
+    Pest method chain links: 0
+    Total links: 2
+
+  ✓ All links are valid!
 ```
 
-```bash [CLI: sync]
+```bash [CLI: sync --dry-run]
 $ testlink sync --dry-run
 
-Sync Preview
-────────────
+  Syncing Coverage Links
+  ──────────────────────
+  Running in dry-run mode. No files will be modified.
 
-  + tests/UserServiceTest.php
-    → Adding linksAndCovers(UserService::create)
-      to: test_creates_a_new_user
+  Scanning test files for coverage links...
 
-No changes applied (dry run).
-Run without --dry-run to apply.
+  Changes to apply:
+    tests/Unit/UserServiceTest.php
+      + linksAndCovers(UserService::class.'::create')
+
+  Dry run complete. Would modify 1 file(s).
+
+    Run without --dry-run to apply changes:
+    testlink sync
 ```
 
-```bash [CLI: pair]
-$ testlink pair
+```bash [CLI: pair --dry-run]
+$ testlink pair --dry-run
 
-Pairing Placeholders
-────────────────────
+  Pairing Placeholders
+  ────────────────────
+  Running in dry-run mode. No files will be modified.
 
-  ✓ @user-create  1 production × 2 tests = 2 links
+  Found Placeholders
+    ✓ @user-create  1 production × 2 tests = 2 links
 
-  Modified 2 file(s) with 2 change(s).
+  Production Files
+    src/Services/UserService.php
+      @user-create → UserServiceTest::test_creates_a_new_user
+
+  Test Files
+    tests/Unit/UserServiceTest.php
+      @user-create → UserService::create
+
+  Dry run complete. Would modify 2 file(s) with 2 change(s).
 ```
 
 :::

@@ -14,6 +14,50 @@ After installing via Composer, the `testlink` command is available at:
 ./vendor/bin/testlink
 ```
 
+### Getting Started
+
+When you first run testlink, it shows available commands and detected framework:
+
+```bash
+testlink
+```
+
+Output (Pest project):
+
+```
+  TestLink dev-master
+
+  Detected frameworks: pest (phpunit compatible)
+
+
+  USAGE
+    testlink <command> [options]
+
+  COMMANDS
+    • report      Show coverage links report
+    • validate    Validate coverage link synchronization
+    • sync        Sync coverage links across test files
+    • pair        Resolve placeholder markers into real links
+
+  GLOBAL OPTIONS
+    • --help, -h        Show help information
+    • --version, -v     Show version
+    • --verbose         Show detailed output
+    • --no-color        Disable colored output
+
+  Run "testlink <command> --help" for command-specific help.
+```
+
+Output (PHPUnit-only project):
+
+```
+  TestLink dev-master
+
+  Detected frameworks: phpunit
+
+  ...
+```
+
 ### Commands
 
 #### Report
@@ -24,7 +68,7 @@ Show coverage links from `#[TestedBy]` attributes:
 testlink report
 ```
 
-Output:
+Output (with links):
 
 ```
   Coverage Links Report
@@ -42,6 +86,19 @@ Output:
   Summary
     Methods with tests: 2
     Total test links: 3
+```
+
+Output (empty project - no links yet):
+
+```
+  Coverage Links Report
+  ─────────────────────
+  No coverage links found.
+
+  Add coverage links to your test files:
+
+    Pest:    ->linksAndCovers(UserService::class.'::create')
+    PHPUnit: #[LinksAndCovers(UserService::class, 'create')]
 ```
 
 Options:
