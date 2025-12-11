@@ -399,6 +399,216 @@ it('does something', function () {
 })->linksAndCovers(Service::class.'::method');
 ```
 
+### 8.5 Nested Describe Blocks
+
+```php
+describe('UserService', function () {
+    describe('create method', function () {
+        it('creates a user with valid data', function () {
+            // ...
+        })->linksAndCovers('@nested-describe');
+
+        it('validates email format', function () {
+            // ...
+        })->linksAndCovers('@nested-describe');
+    });
+
+    describe('delete method', function () {
+        it('soft deletes the user', function () {
+            // ...
+        })->linksAndCovers('@nested-describe');
+    });
+});
+```
+
+Production:
+```php
+#[TestedBy('@nested-describe')]
+public function create(): void { }
+
+#[TestedBy('@nested-describe')]
+public function delete(): void { }
+```
+
+```bash
+# Test identifier'lar su formatta olmali:
+# - UserService > create method > creates a user with valid data
+# - UserService > create method > validates email format
+# - UserService > delete method > soft deletes the user
+vendor/bin/testlink pair --dry-run
+```
+
+### 8.6 Arrow Function Syntax
+
+```php
+// Kisa test syntaxi
+test('arrow function test', fn() => expect(true)->toBeTrue())
+    ->linksAndCovers('@arrow-test');
+
+// Tek satirlik it()
+it('works with arrow', fn() => expect(1)->toBe(1))
+    ->linksAndCovers('@arrow-test');
+```
+
+Production:
+```php
+#[TestedBy('@arrow-test')]
+public function arrowMethod(): void { }
+```
+
+```bash
+# Arrow function testler de tespit edilmeli
+vendor/bin/testlink pair --dry-run
+vendor/bin/testlink pair
+```
+
+### 8.7 Ayni Method'da Birden Fazla Farkli Placeholder
+
+```php
+// Production - tek metod, birden fazla farkli placeholder
+class AuthService
+{
+    #[TestedBy('@auth-login')]
+    #[TestedBy('@auth-validation')]
+    #[TestedBy('@security-check')]
+    public function login(string $email, string $password): User
+    {
+        // ...
+    }
+}
+```
+
+```php
+// Tests - her placeholder farkli test grubu
+test('logs in user', fn() => ...)->linksAndCovers('@auth-login');
+test('validates credentials', fn() => ...)->linksAndCovers('@auth-validation');
+test('checks security rules', fn() => ...)->linksAndCovers('@security-check');
+```
+
+```bash
+# Her placeholder ayri ayri resolve edilmeli
+vendor/bin/testlink pair --dry-run
+
+# Belirli placeholder secimi
+vendor/bin/testlink pair --placeholder=@auth-login
+vendor/bin/testlink pair --placeholder=@auth-validation
+
+# Tumu
+vendor/bin/testlink pair
+```
+
+### 8.8 PHPUnit DataProvider ile Test
+
+```php
+use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
+use TestFlowLabs\TestingAttributes\LinksAndCovers;
+
+class CalculatorTest extends TestCase
+{
+    #[LinksAndCovers('@calc-add')]
+    #[DataProvider('additionProvider')]
+    public function test_addition(int $a, int $b, int $expected): void
+    {
+        $calc = new Calculator();
+        $this->assertEquals($expected, $calc->add($a, $b));
+    }
+
+    public static function additionProvider(): array
+    {
+        return [
+            [1, 2, 3],
+            [0, 0, 0],
+            [-1, 1, 0],
+        ];
+    }
+}
+```
+
+Production:
+```php
+#[TestedBy('@calc-add')]
+public function add(int $a, int $b): int { return $a + $b; }
+```
+
+```bash
+# DataProvider testler de tespit edilmeli
+vendor/bin/testlink validate
+vendor/bin/testlink pair --dry-run
+```
+
+---
+
+## Fase 9: Path ve Framework Filtreleri
+
+### 9.1 --path Secenegi
+
+```bash
+# Sadece belirli dizini tara
+vendor/bin/testlink report --path=src/Services
+vendor/bin/testlink report --path=app/Models
+
+# Test dizini ile
+vendor/bin/testlink validate --path=tests/Unit
+vendor/bin/testlink validate --path=tests/Feature
+
+# Sync ile
+vendor/bin/testlink sync --path=tests/Unit --dry-run
+```
+
+### 9.2 --framework Secenegi
+
+```bash
+# Sadece Pest testlerini isle
+vendor/bin/testlink report --framework=pest
+vendor/bin/testlink sync --framework=pest --dry-run
+
+# Sadece PHPUnit testlerini isle
+vendor/bin/testlink report --framework=phpunit
+vendor/bin/testlink sync --framework=phpunit --dry-run
+
+# Auto (varsayilan)
+vendor/bin/testlink sync --framework=auto --dry-run
+```
+
+### 9.3 Path ve Framework Birlikte
+
+```bash
+# Belirli dizinde, belirli framework
+vendor/bin/testlink sync --path=tests/Unit --framework=phpunit --dry-run
+vendor/bin/testlink report --path=src/Services --framework=pest
+```
+
+---
+
+## Fase 10: Ozel Karakterler ve Uzun Isimler
+
+### 10.1 Ozel Karakterli Test Isimleri
+
+```php
+test('it handles "quoted" strings', fn() => ...)
+    ->linksAndCovers('@special-chars');
+
+test("it works with 'single quotes'", fn() => ...)
+    ->linksAndCovers('@special-chars');
+
+test('handles émojis 🎉 and ünïcödé', fn() => ...)
+    ->linksAndCovers('@special-chars');
+```
+
+### 10.2 Cok Uzun Test Isimleri
+
+```php
+test('this is a very long test name that describes exactly what the test does including all edge cases and expected behaviors when the user performs a specific action', function () {
+    // ...
+})->linksAndCovers('@long-name');
+```
+
+```bash
+# Uzun isimler truncate edilmemeli, tam olarak eslesmeli
+vendor/bin/testlink pair --dry-run
+```
+
 ---
 
 ## Kontrol Listesi
