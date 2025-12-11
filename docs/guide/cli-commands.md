@@ -317,6 +317,23 @@ Output (with placeholders):
   ✓ Pairing complete. Modified 2 file(s) with 8 change(s).
 ```
 
+Output (nested describe blocks - Pest):
+
+```
+  Found Placeholders
+    ✓ @nested  2 production × 3 tests = 6 links
+
+  Production Files
+    src/Testing/NestedService.php
+      @nested → NestedServiceTest::NestedService > create method > creates with valid data
+      @nested → NestedServiceTest::NestedService > delete method > soft deletes
+```
+
+::: tip Nested Describe Identifiers
+When using nested `describe` blocks in Pest, test identifiers include the full path:
+`OuterDescribe > InnerDescribe > test name`
+:::
+
 Options:
 
 | Option | Description |
