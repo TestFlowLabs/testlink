@@ -58,7 +58,7 @@ COMMANDS
   validate    Validate coverage link synchronization
   sync        Sync coverage links across test files
 
-Detected frameworks: pest, phpunit
+Detected frameworks: pest (phpunit compatible)
 ```
 
 ## Framework Setup
