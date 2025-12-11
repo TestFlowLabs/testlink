@@ -86,12 +86,21 @@ final class CompositeAdapter
     }
 
     /**
-     * Get all available adapter names.
+     * Get framework description for display.
      *
      * @return list<string>
      */
     public function getAvailableFrameworks(): array
     {
+        if ($this->adapters === []) {
+            return ['none'];
+        }
+
+        // If Pest is available, it includes PHPUnit compatibility
+        if ($this->detector->isPestAvailable()) {
+            return ['pest (phpunit compatible)'];
+        }
+
         return array_map(
             fn (FrameworkAdapterInterface $adapter): string => $adapter->getName(),
             $this->adapters
