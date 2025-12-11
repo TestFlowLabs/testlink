@@ -279,15 +279,10 @@ final class PlaceholderScanner
         PlaceholderRegistry $registry,
         array $describePath = [],
     ): void {
-        // Find describe blocks and recurse
-        $describeCalls = $this->nodeFinder->find($ast, fn (Node $node): bool => $node instanceof Node\Expr\FuncCall
-            && $this->getFunctionName($node) === 'describe');
+        // Find DIRECT describe blocks only (not nested ones)
+        $describeCalls = $this->findDirectDescribeCalls($ast);
 
         foreach ($describeCalls as $describe) {
-            if (!$describe instanceof Node\Expr\FuncCall) {
-                continue;
-            }
-
             $describeName = $this->extractStringArg($describe);
 
             if ($describeName === null) {
@@ -321,6 +316,30 @@ final class PlaceholderScanner
             // Find linksAndCovers/links method calls with placeholders
             $this->findPlaceholderMethodCalls($call, $testIdentifier, $filePath, $registry);
         }
+    }
+
+    /**
+     * Find direct describe() calls (not nested ones).
+     *
+     * @param  array<Node>  $nodes
+     *
+     * @return list<Node\Expr\FuncCall>
+     */
+    private function findDirectDescribeCalls(array $nodes): array
+    {
+        $calls = [];
+
+        foreach ($nodes as $node) {
+            if ($node instanceof Node\Stmt\Expression && $node->expr instanceof Node\Expr\FuncCall) {
+                $funcName = $this->getFunctionName($node->expr);
+
+                if ($funcName === 'describe') {
+                    $calls[] = $node->expr;
+                }
+            }
+        }
+
+        return $calls;
     }
 
     /**
