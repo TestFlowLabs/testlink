@@ -5,11 +5,11 @@ export default defineConfig({
   description: 'Bidirectional Test-Method Linking for PHP (Pest & PHPUnit)',
 
   head: [
-    ['link', { rel: 'icon', type: 'image/png', href: '/testlink-logo.png' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/testlink-logo.svg' }],
   ],
 
   themeConfig: {
-    logo: '/testlink-logo.png',
+    logo: '/testlink-logo.svg',
 
     nav: [
       { text: 'Documentation', link: '/introduction/what-is-testlink' },
