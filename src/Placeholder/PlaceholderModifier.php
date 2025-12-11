@@ -86,19 +86,25 @@ final class PlaceholderModifier
         $changes      = [];
         $originalCode = $code;
 
-        // Group actions by placeholder for this file
-        $actionsByPlaceholder = [];
+        // Group actions by placeholder AND production method (to handle N:M correctly)
+        // Key: "placeholder|production_identifier" to group tests for each production method
+        $actionsByPlaceholderAndMethod = [];
         foreach ($actions as $action) {
-            $actionsByPlaceholder[$action->placeholderId][] = $action;
+            $key                                  = $action->placeholderId.'|'.$action->getProductionMethodIdentifier();
+            $actionsByPlaceholderAndMethod[$key][] = $action;
         }
 
-        foreach ($actionsByPlaceholder as $placeholderId => $placeholderActions) {
-            $testIdentifiers = array_map(
-                fn (PlaceholderAction $a): string => $a->getTestIdentifier(),
-                $placeholderActions
-            );
+        // Process each placeholder-method combination
+        foreach ($actionsByPlaceholderAndMethod as $key => $methodActions) {
+            [$placeholderId] = explode('|', $key, 2);
 
-            $result = $this->replaceProductionPlaceholder($code, $placeholderId, $testIdentifiers);
+            // Get unique test identifiers for this specific production method
+            $testIdentifiers = array_unique(array_map(
+                fn (PlaceholderAction $a): string => $a->getTestIdentifier(),
+                $methodActions
+            ));
+
+            $result = $this->replaceProductionPlaceholder($code, $placeholderId, array_values($testIdentifiers));
             if ($result['changed']) {
                 $code      = $result['code'];
                 $changes[] = [
@@ -140,22 +146,28 @@ final class PlaceholderModifier
         // Determine if this is a Pest or PHPUnit file
         $isPest = $this->isPestFile($code);
 
-        // Group actions by placeholder for this file
-        $actionsByPlaceholder = [];
+        // Group actions by placeholder AND test identifier (to handle N:M correctly)
+        // Key: "placeholder|test_identifier" to group production methods for each test
+        $actionsByPlaceholderAndTest = [];
         foreach ($actions as $action) {
-            $actionsByPlaceholder[$action->placeholderId][] = $action;
+            $key                                = $action->placeholderId.'|'.$action->getTestIdentifier();
+            $actionsByPlaceholderAndTest[$key][] = $action;
         }
 
-        foreach ($actionsByPlaceholder as $placeholderId => $placeholderActions) {
-            $productionMethods = array_map(
+        // Process each placeholder-test combination
+        foreach ($actionsByPlaceholderAndTest as $key => $testActions) {
+            [$placeholderId] = explode('|', $key, 2);
+
+            // Get unique production methods for this specific test
+            $productionMethods = array_unique(array_map(
                 fn (PlaceholderAction $a): string => $a->getProductionMethodIdentifier(),
-                $placeholderActions
-            );
+                $testActions
+            ));
 
             if ($isPest) {
-                $result = $this->replacePestPlaceholder($code, $placeholderId, $productionMethods);
+                $result = $this->replacePestPlaceholder($code, $placeholderId, array_values($productionMethods));
             } else {
-                $result = $this->replacePhpUnitPlaceholder($code, $placeholderId, $productionMethods);
+                $result = $this->replacePhpUnitPlaceholder($code, $placeholderId, array_values($productionMethods));
             }
 
             if ($result['changed']) {
