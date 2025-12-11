@@ -11,10 +11,11 @@ declare(strict_types=1);
  */
 
 // Find and load autoloader
+// Priority: host project's autoloader first, then development fallback
 $autoloadPaths = [
-    __DIR__ . '/../vendor/autoload.php',           // Development
-    __DIR__ . '/../../../autoload.php',            // Installed as dependency
-    __DIR__ . '/../../../../vendor/autoload.php',  // Installed in vendor/bin
+    __DIR__ . '/../../../autoload.php',            // Installed as dependency (vendor/testflowlabs/testlink/bin)
+    getcwd() . '/vendor/autoload.php',             // Host project's autoloader (symlink/path installs)
+    __DIR__ . '/../vendor/autoload.php',           // Development (running from testlink repo itself)
 ];
 
 $loaded = false;
