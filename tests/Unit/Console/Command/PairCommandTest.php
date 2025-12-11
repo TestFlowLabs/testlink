@@ -114,13 +114,13 @@ describe('PairCommand', function (): void {
                 );
 
                 return [
-                    'has_entries'  => $registry->hasProductionEntries('@test'),
-                    'entry_count'  => count($registry->getProductionEntries('@test')),
+                    'has_entries' => $registry->hasProductionEntries('@test'),
+                    'entry_count' => count($registry->getProductionEntries('@test')),
                 ];
             })
             ->toMatchArray([
-                'has_entries'  => true,
-                'entry_count'  => 1,
+                'has_entries' => true,
+                'entry_count' => 1,
             ]);
 
         it('registers test placeholder correctly')
@@ -136,13 +136,13 @@ describe('PairCommand', function (): void {
                 );
 
                 return [
-                    'has_entries'  => $registry->hasTestEntries('@test'),
-                    'entry_count'  => count($registry->getTestEntries('@test')),
+                    'has_entries' => $registry->hasTestEntries('@test'),
+                    'entry_count' => count($registry->getTestEntries('@test')),
                 ];
             })
             ->toMatchArray([
-                'has_entries'  => true,
-                'entry_count'  => 1,
+                'has_entries' => true,
+                'entry_count' => 1,
             ]);
 
         it('returns all placeholder IDs sorted')

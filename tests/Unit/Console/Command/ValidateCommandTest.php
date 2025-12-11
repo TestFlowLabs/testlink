@@ -362,19 +362,19 @@ describe('ValidateCommand', function (): void {
                 $result = $validator->validate($attributeRegistry, $runtimeRegistry);
 
                 return [
-                    'has_valid'           => array_key_exists('valid', $result),
-                    'has_attributeLinks'  => array_key_exists('attributeLinks', $result),
-                    'has_runtimeLinks'    => array_key_exists('runtimeLinks', $result),
-                    'has_duplicates'      => array_key_exists('duplicates', $result),
-                    'has_totalLinks'      => array_key_exists('totalLinks', $result),
+                    'has_valid'          => array_key_exists('valid', $result),
+                    'has_attributeLinks' => array_key_exists('attributeLinks', $result),
+                    'has_runtimeLinks'   => array_key_exists('runtimeLinks', $result),
+                    'has_duplicates'     => array_key_exists('duplicates', $result),
+                    'has_totalLinks'     => array_key_exists('totalLinks', $result),
                 ];
             })
             ->toMatchArray([
-                'has_valid'           => true,
-                'has_attributeLinks'  => true,
-                'has_runtimeLinks'    => true,
-                'has_duplicates'      => true,
-                'has_totalLinks'      => true,
+                'has_valid'          => true,
+                'has_attributeLinks' => true,
+                'has_runtimeLinks'   => true,
+                'has_duplicates'     => true,
+                'has_totalLinks'     => true,
             ]);
 
         it('returns valid true for empty registries')

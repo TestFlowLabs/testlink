@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use TestFlowLabs\TestLink\Console\Output;
 use TestFlowLabs\TestLink\Console\ArgumentParser;
-use TestFlowLabs\TestLink\Console\Command\ReportCommand;
 use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
+use TestFlowLabs\TestLink\Console\Command\ReportCommand;
 
 describe('ReportCommand', function (): void {
     beforeEach(function (): void {
