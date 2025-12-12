@@ -11,3 +11,4 @@ coverage.xml
 *.swo
 .phpunit.cache
 .DS_Store
+docs/cli-outputs/
