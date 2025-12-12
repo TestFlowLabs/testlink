@@ -76,11 +76,12 @@ final class SyncCommand
         }
 
         // Get modified files and @see actions
-        $modifiedFiles = $result->modifiedFiles;
-        $prunedFiles   = $result->prunedFiles;
-        $seeActions    = $result->seeActions;
+        $modifiedFiles   = $result->modifiedFiles;
+        $prunedFiles     = $result->prunedFiles;
+        $seeActions      = $result->seeActions;
+        $seePruneActions = $result->seePruneActions;
 
-        if ($modifiedFiles === [] && $prunedFiles === [] && $seeActions === []) {
+        if ($modifiedFiles === [] && $prunedFiles === [] && $seeActions === [] && $seePruneActions === []) {
             $output->success('No changes needed. All links are up to date.');
             $output->newLine();
 
@@ -135,10 +136,27 @@ final class SyncCommand
             $output->newLine();
         }
 
+        // Report @see tag removals
+        if ($seePruneActions !== []) {
+            $action = $dryRun ? 'Would remove @see tags from' : 'Removed @see tags from';
+            $output->section($action);
+
+            foreach ($seePruneActions as $methodIdentifier => $references) {
+                $output->writeln('    '.$output->yellow('−').' '.$this->shortenMethod($methodIdentifier));
+
+                foreach ($references as $reference) {
+                    $output->writeln('      - '.$output->gray('@see '.$this->shortenMethod($reference)));
+                }
+            }
+
+            $output->newLine();
+        }
+
         // Summary
-        $modifiedCount = count($modifiedFiles);
-        $prunedCount   = count($prunedFiles);
-        $seeTagCount   = $result->seeTagsAdded;
+        $modifiedCount   = count($modifiedFiles);
+        $prunedCount     = count($prunedFiles);
+        $seeTagCount     = $result->seeTagsAdded;
+        $seePruneCount   = $result->seeTagsPruned;
 
         if ($dryRun) {
             if ($modifiedCount > 0) {
@@ -151,6 +169,10 @@ final class SyncCommand
 
             if ($seeTagCount > 0) {
                 $output->info("Would add {$seeTagCount} @see tag(s).");
+            }
+
+            if ($seePruneCount > 0) {
+                $output->info("Would remove {$seePruneCount} orphan @see tag(s).");
             }
 
             $output->newLine();
@@ -167,6 +189,10 @@ final class SyncCommand
 
             if ($seeTagCount > 0) {
                 $output->success("Added {$seeTagCount} @see tag(s).");
+            }
+
+            if ($seePruneCount > 0) {
+                $output->success("Removed {$seePruneCount} orphan @see tag(s).");
             }
         }
 

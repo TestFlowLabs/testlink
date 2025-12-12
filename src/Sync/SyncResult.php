@@ -15,18 +15,21 @@ final readonly class SyncResult
      * @param  list<string>  $errors
      * @param  list<SyncAction>  $actions  planned actions (for dry-run)
      * @param  array<string, list<string>>  $seeActions  methodIdentifier => list of test references (for @see tags)
+     * @param  array<string, list<string>>  $seePruneActions  methodIdentifier => list of test references to remove
      */
     public function __construct(
         public bool $isDryRun = false,
         public int $linksAdded = 0,
         public int $linksPruned = 0,
         public int $seeTagsAdded = 0,
+        public int $seeTagsPruned = 0,
         public int $filesModified = 0,
         public array $modifiedFiles = [],
         public array $prunedFiles = [],
         public array $errors = [],
         public array $actions = [],
         public array $seeActions = [],
+        public array $seePruneActions = [],
     ) {}
 
     /**
@@ -34,8 +37,9 @@ final readonly class SyncResult
      *
      * @param  list<SyncAction>  $actions
      * @param  array<string, list<string>>  $seeActions  methodIdentifier => list of test references
+     * @param  array<string, list<string>>  $seePruneActions  methodIdentifier => list of test references to remove
      */
-    public static function dryRun(array $actions, array $seeActions = []): self
+    public static function dryRun(array $actions, array $seeActions = [], array $seePruneActions = []): self
     {
         // Build modifiedFiles from actions for CLI display
         $modifiedFiles = [];
@@ -56,13 +60,21 @@ final readonly class SyncResult
             $seeTagsCount += count($references);
         }
 
+        // Count @see tags to prune
+        $seePruneCount = 0;
+        foreach ($seePruneActions as $references) {
+            $seePruneCount += count($references);
+        }
+
         return new self(
             isDryRun: true,
             linksAdded: array_sum(array_map(fn (SyncAction $a): int => count($a->methodsToAdd), $actions)),
             seeTagsAdded: $seeTagsCount,
+            seeTagsPruned: $seePruneCount,
             modifiedFiles: $modifiedFiles,
             actions: $actions,
             seeActions: $seeActions,
+            seePruneActions: $seePruneActions,
         );
     }
 
@@ -112,7 +124,7 @@ final readonly class SyncResult
      */
     public function hasChanges(): bool
     {
-        return $this->linksAdded > 0 || $this->linksPruned > 0 || $this->seeTagsAdded > 0;
+        return $this->linksAdded > 0 || $this->linksPruned > 0 || $this->seeTagsAdded > 0 || $this->seeTagsPruned > 0;
     }
 
     /**
@@ -125,6 +137,7 @@ final readonly class SyncResult
             linksAdded: $this->linksAdded + $other->linksAdded,
             linksPruned: $this->linksPruned + $other->linksPruned,
             seeTagsAdded: $this->seeTagsAdded + $other->seeTagsAdded,
+            seeTagsPruned: $this->seeTagsPruned + $other->seeTagsPruned,
             filesModified: count(array_unique([
                 ...array_keys($this->modifiedFiles),
                 ...array_keys($this->prunedFiles),
@@ -136,6 +149,7 @@ final readonly class SyncResult
             errors: [...$this->errors, ...$other->errors],
             actions: [...$this->actions, ...$other->actions],
             seeActions: $this->mergeFileMaps($this->seeActions, $other->seeActions),
+            seePruneActions: $this->mergeFileMaps($this->seePruneActions, $other->seePruneActions),
         );
     }
 
