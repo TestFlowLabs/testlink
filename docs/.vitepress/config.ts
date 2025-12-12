@@ -48,6 +48,7 @@ export default defineConfig({
           { text: 'Placeholder Pairing', link: '/guide/placeholder-pairing' },
           { text: 'CLI Commands', link: '/guide/cli-commands' },
           { text: 'Validation', link: '/guide/validation' },
+          { text: 'Troubleshooting', link: '/guide/troubleshooting' },
         ]
       },
       {
