@@ -107,6 +107,38 @@ Output (empty project - no links yet):
     PHPUnit: #[LinksAndCovers(UserService::class, 'create')]
 ```
 
+Output (with @see tags):
+
+```
+  Coverage Links Report
+  ─────────────────────
+
+  App\Services\UserService
+
+    create()
+      → Tests\Unit\UserServiceTest::it creates a user
+
+  @see Tags
+  ─────────
+
+  Production code → Tests:
+    App\Services\UserService::create
+      → Tests\Unit\UserServiceTest::test_creates_user
+
+  Test code → Production:
+    Tests\Unit\UserServiceTest::test_creates_user
+      → App\Services\UserService::create
+
+  Summary
+    Methods with tests: 1
+    Total test links: 1
+    @see tags: 2
+```
+
+::: tip @see Tags
+@see tags provide full IDE method navigation. See [@see Tags Guide](/guide/see-tags) for details.
+:::
+
 Options:
 
 | Option | Description |
@@ -196,6 +228,33 @@ Failure output (duplicate links):
 
   ⚠ Consider using only one linking method per test.
 ```
+
+Output (with orphan @see tags):
+
+```
+  Validation Report
+  ─────────────────
+
+  Orphan @see Tags
+  ────────────────
+
+    ⚠ @see \Tests\Unit\OldTest::deleted_test
+      in src/Services/UserService.php:45
+
+  Link Summary
+  ────────────
+
+    PHPUnit attribute links: 5
+    Pest method chain links: 10
+    @see tags: 4 (1 orphan)
+    Total links: 15
+
+  ✓ All links are valid!
+```
+
+::: warning Orphan @see Tags
+Orphan @see tags point to tests or methods that no longer exist. Use `testlink sync --prune --force` to remove them.
+:::
 
 Options:
 
