@@ -187,7 +187,7 @@ final class PhpUnitTestModifier implements TestModifierInterface
      */
     private function ensureUseStatement(string $code, string $attributeName): string
     {
-        $useStatement = "use TestFlowLabs\\PestTestLink\\Attribute\\{$attributeName};";
+        $useStatement = "use TestFlowLabs\\TestingAttributes\\{$attributeName};";
 
         // Check if use statement already exists
         if (str_contains($code, $useStatement)) {
@@ -195,7 +195,7 @@ final class PhpUnitTestModifier implements TestModifierInterface
         }
 
         // Check if a partial use statement exists
-        if (str_contains($code, "TestFlowLabs\\PestTestLink\\Attribute\\{$attributeName}")) {
+        if (str_contains($code, "TestFlowLabs\\TestingAttributes\\{$attributeName}")) {
             return $code;
         }
 
