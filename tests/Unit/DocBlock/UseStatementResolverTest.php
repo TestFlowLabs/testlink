@@ -259,4 +259,94 @@ PHP;
             expect($result['error'])->toBeNull();
         });
     });
+
+    describe('full namespace paths', function (): void {
+        it('resolves full namespace path without leading backslash', function (): void {
+            $code = <<<'PHP'
+<?php
+
+namespace App\Services;
+
+class UserService {}
+PHP;
+            $filePath = $this->fixtureDir.'/UserService.php';
+            file_put_contents($filePath, $code);
+
+            // Full namespace path without leading backslash
+            $result = $this->resolver->resolve('Tests\Unit\UserServiceTest::testCreate', $filePath);
+
+            expect($result['fqcn'])->toBe('\Tests\Unit\UserServiceTest::testCreate');
+            expect($result['error'])->toBeNull();
+        });
+
+        it('resolves App namespace path without leading backslash', function (): void {
+            $code = <<<'PHP'
+<?php
+
+namespace App\Services;
+
+class UserService {}
+PHP;
+            $filePath = $this->fixtureDir.'/UserService.php';
+            file_put_contents($filePath, $code);
+
+            $result = $this->resolver->resolve('App\Models\User::create', $filePath);
+
+            expect($result['fqcn'])->toBe('\App\Models\User::create');
+            expect($result['error'])->toBeNull();
+        });
+
+        it('resolves class-only full namespace path', function (): void {
+            $code = <<<'PHP'
+<?php
+
+namespace App\Services;
+
+class UserService {}
+PHP;
+            $filePath = $this->fixtureDir.'/UserService.php';
+            file_put_contents($filePath, $code);
+
+            $result = $this->resolver->resolve('Tests\Unit\UserServiceTest', $filePath);
+
+            expect($result['fqcn'])->toBe('\Tests\Unit\UserServiceTest');
+            expect($result['error'])->toBeNull();
+        });
+
+        it('does not treat lowercase namespace segments as full path', function (): void {
+            $code = <<<'PHP'
+<?php
+
+namespace App\Services;
+
+class UserService {}
+PHP;
+            $filePath = $this->fixtureDir.'/UserService.php';
+            file_put_contents($filePath, $code);
+
+            // Lowercase segments violate PSR-4 - should not be auto-resolved
+            $result = $this->resolver->resolve('tests\unit\UserServiceTest::testCreate', $filePath);
+
+            expect($result['fqcn'])->toBeNull();
+            expect($result['error'])->toContain('Could not resolve');
+        });
+
+        it('prioritizes FQCN with backslash over namespace path detection', function (): void {
+            $code = <<<'PHP'
+<?php
+
+namespace App\Services;
+
+class UserService {}
+PHP;
+            $filePath = $this->fixtureDir.'/UserService.php';
+            file_put_contents($filePath, $code);
+
+            // Already FQCN - should return as-is
+            $result = $this->resolver->resolve('\Tests\Unit\UserServiceTest::testCreate', $filePath);
+
+            expect($result['fqcn'])->toBe('\Tests\Unit\UserServiceTest::testCreate');
+            expect($result['error'])->toBeNull();
+        });
+    });
 });

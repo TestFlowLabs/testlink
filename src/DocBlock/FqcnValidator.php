@@ -165,6 +165,9 @@ final class FqcnValidator
 
     /**
      * Replace a @see reference in code.
+     *
+     * The line number is the method start line, so the @see tag may be
+     * in the docblock above it. We search lines above the method for the @see tag.
      */
     private function replaceReference(
         string $code,
@@ -174,25 +177,28 @@ final class FqcnValidator
     ): string {
         $lines = explode("\n", $code);
 
-        // Adjust for 0-based array index
-        $lineIndex = $line - 1;
-
-        if (!isset($lines[$lineIndex])) {
-            return $code;
-        }
-
-        // Replace the @see reference in this line
         // Pattern: @see followed by the original reference
         $escapedOriginal = preg_quote($original, '/');
         $pattern         = '/(@see\s+)'.$escapedOriginal.'(\s|$)/';
 
-        $lines[$lineIndex] = preg_replace(
-            $pattern,
-            '$1'.$replacement.'$2',
-            $lines[$lineIndex],
-            1
-        ) ?? $lines[$lineIndex];
+        // Search for the @see tag in lines near the method (docblock is typically above)
+        // Start from 20 lines above the method and search down to the method line
+        $startLine = max(0, $line - 20);
+        $endLine   = min(count($lines), $line);
 
-        return implode("\n", $lines);
+        for ($i = $startLine; $i < $endLine; $i++) {
+            if (preg_match($pattern, $lines[$i])) {
+                $lines[$i] = preg_replace(
+                    $pattern,
+                    '$1'.$replacement.'$2',
+                    $lines[$i],
+                    1
+                ) ?? $lines[$i];
+
+                return implode("\n", $lines);
+            }
+        }
+
+        return $code;
     }
 }

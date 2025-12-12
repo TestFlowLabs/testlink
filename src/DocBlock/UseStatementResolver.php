@@ -59,7 +59,19 @@ final class UseStatementResolver
             return ['fqcn' => null, 'error' => 'Method-only reference cannot be resolved'];
         }
 
-        // Try to resolve the class name
+        // Check if it looks like a full namespace path without leading backslash
+        // e.g., "Tests\Unit\UserServiceTest" should be converted to "\Tests\Unit\UserServiceTest"
+        if ($this->looksLikeNamespacePath($className)) {
+            $fqcn = '\\'.$className;
+
+            if ($methodName !== null) {
+                $fqcn .= '::'.$methodName;
+            }
+
+            return ['fqcn' => $fqcn, 'error' => null];
+        }
+
+        // Try to resolve the class name via use statements
         $resolvedClass = $this->resolveClassName(
             $className,
             $fileInfo['uses'],
@@ -103,6 +115,36 @@ final class UseStatementResolver
 
         // Looks like method-only reference
         return [null, $reference];
+    }
+
+    /**
+     * Check if a class name looks like a full namespace path.
+     *
+     * Examples that return true:
+     * - Tests\Unit\UserServiceTest
+     * - App\Services\UserService
+     *
+     * Examples that return false:
+     * - UserServiceTest (no namespace separator)
+     * - tests\unit\UserTest (lowercase segments - not PSR-4)
+     */
+    private function looksLikeNamespacePath(string $className): bool
+    {
+        // Must contain namespace separator
+        if (!str_contains($className, '\\')) {
+            return false;
+        }
+
+        // Each segment should start with uppercase (PSR-4 convention)
+        $segments = explode('\\', $className);
+
+        foreach ($segments as $segment) {
+            if ($segment === '' || !ctype_upper($segment[0])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
