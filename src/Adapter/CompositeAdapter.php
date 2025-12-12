@@ -66,16 +66,6 @@ final class CompositeAdapter
     }
 
     /**
-     * Register runtime for all available frameworks.
-     */
-    public function registerAllRuntimes(): void
-    {
-        foreach ($this->adapters as $adapter) {
-            $adapter->registerRuntime();
-        }
-    }
-
-    /**
      * Get all available adapters.
      *
      * @return list<FrameworkAdapterInterface>
@@ -102,7 +92,7 @@ final class CompositeAdapter
         }
 
         return array_map(
-            fn (FrameworkAdapterInterface $adapter): string => $adapter->getName(),
+            static fn (FrameworkAdapterInterface $adapter): string => $adapter->getName(),
             $this->adapters
         );
     }
@@ -112,7 +102,7 @@ final class CompositeAdapter
      */
     public function hasFramework(string $name): bool
     {
-        return $this->getAdapterByName($name) instanceof \TestFlowLabs\TestLink\Contract\FrameworkAdapterInterface;
+        return $this->getAdapterByName($name) instanceof FrameworkAdapterInterface;
     }
 
     /**
@@ -143,33 +133,5 @@ final class CompositeAdapter
         }
 
         return array_values(array_unique($patterns));
-    }
-
-    /**
-     * Parse test files and return test cases grouped by file.
-     *
-     * @param  list<string>  $filePaths
-     *
-     * @return array<string, list<\TestFlowLabs\TestLink\Sync\Parser\ParsedTestCase>>
-     */
-    public function parseTestFiles(array $filePaths): array
-    {
-        $result = [];
-
-        foreach ($filePaths as $filePath) {
-            $adapter = $this->getAdapterForFile($filePath);
-
-            if (!$adapter instanceof \TestFlowLabs\TestLink\Contract\FrameworkAdapterInterface) {
-                continue;
-            }
-
-            $tests = $adapter->getParser()->parseFile($filePath);
-
-            if ($tests !== []) {
-                $result[$filePath] = $tests;
-            }
-        }
-
-        return $result;
     }
 }
