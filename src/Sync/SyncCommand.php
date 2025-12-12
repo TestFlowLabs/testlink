@@ -7,6 +7,7 @@ namespace TestFlowLabs\TestLink\Sync;
 use TestFlowLabs\TestLink\DocBlock\SeeTagRegistry;
 use TestFlowLabs\TestLink\DocBlock\DocBlockScanner;
 use TestFlowLabs\TestLink\Scanner\AttributeScanner;
+use TestFlowLabs\TestLink\Scanner\PestLinkScanner;
 use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
 use TestFlowLabs\TestLink\Sync\Discovery\TestCaseFinder;
 use TestFlowLabs\TestLink\Sync\Modifier\TestFileModifier;
@@ -29,6 +30,7 @@ final class SyncCommand
 {
     public function __construct(
         private readonly AttributeScanner $scanner = new AttributeScanner(),
+        private readonly PestLinkScanner $pestScanner = new PestLinkScanner(),
         private readonly TestFileDiscovery $discovery = new TestFileDiscovery(),
         private readonly TestCaseFinder $finder = new TestCaseFinder(),
         private readonly TestFileModifier $modifier = new TestFileModifier(),
@@ -46,11 +48,15 @@ final class SyncCommand
 
         if ($options->path !== null) {
             $this->scanner->setProjectRoot($options->path);
+            $this->pestScanner->setProjectRoot($options->path);
             $this->docBlockScanner->setProjectRoot($options->path);
         }
 
         // Scan test files for #[LinksAndCovers]/#[Links] and production files for #[TestedBy]
         $this->scanner->discoverAndScanAll($registry);
+
+        // Also scan Pest test files for ->linksAndCovers() method chains
+        $this->pestScanner->scan($registry);
 
         // 2. Scan existing @see tags
         $seeRegistry = new SeeTagRegistry();
@@ -87,7 +93,8 @@ final class SyncCommand
 
         // 9. Handle pruning if requested
         if ($options->prune && $options->force) {
-            $testFiles   = $this->collectTestFiles($actions);
+            // Collect all test files that might have orphan links (not just from actions)
+            $testFiles   = $this->collectAllTestFiles($options->path);
             $pruneResult = $this->modifier->prune($testFiles, $registry);
             $result      = $result->merge($pruneResult);
 
@@ -153,21 +160,21 @@ final class SyncCommand
     }
 
     /**
-     * Collect unique test files from actions.
+     * Collect all test files that might contain links.
      *
-     * @param  list<SyncAction>  $actions
+     * Used for pruning to scan all test files, not just those from sync actions.
      *
      * @return list<string>
      */
-    private function collectTestFiles(array $actions): array
+    private function collectAllTestFiles(?string $projectRoot): array
     {
-        $files = [];
+        $scanner = new PestLinkScanner();
 
-        foreach ($actions as $action) {
-            $files[$action->testFile] = true;
+        if ($projectRoot !== null) {
+            $scanner->setProjectRoot($projectRoot);
         }
 
-        return array_keys($files);
+        return $scanner->discoverPestFiles();
     }
 
     /**
