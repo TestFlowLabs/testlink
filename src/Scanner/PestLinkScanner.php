@@ -171,7 +171,7 @@ final class PestLinkScanner
      */
     private function namespaceFromPath(string $filePath): string
     {
-        $projectRoot = $this->projectRoot ?? $this->detectProjectRoot();
+        $projectRoot  = $this->projectRoot ?? $this->detectProjectRoot();
         $relativePath = str_replace($projectRoot.'/', '', $filePath);
 
         // Remove .php extension
@@ -187,7 +187,7 @@ final class PestLinkScanner
 
         // Capitalize 'tests' to 'Tests'
         if (str_starts_with($namespace, 'tests\\')) {
-            $namespace = 'Tests\\'.substr($namespace, 6);
+            return 'Tests\\'.substr($namespace, 6);
         }
 
         return $namespace;

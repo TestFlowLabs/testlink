@@ -239,10 +239,6 @@ final class PestTestParser implements TestParserInterface
         $describeCalls = $this->findDirectDescribeCalls($ast);
 
         foreach ($describeCalls as $describe) {
-            if (!$describe instanceof Node\Expr\FuncCall) {
-                continue;
-            }
-
             $describeName = $this->extractTestName($describe);
 
             if ($describeName === null) {

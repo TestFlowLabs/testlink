@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace TestFlowLabs\TestLink\Sync;
 
 use TestFlowLabs\TestLink\DocBlock\SeeTagRegistry;
+use TestFlowLabs\TestLink\Scanner\PestLinkScanner;
 use TestFlowLabs\TestLink\DocBlock\DocBlockScanner;
 use TestFlowLabs\TestLink\Scanner\AttributeScanner;
-use TestFlowLabs\TestLink\Scanner\PestLinkScanner;
 use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
 use TestFlowLabs\TestLink\Sync\Discovery\TestCaseFinder;
 use TestFlowLabs\TestLink\Sync\Modifier\TestFileModifier;
