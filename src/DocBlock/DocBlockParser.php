@@ -139,16 +139,24 @@ final class DocBlockParser
     /**
      * Extract reference from @see value (may include description).
      *
+     * Supports both PHPUnit and Pest test naming conventions:
+     * - PHPUnit: camelCase or snake_case methods (testFoo, test_bar)
+     * - Pest: lowercase names with spaces (handles orphan test)
+     *
      * Examples:
      *   "\Foo\Bar::method" -> "\Foo\Bar::method"
-     *   "\Foo\Bar::method Some description" -> "\Foo\Bar::method"
+     *   "\Foo\Bar::testMethod Some description" -> "\Foo\Bar::testMethod"
+     *   "\Foo\Bar::handles orphan test" -> "\Foo\Bar::handles orphan test"
      *   "Foo\Bar" -> "Foo\Bar"
      */
     private function extractReferenceFromValue(string $value): string
     {
         // Match class reference with optional method
-        // Pattern: optional backslash, then word chars and backslashes, optionally ::methodName
-        if (preg_match('/^(\\\\?[\w\\\\]+(?:::\w+)?)\s*/', $value, $matches)) {
+        // Pattern handles both PHPUnit and Pest naming conventions:
+        // - test\w+ : PHPUnit methods starting with 'test' (no spaces)
+        // - [a-z]+(?:\s+[a-z]+)* : Pest lowercase names with spaces (stops at capital letters)
+        // - \w+ : Other methods (fallback, no spaces)
+        if (preg_match('/^(\\\\?[\w\\\\]+(?:::(?:test\w+|[a-z]+(?:\s+[a-z]+)*|\w+))?)\s*/', $value, $matches)) {
             return $matches[1];
         }
 
