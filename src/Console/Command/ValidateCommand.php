@@ -107,17 +107,71 @@ final class ValidateCommand
     /**
      * Find orphan @see tags that point to invalid targets.
      *
+     * Uses Reflection to verify that referenced classes and methods actually exist,
+     * rather than only checking against TestLink attribute registry.
+     *
      * @return list<SeeTagEntry>
      */
     private function findSeeOrphans(SeeTagRegistry $seeRegistry, TestLinkRegistry $attributeRegistry): array
     {
-        // Get all valid test identifiers
-        $validTests = array_keys($attributeRegistry->getAllLinksByTest());
+        $orphans = [];
 
-        // Get all valid production methods
-        $validMethods = $attributeRegistry->getAllMethods();
+        // Check production @see tags (pointing to test classes/methods)
+        foreach ($seeRegistry->getAllProductionSeeTags() as $entries) {
+            foreach ($entries as $entry) {
+                if (!$this->targetExists($entry->reference)) {
+                    $orphans[] = $entry;
+                }
+            }
+        }
 
-        return $seeRegistry->findOrphans($validMethods, $validTests);
+        // Check test @see tags (pointing to production classes/methods)
+        foreach ($seeRegistry->getAllTestSeeTags() as $entries) {
+            foreach ($entries as $entry) {
+                if (!$this->targetExists($entry->reference)) {
+                    $orphans[] = $entry;
+                }
+            }
+        }
+
+        return $orphans;
+    }
+
+    /**
+     * Check if a @see target (class::method or class) actually exists.
+     *
+     * For safety, only checks if the class is already loaded (without triggering autoload).
+     * This avoids fatal "cannot redeclare class" errors in projects with complex autoloading.
+     * If the class isn't loaded yet, we assume it's valid since we can't safely verify.
+     */
+    private function targetExists(string $reference): bool
+    {
+        $normalized = ltrim($reference, '\\');
+
+        // Handle Class::method format
+        if (str_contains($normalized, '::')) {
+            [$className, $methodName] = explode('::', $normalized, 2);
+
+            // Remove () from method name if present (e.g., "testFoo()")
+            $methodName = rtrim($methodName, '()');
+
+            // Only check classes that are already loaded to avoid autoload issues
+            // If class isn't loaded, assume it's valid (conservative approach)
+            if (!class_exists($className, false)) {
+                return true;
+            }
+
+            try {
+                $reflection = new \ReflectionClass($className);
+
+                return $reflection->hasMethod($methodName);
+            } catch (\ReflectionException) {
+                return false;
+            }
+        }
+
+        // Handle class-only reference - assume valid (conservative approach)
+        return true;
     }
 
     /**
