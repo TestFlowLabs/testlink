@@ -45,6 +45,14 @@ final class Application
     {
         $this->parser->parse($argv);
 
+        // Validate --path option if provided
+        $path = $this->parser->getString('path');
+        if ($path !== null && !is_dir($path)) {
+            $this->output->error("Path does not exist: {$path}");
+
+            return 1;
+        }
+
         $command = $this->parser->getCommand();
 
         // Handle help flag

@@ -97,6 +97,33 @@ describe('Application', function (): void {
             ->toBe(0);
     });
 
+    describe('path validation', function (): void {
+        it('returns exit code 1 for invalid path with report command')
+            ->linksAndCovers(Application::class.'::run')
+            ->expect(fn () => $this->app->run(['testlink', 'report', '--path=/nonexistent/path']))
+            ->toBe(1);
+
+        it('returns exit code 1 for invalid path with validate command')
+            ->linksAndCovers(Application::class.'::run')
+            ->expect(fn () => $this->app->run(['testlink', 'validate', '--path=/nonexistent/path']))
+            ->toBe(1);
+
+        it('returns exit code 1 for invalid path with sync command')
+            ->linksAndCovers(Application::class.'::run')
+            ->expect(fn () => $this->app->run(['testlink', 'sync', '--path=/nonexistent/path']))
+            ->toBe(1);
+
+        it('returns exit code 0 for valid path')
+            ->linksAndCovers(Application::class.'::run')
+            ->expect(fn () => $this->app->run(['testlink', 'report', '--path=/tmp']))
+            ->toBe(0);
+
+        it('returns exit code 0 when no path provided')
+            ->linksAndCovers(Application::class.'::run')
+            ->expect(fn () => $this->app->run(['testlink', 'report']))
+            ->toBe(0);
+    });
+
     describe('valid commands execute without throwing', function (): void {
         it('report command executes')
             ->linksAndCovers(Application::class.'::run')
