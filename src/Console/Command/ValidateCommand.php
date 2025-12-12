@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TestFlowLabs\TestLink\Console\Command;
 
+use Composer\Autoload\ClassLoader;
 use TestFlowLabs\TestLink\Console\Output;
 use TestFlowLabs\TestLink\DocBlock\SeeTagEntry;
 use TestFlowLabs\TestLink\Console\ArgumentParser;
@@ -187,25 +188,25 @@ final class ValidateCommand
         $knownTests = [];
 
         // From attribute registry (test identifiers from #[LinksAndCovers] etc.)
-        foreach ($attributeRegistry->getAllLinksByTest() as $testIdentifier => $methods) {
-            $normalized                = ltrim($testIdentifier, '\\');
-            $knownTests[$normalized]   = true;
+        foreach (array_keys($attributeRegistry->getAllLinksByTest()) as $testIdentifier) {
+            $normalized                  = ltrim($testIdentifier, '\\');
+            $knownTests[$normalized]     = true;
             $knownTests[$testIdentifier] = true;
         }
 
         // From attribute registry (test identifiers from #[TestedBy])
-        foreach ($attributeRegistry->getTestedByLinks() as $methodId => $testIds) {
+        foreach ($attributeRegistry->getTestedByLinks() as $testIds) {
             foreach ($testIds as $testIdentifier) {
-                $normalized                = ltrim($testIdentifier, '\\');
-                $knownTests[$normalized]   = true;
+                $normalized                  = ltrim($testIdentifier, '\\');
+                $knownTests[$normalized]     = true;
                 $knownTests[$testIdentifier] = true;
             }
         }
 
         // From Pest registry
-        foreach ($pestRegistry->getAllLinksByTest() as $testIdentifier => $methods) {
-            $normalized                = ltrim($testIdentifier, '\\');
-            $knownTests[$normalized]   = true;
+        foreach (array_keys($pestRegistry->getAllLinksByTest()) as $testIdentifier) {
+            $normalized                  = ltrim($testIdentifier, '\\');
+            $knownTests[$normalized]     = true;
             $knownTests[$testIdentifier] = true;
         }
 
@@ -236,8 +237,13 @@ final class ValidateCommand
     /**
      * Check if a @see target (class::method or class) actually exists.
      *
-     * Uses ReflectionClass which triggers autoload to verify the target exists.
-     * Returns false for non-existent classes or methods.
+     * Uses a multi-phase check to prevent "Cannot redeclare class" fatal errors:
+     * 1. Check if class is already loaded in memory (no autoload)
+     * 2. Check if class exists in Composer's classmap (no autoload, safe)
+     * 3. Only use reflection on already-loaded classes
+     *
+     * This avoids triggering autoload which can cause fatal errors in Laravel
+     * where classes may have been loaded through service providers or eager loading.
      */
     private function targetExists(string $reference): bool
     {
@@ -246,30 +252,110 @@ final class ValidateCommand
         // Handle Class::method format
         if (str_contains($normalized, '::')) {
             [$className, $methodName] = explode('::', $normalized, 2);
-
             // Remove () from method name if present (e.g., "testFoo()")
             $methodName = rtrim($methodName, '()');
+            // Phase 1: Check if class is already loaded (safe, no autoload)
+            if (class_exists($className, false)) {
+                try {
+                    $reflection = new \ReflectionClass($className);
 
-            try {
-                // ReflectionClass triggers autoload automatically
-                // If class doesn't exist, it throws ReflectionException
-                $reflection = new \ReflectionClass($className);
-
-                return $reflection->hasMethod($methodName);
-            } catch (\ReflectionException) {
-                // Class doesn't exist or couldn't be loaded
-                return false;
+                    return $reflection->hasMethod($methodName);
+                } catch (\ReflectionException) {
+                    return false;
+                }
             }
+
+            // Phase 2: Check if class exists in Composer classmap (safe, no loading)
+            // We can't check methods without loading, so assume it exists if class is in classmap
+            return $this->classExistsInClassmap($className);
         }
 
         // Handle class-only reference
-        try {
-            new \ReflectionClass($normalized);
-
+        // First check if already loaded (safe)
+        if (class_exists($normalized, false)) {
             return true;
-        } catch (\ReflectionException) {
+        }
+
+        // Check Composer classmap (safe, no loading)
+        return $this->classExistsInClassmap($normalized);
+    }
+
+    /**
+     * Check if a class exists in Composer's classmap without loading it.
+     *
+     * This is safe to call even when classes have been loaded through
+     * non-standard mechanisms (Laravel service providers, etc.)
+     */
+    private function classExistsInClassmap(string $className): bool
+    {
+        $loader = $this->getComposerLoader();
+
+        if (!$loader instanceof ClassLoader) {
             return false;
         }
+
+        $classMap = $loader->getClassMap();
+
+        // Check classmap for the class
+        if (isset($classMap[$className])) {
+            return true;
+        }
+
+        // Try with leading backslash
+        if (isset($classMap['\\'.$className])) {
+            return true;
+        }
+
+        // Try without leading backslash
+        $normalized = ltrim($className, '\\');
+        if (isset($classMap[$normalized])) {
+            return true;
+        }
+
+        // Check PSR-4 autoload paths
+        return $this->classExistsInPsr4($loader, $className);
+    }
+
+    /**
+     * Check if a class could be loaded via PSR-4 autoloading.
+     */
+    private function classExistsInPsr4(ClassLoader $loader, string $className): bool
+    {
+        $normalized = ltrim($className, '\\');
+
+        // Skip empty class names
+        if ($normalized === '') {
+            return false;
+        }
+
+        // Try to find the file via Composer's findFile (doesn't actually load)
+        // Suppress warnings for edge cases like malformed class names
+        $file = @$loader->findFile($normalized);
+
+        return $file !== false && file_exists($file);
+    }
+
+    /**
+     * Get the Composer autoloader instance.
+     */
+    private function getComposerLoader(): ?ClassLoader
+    {
+        /** @var ClassLoader|null $loader */
+        static $loader = null;
+
+        if ($loader instanceof ClassLoader) {
+            return $loader;
+        }
+
+        foreach (spl_autoload_functions() as $autoloader) {
+            if (is_array($autoloader) && $autoloader[0] instanceof ClassLoader) {
+                $loader = $autoloader[0];
+
+                return $loader;
+            }
+        }
+
+        return null;
     }
 
     /**

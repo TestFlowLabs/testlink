@@ -372,11 +372,11 @@ describe('ValidateCommand', function (): void {
 
                 // Use reflection to call private findSeeOrphans method
                 $reflection = new ReflectionClass($command);
-                $method = $reflection->getMethod('findSeeOrphans');
+                $method     = $reflection->getMethod('findSeeOrphans');
 
                 // Create empty registries (test reference doesn't exist in registries)
                 $attributeRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
-                $pestRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+                $pestRegistry      = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
 
                 $orphans = $method->invoke($command, $seeRegistry, $attributeRegistry, $pestRegistry);
 
@@ -404,11 +404,11 @@ describe('ValidateCommand', function (): void {
 
                 // Use reflection to call private findSeeOrphans method
                 $reflection = new ReflectionClass($command);
-                $method = $reflection->getMethod('findSeeOrphans');
+                $method     = $reflection->getMethod('findSeeOrphans');
 
                 // Create empty registries (test reference doesn't exist in registries)
                 $attributeRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
-                $pestRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+                $pestRegistry      = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
 
                 $orphans = $method->invoke($command, $seeRegistry, $attributeRegistry, $pestRegistry);
 
@@ -423,7 +423,7 @@ describe('ValidateCommand', function (): void {
 
                 // Use reflection to call private targetExists method
                 $reflection = new ReflectionClass($command);
-                $method = $reflection->getMethod('targetExists');
+                $method     = $reflection->getMethod('targetExists');
 
                 // Test with a class that definitely doesn't exist
                 return $method->invoke($command, '\Totally\Made\Up\ClassName\That\Does\Not\Exist::someMethod');

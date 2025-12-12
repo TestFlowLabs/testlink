@@ -153,10 +153,10 @@ final class SyncCommand
         }
 
         // Summary
-        $modifiedCount   = count($modifiedFiles);
-        $prunedCount     = count($prunedFiles);
-        $seeTagCount     = $result->seeTagsAdded;
-        $seePruneCount   = $result->seeTagsPruned;
+        $modifiedCount = count($modifiedFiles);
+        $prunedCount   = count($prunedFiles);
+        $seeTagCount   = $result->seeTagsAdded;
+        $seePruneCount = $result->seeTagsPruned;
 
         if ($dryRun) {
             if ($modifiedCount > 0) {
