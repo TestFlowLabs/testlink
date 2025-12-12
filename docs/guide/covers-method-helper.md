@@ -16,14 +16,9 @@ Both work with Pest and PHPUnit, using different syntax for each framework.
 
 ## Pest Setup
 
-Add the RuntimeBootstrap to your `tests/Pest.php`:
-
-```php
-// tests/Pest.php
-use TestFlowLabs\TestLink\Runtime\RuntimeBootstrap;
-
-RuntimeBootstrap::init();
-```
+::: tip
+To use `->linksAndCovers()` and `->links()` methods in Pest, you need to initialize the RuntimeBootstrap. See the [Installation Guide](/introduction/installation#pest) for setup instructions.
+:::
 
 ## Basic Usage
 
@@ -173,6 +168,44 @@ describe('UserService', function () {
     });
 });
 ```
+
+::: tip Nested Describe Test Identifiers
+When using nested `describe` blocks, test identifiers include the full path:
+`UserService > create method > creates with valid data`
+
+See the [Test Organization Guide](/best-practices/test-organization) for recommended patterns.
+:::
+
+## With DataProvider (PHPUnit)
+
+Links work with PHPUnit's DataProvider for parameterized tests:
+
+```php
+use PHPUnit\Framework\Attributes\DataProvider;
+use TestFlowLabs\TestingAttributes\LinksAndCovers;
+
+class CalculatorTest extends TestCase
+{
+    #[LinksAndCovers(Calculator::class, 'add')]
+    #[DataProvider('additionProvider')]
+    public function test_addition(int $a, int $b, int $expected): void
+    {
+        $calculator = new Calculator();
+        $this->assertEquals($expected, $calculator->add($a, $b));
+    }
+
+    public static function additionProvider(): array
+    {
+        return [
+            'positive numbers' => [1, 2, 3],
+            'negative numbers' => [-1, -2, -3],
+            'mixed numbers' => [-1, 2, 1],
+        ];
+    }
+}
+```
+
+The link is applied to all data provider iterations.
 
 ## When to Use Each
 
