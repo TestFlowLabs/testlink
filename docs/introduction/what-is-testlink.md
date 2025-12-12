@@ -76,13 +76,13 @@ Having explicit coverage links provides:
 
 ## Package Architecture
 
-TestLink works with [test-attributes](https://github.com/testflowlabs/test-attributes) to provide complete bidirectional linking:
+TestLink uses a two-package architecture:
 
-| Package | Contains | Used In | Install As |
-|---------|----------|---------|------------|
-| **testlink** | `#[TestedBy]` attribute, CLI tools, Pest methods | Production code + Development | `require` (production) |
-| **test-attributes** | `#[LinksAndCovers]`, `#[Links]` attributes | Test code only | Auto-installed with testlink |
+| Package | Contains | Install As |
+|---------|----------|------------|
+| **test-attributes** | All PHP attributes (`#[TestedBy]`, `#[LinksAndCovers]`, `#[Links]`) | Production dependency |
+| **testlink** | CLI tools, scanners, validators, Pest methods | Dev dependency |
 
-::: info Why production dependency?
-If you use `#[TestedBy]` on production code, PHP needs the attribute class available when loading those classes. Install testlink as a production dependency to ensure this.
+::: tip
+See the [Installation Guide](/introduction/installation) for detailed setup instructions and why this architecture matters.
 :::
