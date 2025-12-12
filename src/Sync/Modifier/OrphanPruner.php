@@ -9,6 +9,7 @@ use PhpParser\Parser;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
+use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\NodeVisitor\ParentConnectingVisitor;
 use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
 
@@ -49,8 +50,9 @@ final class OrphanPruner
             return [];
         }
 
-        // Connect parent nodes
+        // Resolve names (converts short class names to FQN) and connect parent nodes
         $traverser = new NodeTraverser();
+        $traverser->addVisitor(new NameResolver());
         $traverser->addVisitor(new ParentConnectingVisitor());
         $ast = $traverser->traverse($ast);
 
@@ -79,8 +81,9 @@ final class OrphanPruner
                 continue;
             }
 
-            // Check if this method exists in the valid registry
-            if (!$validRegistry->hasMethod($coveredMethod)) {
+            // Check if this production method has #[TestedBy] declaring this link is valid
+            // A link is orphan if the production method doesn't have #[TestedBy] for it
+            if (!$validRegistry->hasTestedBy($coveredMethod)) {
                 $orphans[] = new OrphanedCall(
                     method: $coveredMethod,
                     line: $call->getStartLine(),
@@ -175,6 +178,8 @@ final class OrphanPruner
 
     /**
      * Extract value from concatenation like Class::class.'::method'.
+     *
+     * Uses the resolved FQN from NameResolver when available.
      */
     private function extractConcatValue(Node\Expr\BinaryOp\Concat $concat): ?string
     {
@@ -186,7 +191,12 @@ final class OrphanPruner
 
         if ($left instanceof Node\Expr\ClassConstFetch && $left->name instanceof Node\Identifier && $left->name->toString() === 'class' && $left->class instanceof Node\Name
         ) {
-            $leftValue = $left->class->toString();
+            // Use resolved name (FQN) if available, otherwise fall back to the original name
+            /** @var Node\Name|null $resolvedName */
+            $resolvedName = $left->class->getAttribute('resolvedName');
+            $leftValue    = $resolvedName instanceof Node\Name
+                ? $resolvedName->toString()
+                : $left->class->toString();
         }
 
         if ($right instanceof Node\Scalar\String_) {
