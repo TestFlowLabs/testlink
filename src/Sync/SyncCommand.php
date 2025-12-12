@@ -113,8 +113,8 @@ final class SyncCommand
     {
         $actions = [];
 
-        // Get all methods that have coverage links in test files
-        foreach ($registry->getAllLinks() as $methodIdentifier => $testIdentifiers) {
+        // Get all methods from #[TestedBy] attributes that need linksAndCovers in test files
+        foreach ($registry->getTestedByLinks() as $methodIdentifier => $testIdentifiers) {
             foreach ($testIdentifiers as $testIdentifier) {
                 try {
                     $testFile = $this->discovery->findTestFile($testIdentifier);
