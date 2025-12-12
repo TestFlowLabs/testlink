@@ -48,7 +48,18 @@ final readonly class SeeTagEntry
      */
     public function hasValidTarget(array $validTargets): bool
     {
-        return in_array($this->reference, $validTargets, true);
+        $normalizedRef = $this->getNormalizedReference();
+
+        foreach ($validTargets as $target) {
+            // Normalize target for comparison (strip leading backslash)
+            $normalizedTarget = ltrim($target, '\\');
+
+            if ($normalizedRef === $normalizedTarget) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
