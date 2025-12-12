@@ -7,9 +7,9 @@ description: "ADR: Exploring @see PHPDoc tag syntax as an alternative to PHP 8 a
 
 | Field | Value |
 |-------|-------|
-| **Status** | Researched - Deferred |
+| **Status** | Implemented |
 | **Date** | 2025-12-12 |
-| **Decision** | Document findings, defer implementation |
+| **Decision** | Implemented @see tag support integrated into existing commands |
 
 ## Summary
 
@@ -182,20 +182,27 @@ test('creates user', function() {
 
 ## Decision
 
-**Decision:** Document this research, defer implementation.
+**Decision:** Implemented @see tag support, integrated into existing commands.
+
+### Implementation
+
+@see tag support was integrated into the existing CLI commands rather than as a separate command:
+
+- **`testlink sync`**: Automatically generates @see tags in production docblocks
+- **`testlink validate`**: Detects orphan @see tags pointing to invalid targets
+- **`testlink report`**: Displays @see tags in the coverage report
+- **`testlink sync --prune --force`**: Removes orphan @see tags
 
 ### Rationale
 
-1. Research uncovered significant architectural implications
-2. @see support would change TestLink's two-package model
-3. Need more user feedback on whether this is wanted
-4. IDE plugin research needed for full Pest navigation support
+1. @see tags provide full IDE method navigation (vs class-only for attributes)
+2. @see eliminates production dependency on test-attributes package
+3. Integration into existing commands maintains consistent CLI experience
+4. PHPUnit projects benefit most; Pest has known limitations (see above)
 
-### Future Actions
+### Documentation
 
-1. Consider @see support as v2.0 feature
-2. Evaluate IDE plugin development effort separately
-3. Gather user feedback on the feature request
+See [@see Tags Guide](/guide/see-tags) for usage documentation.
 
 ## Key Findings Summary
 
