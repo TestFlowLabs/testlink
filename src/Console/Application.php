@@ -209,6 +209,8 @@ final class Application
 
         $this->output->section('OPTIONS');
         $this->output->listItem('--strict          Fail on warnings');
+        $this->output->listItem('--fix             Fix non-FQCN @see tags');
+        $this->output->listItem('--dry-run         Preview fixes without modifying files');
         $this->output->listItem('--json            Output as JSON');
         $this->output->listItem('--path=<dir>      Limit scan to directory');
         $this->output->newLine();
@@ -216,6 +218,8 @@ final class Application
         $this->output->section('EXAMPLES');
         $this->output->writeln('    testlink validate');
         $this->output->writeln('    testlink validate --strict');
+        $this->output->writeln('    testlink validate --fix');
+        $this->output->writeln('    testlink validate --fix --dry-run');
         $this->output->newLine();
     }
 
