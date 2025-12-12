@@ -224,6 +224,10 @@ final class PlaceholderModifier
     /**
      * Replace placeholder in Pest linksAndCovers/links calls.
      *
+     * Strategy:
+     * - 1 placeholder, N methods: Chain all methods together (existing behavior)
+     * - N placeholders, M methods: Replace each placeholder with one method
+     *
      * @param  list<string>  $productionMethods
      *
      * @return array{code: string, changed: bool}
@@ -236,10 +240,17 @@ final class PlaceholderModifier
         $escapedPlaceholder = preg_quote($placeholderId, '/');
         $pattern            = "/->(linksAndCovers|links)\s*\(\s*['\"]".$escapedPlaceholder."['\"]\s*\)/";
 
-        if (preg_match($pattern, $code, $matches)) {
-            $methodName = $matches[1]; // 'linksAndCovers' or 'links'
+        // Count how many placeholder occurrences exist
+        $occurrenceCount = preg_match_all($pattern, $code, $matches);
 
-            // Build replacement chain calls
+        if ($occurrenceCount === 0 || $occurrenceCount === false) {
+            return ['code' => $code, 'changed' => $changed];
+        }
+
+        $methodName = $matches[1][0]; // 'linksAndCovers' or 'links'
+
+        if ($occurrenceCount === 1) {
+            // SINGLE placeholder: Chain all methods together (existing behavior)
             $replacements = [];
             foreach ($productionMethods as $method) {
                 $formatted      = $this->formatPestMethodReference($method);
@@ -252,6 +263,18 @@ final class PlaceholderModifier
                 $code    = $result;
                 $changed = true;
             }
+        } else {
+            // MULTIPLE placeholders: Replace each with one method
+            foreach ($productionMethods as $method) {
+                $formatted   = $this->formatPestMethodReference($method);
+                $replacement = "->{$methodName}({$formatted})";
+                $result      = preg_replace($pattern, $replacement, $code, 1);
+
+                if ($result !== null && $result !== $code) {
+                    $code    = $result;
+                    $changed = true;
+                }
+            }
         }
 
         return ['code' => $code, 'changed' => $changed];
@@ -259,6 +282,10 @@ final class PlaceholderModifier
 
     /**
      * Replace placeholder in PHPUnit #[LinksAndCovers] or #[Links] attributes.
+     *
+     * Strategy:
+     * - 1 placeholder, N methods: Chain all methods together (existing behavior)
+     * - N placeholders, M methods: Replace each placeholder with one method
      *
      * @param  list<string>  $productionMethods
      *
@@ -272,28 +299,49 @@ final class PlaceholderModifier
         $escapedPlaceholder = preg_quote($placeholderId, '/');
         $pattern            = "/#\[(LinksAndCovers|Links)\s*\(\s*['\"]".$escapedPlaceholder."['\"]\s*\)\]/";
 
-        if (preg_match($pattern, $code, $matches)) {
-            $attributeName = $matches[1]; // 'LinksAndCovers' or 'Links'
+        // Count how many placeholder occurrences exist
+        $occurrenceCount = preg_match_all($pattern, $code, $matches);
 
-            // Build replacement attributes
+        if ($occurrenceCount === 0 || $occurrenceCount === false) {
+            return ['code' => $code, 'changed' => $changed];
+        }
+
+        $attributeName = $matches[1][0]; // 'LinksAndCovers' or 'Links'
+
+        // Detect indentation from the matched line
+        $indent = preg_match('/^(\s*)#\[(LinksAndCovers|Links)/m', $code, $indentMatch) ? $indentMatch[1] : '    ';
+
+        if ($occurrenceCount === 1) {
+            // SINGLE placeholder: Chain all methods together (existing behavior)
             $replacements = [];
             foreach ($productionMethods as $method) {
                 $formatted      = $this->formatPhpUnitAttributeArguments($method);
                 $replacements[] = "#[{$attributeName}({$formatted})]";
             }
 
-            // Detect indentation from the matched line
-            $indent = preg_match('/^(\s*)#\[(LinksAndCovers|Links)/m', $code, $indentMatch) ? $indentMatch[1] : '    ';
-
             $replacement = implode("\n".$indent, $replacements);
             $result      = preg_replace($pattern, $replacement, $code, 1);
             if ($result !== null) {
                 $code    = $result;
                 $changed = true;
-
-                // Ensure use statements exist
-                $code = $this->ensurePhpUnitUseStatements($code, $productionMethods);
             }
+        } else {
+            // MULTIPLE placeholders: Replace each with one method
+            foreach ($productionMethods as $method) {
+                $formatted   = $this->formatPhpUnitAttributeArguments($method);
+                $replacement = "#[{$attributeName}({$formatted})]";
+                $result      = preg_replace($pattern, $replacement, $code, 1);
+
+                if ($result !== null && $result !== $code) {
+                    $code    = $result;
+                    $changed = true;
+                }
+            }
+        }
+
+        if ($changed) {
+            // Ensure use statements exist
+            $code = $this->ensurePhpUnitUseStatements($code, $productionMethods);
         }
 
         return ['code' => $code, 'changed' => $changed];

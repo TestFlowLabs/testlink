@@ -295,5 +295,92 @@ PHP);
                 return str_contains($content, 'use App\\Services\\UserService;');
             })
             ->toBeTrue();
+
+        it('replaces chained Pest placeholders with separate methods')
+            ->linksAndCovers(PlaceholderModifier::class.'::apply')
+            ->expect(function () {
+                $testFile = $this->tempDir.'/ChainedTest.php';
+                file_put_contents($testFile, <<<'PHP'
+<?php
+test('chained test', function () {
+    // test
+})->linksAndCovers('@A')
+  ->linksAndCovers('@A');
+PHP);
+
+                $prodEntry1 = new PlaceholderEntry(
+                    '@A', 'App\\Services\\UserService::methodA', '/prod.php', 4, 'production', null
+                );
+                $prodEntry2 = new PlaceholderEntry(
+                    '@A', 'App\\Services\\UserService::methodB', '/prod.php', 8, 'production', null
+                );
+                $testEntry = new PlaceholderEntry(
+                    '@A', 'Tests\\ChainedTest::chained test', $testFile, 4, 'test', 'pest'
+                );
+
+                $action1 = new PlaceholderAction('@A', $prodEntry1, $testEntry);
+                $action2 = new PlaceholderAction('@A', $prodEntry2, $testEntry);
+
+                $modifier = new PlaceholderModifier();
+                $modifier->apply([$action1, $action2], dryRun: false);
+
+                $content = file_get_contents($testFile);
+
+                return [
+                    'has_methodA'    => str_contains($content, "'::methodA'"),
+                    'has_methodB'    => str_contains($content, "'::methodB'"),
+                    'no_placeholder' => !str_contains($content, '@A'),
+                    'count_links'    => substr_count($content, 'linksAndCovers'),
+                ];
+            })
+            ->toMatchArray([
+                'has_methodA'    => true,
+                'has_methodB'    => true,
+                'no_placeholder' => true,
+                'count_links'    => 2,
+            ]);
+
+        it('chains all methods for single placeholder with multiple methods')
+            ->linksAndCovers(PlaceholderModifier::class.'::apply')
+            ->expect(function () {
+                $testFile = $this->tempDir.'/SinglePlaceholderTest.php';
+                file_put_contents($testFile, <<<'PHP'
+<?php
+test('single placeholder test', function () {
+    // test
+})->linksAndCovers('@A');
+PHP);
+
+                $prodEntry1 = new PlaceholderEntry(
+                    '@A', 'App\\Services\\UserService::methodA', '/prod.php', 4, 'production', null
+                );
+                $prodEntry2 = new PlaceholderEntry(
+                    '@A', 'App\\Services\\UserService::methodB', '/prod.php', 8, 'production', null
+                );
+                $testEntry = new PlaceholderEntry(
+                    '@A', 'Tests\\SinglePlaceholderTest::single placeholder test', $testFile, 4, 'test', 'pest'
+                );
+
+                $action1 = new PlaceholderAction('@A', $prodEntry1, $testEntry);
+                $action2 = new PlaceholderAction('@A', $prodEntry2, $testEntry);
+
+                $modifier = new PlaceholderModifier();
+                $modifier->apply([$action1, $action2], dryRun: false);
+
+                $content = file_get_contents($testFile);
+
+                return [
+                    'has_methodA'    => str_contains($content, "'::methodA'"),
+                    'has_methodB'    => str_contains($content, "'::methodB'"),
+                    'no_placeholder' => !str_contains($content, '@A'),
+                    'count_links'    => substr_count($content, 'linksAndCovers'),
+                ];
+            })
+            ->toMatchArray([
+                'has_methodA'    => true,
+                'has_methodB'    => true,
+                'no_placeholder' => true,
+                'count_links'    => 2,
+            ]);
     });
 });
