@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace TestFlowLabs\TestLink\Console\Command;
 
 use TestFlowLabs\TestLink\Console\Output;
+use TestFlowLabs\TestLink\DocBlock\SeeTagEntry;
 use TestFlowLabs\TestLink\Console\ArgumentParser;
+use TestFlowLabs\TestLink\DocBlock\SeeTagRegistry;
 use TestFlowLabs\TestLink\Validator\LinkValidator;
+use TestFlowLabs\TestLink\DocBlock\DocBlockScanner;
 use TestFlowLabs\TestLink\Scanner\AttributeScanner;
 use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
 use TestFlowLabs\TestLink\Placeholder\PlaceholderScanner;
@@ -16,7 +19,7 @@ use TestFlowLabs\TestLink\Placeholder\PlaceholderRegistry;
  * Validate command - validates coverage link synchronization.
  *
  * Checks for duplicate links (same link in both PHPUnit attributes and Pest chains),
- * detects unresolved placeholders, and reports overall coverage link health.
+ * detects unresolved placeholders, validates @see tags, and reports overall coverage link health.
  */
 final class ValidateCommand
 {
@@ -36,14 +39,18 @@ final class ValidateCommand
         // Scan for unresolved placeholders
         $placeholderRegistry = $this->scanPlaceholders($path);
 
+        // Scan for @see tags and find orphans
+        $seeRegistry = $this->scanSeeTags($path);
+        $seeOrphans  = $this->findSeeOrphans($seeRegistry, $attributeRegistry);
+
         $isJson   = $parser->hasOption('json');
         $isStrict = $parser->hasOption('strict');
 
         if ($isJson) {
-            return $this->outputJson($result, $placeholderRegistry, $output);
+            return $this->outputJson($result, $placeholderRegistry, $seeRegistry, $seeOrphans, $output);
         }
 
-        return $this->outputConsole($result, $placeholderRegistry, $output, $isStrict);
+        return $this->outputConsole($result, $placeholderRegistry, $seeRegistry, $seeOrphans, $output, $isStrict);
     }
 
     /**
@@ -81,11 +88,45 @@ final class ValidateCommand
     }
 
     /**
+     * Scan for @see tags in docblocks.
+     */
+    private function scanSeeTags(?string $path): SeeTagRegistry
+    {
+        $registry = new SeeTagRegistry();
+        $scanner  = new DocBlockScanner();
+
+        if ($path !== null) {
+            $scanner->setProjectRoot($path);
+        }
+
+        $scanner->scan($registry);
+
+        return $registry;
+    }
+
+    /**
+     * Find orphan @see tags that point to invalid targets.
+     *
+     * @return list<SeeTagEntry>
+     */
+    private function findSeeOrphans(SeeTagRegistry $seeRegistry, TestLinkRegistry $attributeRegistry): array
+    {
+        // Get all valid test identifiers
+        $validTests = array_keys($attributeRegistry->getAllLinksByTest());
+
+        // Get all valid production methods
+        $validMethods = $attributeRegistry->getAllMethods();
+
+        return $seeRegistry->findOrphans($validMethods, $validTests);
+    }
+
+    /**
      * Output as JSON.
      *
      * @param  array{valid: bool, attributeLinks: array<string, list<string>>, runtimeLinks: array<string, list<string>>, duplicates: list<array{test: string, method: string}>, totalLinks: int}  $result
+     * @param  list<SeeTagEntry>  $seeOrphans
      */
-    private function outputJson(array $result, PlaceholderRegistry $placeholderRegistry, Output $output): int
+    private function outputJson(array $result, PlaceholderRegistry $placeholderRegistry, SeeTagRegistry $seeRegistry, array $seeOrphans, Output $output): int
     {
         $placeholderIds = $placeholderRegistry->getAllPlaceholderIds();
 
@@ -95,23 +136,40 @@ final class ValidateCommand
             'testCount'       => count($placeholderRegistry->getTestEntries($id)),
         ], $placeholderIds);
 
+        $orphanSeeTags = array_map(fn (SeeTagEntry $entry): array => [
+            'reference' => $entry->reference,
+            'file'      => $entry->filePath,
+            'line'      => $entry->line,
+            'context'   => $entry->context,
+            'method'    => $entry->getMethodIdentifier(),
+        ], $seeOrphans);
+
         $outputData = [
             ...$result,
             'unresolvedPlaceholders' => $unresolvedPlaceholders,
+            'seeTags'                => [
+                'production' => $seeRegistry->countProduction(),
+                'test'       => $seeRegistry->countTest(),
+                'total'      => $seeRegistry->count(),
+                'orphans'    => $orphanSeeTags,
+            ],
         ];
 
         $json = json_encode($outputData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         $output->writeln($json !== false ? $json : '{}');
 
-        return $result['valid'] ? 0 : 1;
+        $hasOrphans = $seeOrphans !== [];
+
+        return ($result['valid'] && !$hasOrphans) ? 0 : 1;
     }
 
     /**
      * Output to console.
      *
      * @param  array{valid: bool, attributeLinks: array<string, list<string>>, runtimeLinks: array<string, list<string>>, duplicates: list<array{test: string, method: string}>, totalLinks: int}  $result
+     * @param  list<SeeTagEntry>  $seeOrphans
      */
-    private function outputConsole(array $result, PlaceholderRegistry $placeholderRegistry, Output $output, bool $strict): int
+    private function outputConsole(array $result, PlaceholderRegistry $placeholderRegistry, SeeTagRegistry $seeRegistry, array $seeOrphans, Output $output, bool $strict): int
     {
         $output->title('Validation Report');
 
@@ -156,6 +214,25 @@ final class ValidateCommand
             }
         }
 
+        // Report orphan @see tags
+        if ($seeOrphans !== []) {
+            $output->section('Orphan @see Tags');
+            $output->comment('These @see tags point to targets that no longer exist:');
+            $output->newLine();
+
+            foreach ($seeOrphans as $orphan) {
+                $location = $this->shortenPath($orphan->filePath).':'.$orphan->line;
+                $output->writeln('    '.$output->red('✗').' '.$orphan->reference);
+                $output->writeln('      → '.$output->gray($location));
+            }
+
+            $output->newLine();
+            $output->warning('Run "testlink sync --prune --force" to remove orphan @see tags.');
+            $output->newLine();
+
+            $hasErrors = true;
+        }
+
         // Return early if there are errors
         if ($hasErrors) {
             return 1;
@@ -167,13 +244,15 @@ final class ValidateCommand
         $attributeCount = $this->countLinks($result['attributeLinks']);
         $runtimeCount   = $this->countLinks($result['runtimeLinks']);
         $totalLinks     = $result['totalLinks'];
+        $seeCount       = $seeRegistry->count();
 
         $output->writeln("    PHPUnit attribute links: {$attributeCount}");
         $output->writeln("    Pest method chain links: {$runtimeCount}");
+        $output->writeln("    @see tags: {$seeCount}");
         $output->writeln("    Total links: {$totalLinks}");
         $output->newLine();
 
-        if ($totalLinks === 0) {
+        if ($totalLinks === 0 && $seeCount === 0) {
             $output->warning('No coverage links found.');
             $output->newLine();
             $output->comment('Add coverage links to your test files:');
@@ -205,5 +284,19 @@ final class ValidateCommand
         }
 
         return $count;
+    }
+
+    /**
+     * Shorten file path for display.
+     */
+    private function shortenPath(string $path): string
+    {
+        $cwd = getcwd();
+
+        if ($cwd !== false && str_starts_with($path, $cwd)) {
+            return substr($path, strlen($cwd) + 1);
+        }
+
+        return $path;
     }
 }
