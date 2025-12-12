@@ -78,6 +78,45 @@ public function test_creates_user(): void { }
 
 :::
 
+### 4. @see Tag Validation
+
+@see tags in docblocks are scanned for validity:
+
+::: code-group
+
+```php [Production File]
+/**
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ */
+public function create(): User
+{
+    // Implementation
+}
+```
+
+```php [Test File (PHPUnit)]
+/**
+ * @see \App\Services\UserService::create
+ */
+#[Test]
+public function test_creates_user(): void
+{
+    // Test implementation
+}
+```
+
+:::
+
+**What Gets Checked:**
+
+- @see tags pointing to non-existent classes
+- @see tags pointing to non-existent methods
+- @see tags pointing to deleted/renamed tests
+
+::: tip @see Tags
+@see tags provide full IDE method navigation. See [@see Tags Guide](/guide/see-tags) for usage details.
+:::
+
 ## Validation Output
 
 ### Success
@@ -134,6 +173,33 @@ public function test_creates_user(): void { }
 
   ⚠ Consider using only one linking method per test.
 ```
+
+### With Orphan @see Tags
+
+```
+  Validation Report
+  ─────────────────
+
+  Orphan @see Tags
+  ────────────────
+
+    ⚠ @see \Tests\Unit\OldTest::deleted_test
+      in src/Services/UserService.php:45
+
+    ⚠ @see \App\Services\RemovedService::method
+      in tests/Unit/UserServiceTest.php:23
+
+  Link Summary
+  ────────────
+
+    PHPUnit attribute links: 5
+    @see tags: 4 (2 orphans)
+    Total links: 5
+```
+
+::: warning Fixing Orphan @see Tags
+Use `testlink sync --prune --force` to automatically remove orphan @see tags.
+:::
 
 ## Fixing Validation Errors
 
