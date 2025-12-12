@@ -98,6 +98,15 @@ describe('PairCommand', function (): void {
                 return $this->parser->getString('placeholder');
             })
             ->toBe('@A');
+
+        it('accepts --path option')
+            ->linksAndCovers(PairCommand::class.'::execute')
+            ->expect(function () {
+                $this->parser->parse(['testlink', 'pair', '--path=/src']);
+
+                return $this->parser->getString('path');
+            })
+            ->toBe('/src');
     });
 
     describe('PlaceholderRegistry integration', function (): void {

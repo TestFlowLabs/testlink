@@ -27,6 +27,7 @@ final class PairCommand
     {
         $dryRun      = $parser->hasOption('dry-run');
         $placeholder = $parser->getString('placeholder');
+        $path        = $parser->getString('path');
 
         $output->title('Pairing Placeholders');
 
@@ -38,6 +39,11 @@ final class PairCommand
         // Scan for placeholders
         $registry = new PlaceholderRegistry();
         $scanner  = new PlaceholderScanner();
+
+        // Set custom project root if path provided
+        if ($path !== null) {
+            $scanner->setProjectRoot($path);
+        }
 
         $output->writeln('  Scanning for placeholders...');
         $scanner->scan($registry);

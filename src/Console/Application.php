@@ -287,12 +287,14 @@ final class Application
         $this->output->section('OPTIONS');
         $this->output->listItem('--dry-run               Preview changes without modifying files');
         $this->output->listItem('--placeholder=<id>      Resolve only a specific placeholder (e.g., @A)');
+        $this->output->listItem('--path=<dir>            Limit scan to directory');
         $this->output->newLine();
 
         $this->output->section('EXAMPLES');
         $this->output->writeln('    testlink pair --dry-run');
         $this->output->writeln('    testlink pair');
         $this->output->writeln('    testlink pair --placeholder=@A');
+        $this->output->writeln('    testlink pair --path=src/Services');
         $this->output->newLine();
     }
 

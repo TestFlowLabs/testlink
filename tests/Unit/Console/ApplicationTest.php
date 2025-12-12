@@ -113,6 +113,11 @@ describe('Application', function (): void {
             ->expect(fn () => $this->app->run(['testlink', 'sync', '--path=/nonexistent/path']))
             ->toBe(1);
 
+        it('returns exit code 1 for invalid path with pair command')
+            ->linksAndCovers(Application::class.'::run')
+            ->expect(fn () => $this->app->run(['testlink', 'pair', '--path=/nonexistent/path']))
+            ->toBe(1);
+
         it('returns exit code 0 for valid path')
             ->linksAndCovers(Application::class.'::run')
             ->expect(fn () => $this->app->run(['testlink', 'report', '--path=/tmp']))
