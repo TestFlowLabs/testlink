@@ -46,7 +46,7 @@ final class ReportCommand
     }
 
     /**
-     * Scan for #[LinksAndCovers] and #[Links] attributes in test files.
+     * Scan for #[LinksAndCovers], #[Links] in test files and #[TestedBy] in production files.
      */
     private function scanAttributes(?string $path): TestLinkRegistry
     {
@@ -57,7 +57,7 @@ final class ReportCommand
             $scanner->setProjectRoot($path);
         }
 
-        $scanner->discoverAndScan($registry);
+        $scanner->discoverAndScanAll($registry);
 
         return $registry;
     }
