@@ -396,6 +396,45 @@ PHP;
                 expect($result['changed'])->toBeFalse();
             });
 
+            // Phase 12: Pest test names with spaces - duplicate detection
+            it('skips duplicate @see references with Pest test names containing spaces', function (): void {
+                $code = <<<'PHP'
+<?php
+
+class Foo
+{
+    /**
+     * @see \Tests\FooTest::creates user
+     */
+    public function bar(): void
+    {
+    }
+}
+PHP;
+                $result = $this->modifier->addSeeTags($code, 'bar', ['\Tests\FooTest::creates user']);
+
+                expect($result['changed'])->toBeFalse();
+            });
+
+            it('skips duplicate @see references with Pest test names containing multiple words', function (): void {
+                $code = <<<'PHP'
+<?php
+
+class Foo
+{
+    /**
+     * @see \Tests\UserServiceTest::creates a new user with valid data
+     */
+    public function bar(): void
+    {
+    }
+}
+PHP;
+                $result = $this->modifier->addSeeTags($code, 'bar', ['\Tests\UserServiceTest::creates a new user with valid data']);
+
+                expect($result['changed'])->toBeFalse();
+            });
+
             // Edge case 46: Add multiple @see at once
             it('adds multiple @see tags', function (): void {
                 $code = <<<'PHP'

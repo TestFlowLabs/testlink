@@ -41,6 +41,29 @@ describe('DocBlockParser', function (): void {
     });
 
     describe('extractSeeReferences', function (): void {
+        // Pest test names with spaces (Phase 12 bug investigation)
+        it('extracts @see with Pest test name containing spaces', function (): void {
+            $docBlock = <<<'DOC'
+/**
+ * @see \Tests\TestLink\DocblockServiceTest::creates user
+ */
+DOC;
+            $refs = $this->parser->extractSeeReferences($docBlock);
+
+            expect($refs)->toBe(['\Tests\TestLink\DocblockServiceTest::creates user']);
+        });
+
+        it('extracts @see with Pest test name containing multiple words', function (): void {
+            $docBlock = <<<'DOC'
+/**
+ * @see \Tests\TestLink\UserServiceTest::creates a new user with valid data
+ */
+DOC;
+            $refs = $this->parser->extractSeeReferences($docBlock);
+
+            expect($refs)->toBe(['\Tests\TestLink\UserServiceTest::creates a new user with valid data']);
+        });
+
         // Edge case 2: Single-line docblock
         it('extracts @see from single-line docblock', function (): void {
             $docBlock = '/** @see Foo::bar */';
@@ -231,6 +254,31 @@ DOC;
     });
 
     describe('hasSeeReference', function (): void {
+        // Pest test names with spaces (Phase 12 bug investigation)
+        it('returns true for Pest test name with spaces', function (): void {
+            $docBlock = <<<'DOC'
+/**
+ * @see \Tests\TestLink\DocblockServiceTest::creates user
+ */
+DOC;
+            expect($this->parser->hasSeeReference(
+                $docBlock,
+                '\Tests\TestLink\DocblockServiceTest::creates user'
+            ))->toBeTrue();
+        });
+
+        it('returns true for Pest test name with multiple words', function (): void {
+            $docBlock = <<<'DOC'
+/**
+ * @see \Tests\UserTest::creates a new user with valid data
+ */
+DOC;
+            expect($this->parser->hasSeeReference(
+                $docBlock,
+                '\Tests\UserTest::creates a new user with valid data'
+            ))->toBeTrue();
+        });
+
         it('returns true when reference exists', function (): void {
             $docBlock = <<<'DOC'
 /**
