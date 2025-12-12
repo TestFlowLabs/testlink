@@ -44,7 +44,7 @@ final class ValidateCommand
 
         // Scan for @see tags and find orphans
         $seeRegistry = $this->scanSeeTags($path);
-        $seeOrphans  = $this->findSeeOrphans($seeRegistry);
+        $seeOrphans  = $this->findSeeOrphans($seeRegistry, $attributeRegistry, $pestRegistry);
 
         // Validate @see tags for FQCN format
         $fqcnValidator = new FqcnValidator();
@@ -140,19 +140,26 @@ final class ValidateCommand
     /**
      * Find orphan @see tags that point to invalid targets.
      *
-     * Uses Reflection to verify that referenced classes and methods actually exist,
-     * rather than only checking against TestLink attribute registry.
+     * For production @see tags (pointing to tests):
+     * - Checks against TestLinkRegistry for Pest tests (they don't have real methods)
+     * - Falls back to Reflection for PHPUnit tests
+     *
+     * For test @see tags (pointing to production):
+     * - Uses Reflection to verify production classes/methods exist
      *
      * @return list<SeeTagEntry>
      */
-    private function findSeeOrphans(SeeTagRegistry $seeRegistry): array
+    private function findSeeOrphans(SeeTagRegistry $seeRegistry, TestLinkRegistry $attributeRegistry, TestLinkRegistry $pestRegistry): array
     {
         $orphans = [];
+
+        // Build set of known test identifiers from registries
+        $knownTests = $this->buildKnownTestIdentifiers($attributeRegistry, $pestRegistry);
 
         // Check production @see tags (pointing to test classes/methods)
         foreach ($seeRegistry->getAllProductionSeeTags() as $entries) {
             foreach ($entries as $entry) {
-                if (!$this->targetExists($entry->reference)) {
+                if (!$this->testTargetExists($entry->reference, $knownTests)) {
                     $orphans[] = $entry;
                 }
             }
@@ -171,11 +178,66 @@ final class ValidateCommand
     }
 
     /**
+     * Build a set of known test identifiers from registries.
+     *
+     * @return array<string, true>
+     */
+    private function buildKnownTestIdentifiers(TestLinkRegistry $attributeRegistry, TestLinkRegistry $pestRegistry): array
+    {
+        $knownTests = [];
+
+        // From attribute registry (test identifiers from #[LinksAndCovers] etc.)
+        foreach ($attributeRegistry->getAllLinksByTest() as $testIdentifier => $methods) {
+            $normalized                = ltrim($testIdentifier, '\\');
+            $knownTests[$normalized]   = true;
+            $knownTests[$testIdentifier] = true;
+        }
+
+        // From attribute registry (test identifiers from #[TestedBy])
+        foreach ($attributeRegistry->getTestedByLinks() as $methodId => $testIds) {
+            foreach ($testIds as $testIdentifier) {
+                $normalized                = ltrim($testIdentifier, '\\');
+                $knownTests[$normalized]   = true;
+                $knownTests[$testIdentifier] = true;
+            }
+        }
+
+        // From Pest registry
+        foreach ($pestRegistry->getAllLinksByTest() as $testIdentifier => $methods) {
+            $normalized                = ltrim($testIdentifier, '\\');
+            $knownTests[$normalized]   = true;
+            $knownTests[$testIdentifier] = true;
+        }
+
+        return $knownTests;
+    }
+
+    /**
+     * Check if a test target exists.
+     *
+     * First checks against known test identifiers from registries (for Pest tests),
+     * then falls back to Reflection (for PHPUnit tests with real methods).
+     *
+     * @param  array<string, true>  $knownTests
+     */
+    private function testTargetExists(string $reference, array $knownTests): bool
+    {
+        $normalized = ltrim($reference, '\\');
+
+        // Check against known test identifiers (works for Pest tests)
+        if (isset($knownTests[$normalized]) || isset($knownTests[$reference])) {
+            return true;
+        }
+
+        // Fall back to Reflection for PHPUnit tests
+        return $this->targetExists($reference);
+    }
+
+    /**
      * Check if a @see target (class::method or class) actually exists.
      *
-     * For safety, only checks if the class is already loaded (without triggering autoload).
-     * This avoids fatal "cannot redeclare class" errors in projects with complex autoloading.
-     * If the class isn't loaded yet, we assume it's valid since we can't safely verify.
+     * Uses ReflectionClass which triggers autoload to verify the target exists.
+     * Returns false for non-existent classes or methods.
      */
     private function targetExists(string $reference): bool
     {
@@ -188,23 +250,26 @@ final class ValidateCommand
             // Remove () from method name if present (e.g., "testFoo()")
             $methodName = rtrim($methodName, '()');
 
-            // Only check classes that are already loaded to avoid autoload issues
-            // If class isn't loaded, assume it's valid (conservative approach)
-            if (!class_exists($className, false)) {
-                return true;
-            }
-
             try {
+                // ReflectionClass triggers autoload automatically
+                // If class doesn't exist, it throws ReflectionException
                 $reflection = new \ReflectionClass($className);
 
                 return $reflection->hasMethod($methodName);
             } catch (\ReflectionException) {
+                // Class doesn't exist or couldn't be loaded
                 return false;
             }
         }
 
-        // Handle class-only reference - assume valid (conservative approach)
-        return true;
+        // Handle class-only reference
+        try {
+            new \ReflectionClass($normalized);
+
+            return true;
+        } catch (\ReflectionException) {
+            return false;
+        }
     }
 
     /**

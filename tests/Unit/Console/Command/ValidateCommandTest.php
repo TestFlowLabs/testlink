@@ -352,7 +352,7 @@ describe('ValidateCommand', function (): void {
     });
 
     describe('@see orphan detection', function (): void {
-        it('should detect orphan @see tags pointing to non-existent classes')
+        it('detects orphan @see tags pointing to non-existent classes')
             ->linksAndCovers(ValidateCommand::class.'::execute')
             ->expect(function () {
                 $command = new ValidateCommand();
@@ -374,16 +374,17 @@ describe('ValidateCommand', function (): void {
                 $reflection = new ReflectionClass($command);
                 $method = $reflection->getMethod('findSeeOrphans');
 
-                $orphans = $method->invoke($command, $seeRegistry);
+                // Create empty registries (test reference doesn't exist in registries)
+                $attributeRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+                $pestRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
 
-                // BUG: This should return 1 orphan, but currently returns 0
-                // because targetExists() assumes non-loaded classes are valid
+                $orphans = $method->invoke($command, $seeRegistry, $attributeRegistry, $pestRegistry);
+
                 return count($orphans);
             })
-            // This test documents the bug - it SHOULD be 1, but currently returns 0
-            ->toBe(0); // BUG: Should be 1
+            ->toBe(1); // Non-existent class is detected as orphan
 
-        it('should detect orphan @see tags when class exists but method does not')
+        it('detects orphan @see tags when class exists but method does not')
             ->linksAndCovers(ValidateCommand::class.'::execute')
             ->expect(function () {
                 $command = new ValidateCommand();
@@ -392,7 +393,6 @@ describe('ValidateCommand', function (): void {
                 $seeRegistry = new \TestFlowLabs\TestLink\DocBlock\SeeTagRegistry();
 
                 // Add a @see tag pointing to an existing class but non-existent method
-                // Use a class that is definitely loaded (like stdClass or this test class)
                 $orphanEntry = new \TestFlowLabs\TestLink\DocBlock\SeeTagEntry(
                     reference: '\stdClass::nonExistentMethod',
                     filePath: '/path/to/production/Service.php',
@@ -406,14 +406,17 @@ describe('ValidateCommand', function (): void {
                 $reflection = new ReflectionClass($command);
                 $method = $reflection->getMethod('findSeeOrphans');
 
-                $orphans = $method->invoke($command, $seeRegistry);
+                // Create empty registries (test reference doesn't exist in registries)
+                $attributeRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
+                $pestRegistry = new \TestFlowLabs\TestLink\Registry\TestLinkRegistry();
 
-                // This SHOULD work because stdClass is always loaded
+                $orphans = $method->invoke($command, $seeRegistry, $attributeRegistry, $pestRegistry);
+
                 return count($orphans);
             })
             ->toBe(1); // stdClass exists but doesn't have nonExistentMethod
 
-        it('targetExists returns true for non-loaded classes (documenting bug)')
+        it('targetExists returns false for non-existent classes')
             ->linksAndCovers(ValidateCommand::class.'::execute')
             ->expect(function () {
                 $command = new ValidateCommand();
@@ -423,12 +426,9 @@ describe('ValidateCommand', function (): void {
                 $method = $reflection->getMethod('targetExists');
 
                 // Test with a class that definitely doesn't exist
-                $result = $method->invoke($command, '\Totally\Made\Up\ClassName\That\Does\Not\Exist::someMethod');
-
-                // BUG: This returns true because class is not loaded and we assume it's valid
-                return $result;
+                return $method->invoke($command, '\Totally\Made\Up\ClassName\That\Does\Not\Exist::someMethod');
             })
-            ->toBeTrue(); // BUG: Should be false for non-existent class
+            ->toBeFalse(); // Non-existent class returns false
     });
 
     describe('LinkValidator integration', function (): void {
