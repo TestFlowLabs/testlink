@@ -1,26 +1,69 @@
 # TDD with TestLink
 
-Test-Driven Development (TDD) follows the Red-Green-Refactor cycle. TestLink integrates into this workflow **after** the design emerges from your tests.
+Test-Driven Development (TDD) follows the **Red-Green-Refactor** cycle. TestLink integrates into this workflow **after** the design emerges from your tests.
 
-## The TDD Cycle with TestLink
+## The TDD Cycle
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  1. RED: Write failing test (NO links yet)              │
-│     ↓                                                   │
-│  2. GREEN: Write minimal production code                │
-│     ↓                                                   │
-│  3. REFACTOR: Clean up code                             │
-│     ↓                                                   │
-│  4. LINK: Add #[TestedBy] and linksAndCovers()          │
-│     ↓                                                   │
-│  5. VALIDATE: Run testlink validate                     │
+│                                                         │
+│     ┌─────────┐                                         │
+│     │   RED   │  Write a failing test                   │
+│     │  (FAIL) │  Run tests → See it fail                │
+│     └────┬────┘                                         │
+│          │                                              │
+│          ▼                                              │
+│     ┌─────────┐                                         │
+│     │  GREEN  │  Write minimum code to pass             │
+│     │  (PASS) │  Run tests → See it pass                │
+│     └────┬────┘                                         │
+│          │                                              │
+│          ▼                                              │
+│     ┌──────────┐                                        │
+│     │ REFACTOR │  Improve code structure                │
+│     │  (PASS)  │  Run tests → Still passing             │
+│     └────┬─────┘                                        │
+│          │                                              │
+│          └──────────────── Repeat ──────────────────────┘
+│                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
-## Why Links Come Last
+### The Three Rules of TDD
 
-In true TDD, you don't know the final class or method names until the design emerges from your tests. Adding `linksAndCovers(SomeClass::class.'::someMethod')` in the RED phase would mean:
+1. **Write a failing test first** - Don't write production code until you have a failing test
+2. **Write the minimum code to pass** - Don't write more than necessary to make the test pass
+3. **Refactor only when tests pass** - Clean up code while tests are green
+
+### Run Tests Constantly
+
+Every step in TDD involves running tests:
+
+| Step | Action | Expected Result |
+|------|--------|-----------------|
+| RED | Write test, then run | **FAIL** (test fails) |
+| GREEN | Write code, then run | **PASS** (test passes) |
+| REFACTOR | Change code, then run | **PASS** (still passes) |
+
+---
+
+## Where Does TestLink Fit?
+
+TestLink is **not** part of the Red-Green-Refactor cycle. It comes **after** your design stabilizes:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│   RED → GREEN → REFACTOR → RED → GREEN → REFACTOR →... │
+│                                                         │
+│   ... → Design Stabilizes → ADD TESTLINK LINKS          │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Why Links Come Last
+
+In true TDD, you don't know the final class or method names until the design emerges. Adding `linksAndCovers(SomeClass::class.'::someMethod')` in the RED phase would mean:
 
 - You're deciding the implementation before writing the test
 - You're coupling tests to structure before that structure exists
@@ -28,63 +71,77 @@ In true TDD, you don't know the final class or method names until the design eme
 
 **Links are documentation of what exists, not predictions of what will exist.**
 
-## Step-by-Step Example
+---
 
-Let's build a price calculation feature using TDD with TestLink.
+## Step-by-Step Example: Building a Price Calculator
 
-### Step 1: RED - Write the Failing Test
+Let's build a price calculation feature using strict TDD with TestLink.
 
-Start by describing the behavior you want. Focus only on the behavior, not on how it will be implemented:
+### Cycle 1: Basic Tax Calculation
+
+#### RED: Write a Failing Test
+
+Start by describing the behavior you want. Don't think about implementation yet:
 
 ::: code-group
 
 ```php [Pest]
-// tests/Unit/PriceCalculationTest.php
+// tests/Unit/PriceCalculatorTest.php
 
-test('calculates total with tax', function () {
-    // At this point, we don't know if this will be:
-    // - A PriceCalculator class
-    // - A Cart method
-    // - A static helper
-    // - Something else entirely
+test('calculates price with tax', function () {
+    // We don't know HOW yet, just WHAT we want
+    $result = calculate_price_with_tax(100, 0.20);
 
-    // We just describe what we want:
-    $total = calculate_price_with_tax(100, 0.20);
-
-    expect($total)->toBe(120.0);
+    expect($result)->toBe(120.0);
 });
 ```
 
 ```php [PHPUnit]
-// tests/Unit/PriceCalculationTest.php
+// tests/Unit/PriceCalculatorTest.php
 
 namespace Tests\Unit;
 
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class PriceCalculationTest extends TestCase
+class PriceCalculatorTest extends TestCase
 {
-    public function test_calculates_total_with_tax(): void
+    #[Test]
+    public function calculates_price_with_tax(): void
     {
-        // We don't know the implementation yet
-        // Just describe the desired behavior
-        $total = calculate_price_with_tax(100, 0.20);
+        $result = calculate_price_with_tax(100, 0.20);
 
-        $this->assertSame(120.0, $total);
+        $this->assertSame(120.0, $result);
     }
 }
 ```
 
 :::
 
-Run the test - it fails because nothing exists yet. **This is exactly what we want.**
+**Run the test:**
 
-### Step 2: GREEN - Write Minimal Production Code
+```bash
+pest tests/Unit/PriceCalculatorTest.php
+```
 
-Now make the simplest thing that works. The design emerges:
+```
+  FAIL  Tests\Unit\PriceCalculatorTest
+  ✕ calculates price with tax
+
+  Call to undefined function calculate_price_with_tax()
+
+  Tests:    1 failed
+  Duration: 0.05s
+```
+
+The test fails because nothing exists yet. **This is exactly what we want.**
+
+#### GREEN: Write Minimum Code to Pass
+
+Write the simplest thing that makes the test pass:
 
 ```php
-// app/helpers.php (simplest solution first)
+// app/helpers.php
 
 function calculate_price_with_tax(float $price, float $taxRate): float
 {
@@ -92,252 +149,550 @@ function calculate_price_with_tax(float $price, float $taxRate): float
 }
 ```
 
-Run the test - it passes.
+**Run the test:**
 
-### Step 3: REFACTOR - Improve the Design
+```bash
+pest tests/Unit/PriceCalculatorTest.php
+```
 
-Maybe you realize this belongs in a service class:
+```
+  PASS  Tests\Unit\PriceCalculatorTest
+  ✓ calculates price with tax
+
+  Tests:    1 passed
+  Duration: 0.03s
+```
+
+**Green!** The simplest solution works.
+
+#### REFACTOR: Nothing to Refactor Yet
+
+With just one simple function, there's nothing to refactor. Move to the next cycle.
+
+---
+
+### Cycle 2: Zero Tax Rate (Edge Case)
+
+#### RED: Add Test for Edge Case
+
+```php
+test('handles zero tax rate', function () {
+    $result = calculate_price_with_tax(100, 0);
+
+    expect($result)->toBe(100.0);
+});
+```
+
+**Run tests:**
+
+```bash
+pest tests/Unit/PriceCalculatorTest.php
+```
+
+```
+  PASS  Tests\Unit\PriceCalculatorTest
+  ✓ calculates price with tax
+  ✓ handles zero tax rate
+
+  Tests:    2 passed
+  Duration: 0.03s
+```
+
+The test passes immediately! Our implementation already handles this case. No code change needed.
+
+---
+
+### Cycle 3: Negative Price Validation
+
+#### RED: Add Validation Test
+
+```php
+test('throws exception for negative price', function () {
+    calculate_price_with_tax(-100, 0.20);
+})->throws(InvalidArgumentException::class, 'Price cannot be negative');
+```
+
+**Run tests:**
+
+```bash
+pest tests/Unit/PriceCalculatorTest.php
+```
+
+```
+  FAIL  Tests\Unit\PriceCalculatorTest
+  ✓ calculates price with tax
+  ✓ handles zero tax rate
+  ✕ throws exception for negative price
+
+  Expected exception [InvalidArgumentException] was not thrown.
+
+  Tests:    1 failed, 2 passed
+  Duration: 0.04s
+```
+
+#### GREEN: Add Validation
+
+```php
+// app/helpers.php
+
+function calculate_price_with_tax(float $price, float $taxRate): float
+{
+    if ($price < 0) {
+        throw new InvalidArgumentException('Price cannot be negative');
+    }
+
+    return $price * (1 + $taxRate);
+}
+```
+
+**Run tests:**
+
+```bash
+pest tests/Unit/PriceCalculatorTest.php
+```
+
+```
+  PASS  Tests\Unit\PriceCalculatorTest
+  ✓ calculates price with tax
+  ✓ handles zero tax rate
+  ✓ throws exception for negative price
+
+  Tests:    3 passed
+  Duration: 0.03s
+```
+
+---
+
+### Cycle 4: Refactor to Service Class
+
+Now we have three tests. The function is getting complex. Time to refactor to a proper class.
+
+#### REFACTOR: Extract to Service
+
+**First, update the tests to use the new design:**
+
+::: code-group
+
+```php [Pest]
+// tests/Unit/PriceCalculatorTest.php
+
+use App\Services\PriceCalculator;
+
+test('calculates price with tax', function () {
+    $calculator = new PriceCalculator();
+
+    expect($calculator->withTax(100, 0.20))->toBe(120.0);
+});
+
+test('handles zero tax rate', function () {
+    $calculator = new PriceCalculator();
+
+    expect($calculator->withTax(100, 0))->toBe(100.0);
+});
+
+test('throws exception for negative price', function () {
+    $calculator = new PriceCalculator();
+
+    $calculator->withTax(-100, 0.20);
+})->throws(InvalidArgumentException::class, 'Price cannot be negative');
+```
+
+```php [PHPUnit]
+// tests/Unit/PriceCalculatorTest.php
+
+namespace Tests\Unit;
+
+use App\Services\PriceCalculator;
+use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+
+class PriceCalculatorTest extends TestCase
+{
+    #[Test]
+    public function calculates_price_with_tax(): void
+    {
+        $calculator = new PriceCalculator();
+
+        $this->assertSame(120.0, $calculator->withTax(100, 0.20));
+    }
+
+    #[Test]
+    public function handles_zero_tax_rate(): void
+    {
+        $calculator = new PriceCalculator();
+
+        $this->assertSame(100.0, $calculator->withTax(100, 0));
+    }
+
+    #[Test]
+    public function throws_exception_for_negative_price(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Price cannot be negative');
+
+        $calculator = new PriceCalculator();
+        $calculator->withTax(-100, 0.20);
+    }
+}
+```
+
+:::
+
+**Run tests (they fail because class doesn't exist):**
+
+```bash
+pest tests/Unit/PriceCalculatorTest.php
+```
+
+```
+  FAIL  Tests\Unit\PriceCalculatorTest
+  ✕ calculates price with tax
+
+  Class "App\Services\PriceCalculator" not found
+
+  Tests:    1 failed
+  Duration: 0.04s
+```
+
+**Create the service class:**
 
 ```php
 // app/Services/PriceCalculator.php
 
 namespace App\Services;
 
+use InvalidArgumentException;
+
 class PriceCalculator
 {
     public function withTax(float $price, float $taxRate): float
     {
+        if ($price < 0) {
+            throw new InvalidArgumentException('Price cannot be negative');
+        }
+
         return $price * (1 + $taxRate);
     }
 }
 ```
 
-Update the test to use the new design:
+**Run tests:**
+
+```bash
+pest tests/Unit/PriceCalculatorTest.php
+```
+
+```
+  PASS  Tests\Unit\PriceCalculatorTest
+  ✓ calculates price with tax
+  ✓ handles zero tax rate
+  ✓ throws exception for negative price
+
+  Tests:    3 passed
+  Duration: 0.03s
+```
+
+**Refactoring complete!** Same behavior, better structure.
+
+---
+
+### Cycle 5: New Feature - Discount Calculation
+
+#### RED: Write Test for Discount
+
+```php
+test('applies discount before tax', function () {
+    $calculator = new PriceCalculator();
+
+    // 100 - 10% discount = 90, then + 20% tax = 108
+    expect($calculator->withDiscountAndTax(100, 0.10, 0.20))->toBe(108.0);
+});
+```
+
+**Run tests:**
+
+```bash
+pest tests/Unit/PriceCalculatorTest.php
+```
+
+```
+  FAIL  Tests\Unit\PriceCalculatorTest
+  ✓ calculates price with tax
+  ✓ handles zero tax rate
+  ✓ throws exception for negative price
+  ✕ applies discount before tax
+
+  Call to undefined method App\Services\PriceCalculator::withDiscountAndTax()
+
+  Tests:    1 failed, 3 passed
+  Duration: 0.04s
+```
+
+#### GREEN: Add Discount Method
+
+```php
+// app/Services/PriceCalculator.php
+
+public function withDiscountAndTax(float $price, float $discount, float $taxRate): float
+{
+    if ($price < 0) {
+        throw new InvalidArgumentException('Price cannot be negative');
+    }
+
+    $discountedPrice = $price * (1 - $discount);
+
+    return $discountedPrice * (1 + $taxRate);
+}
+```
+
+**Run tests:**
+
+```bash
+pest tests/Unit/PriceCalculatorTest.php
+```
+
+```
+  PASS  Tests\Unit\PriceCalculatorTest
+  ✓ calculates price with tax
+  ✓ handles zero tax rate
+  ✓ throws exception for negative price
+  ✓ applies discount before tax
+
+  Tests:    4 passed
+  Duration: 0.03s
+```
+
+---
+
+## Design Stabilizes: Add TestLink
+
+After several TDD cycles, our design is stable:
+- `PriceCalculator` class with `withTax()` and `withDiscountAndTax()` methods
+- Clear validation rules
+- Well-tested behavior
+
+**Now** it's time to add bidirectional links.
+
+### Add Links to Tests
 
 ::: code-group
 
 ```php [Pest]
+// tests/Unit/PriceCalculatorTest.php
+
 use App\Services\PriceCalculator;
 
-test('calculates total with tax', function () {
+test('calculates price with tax', function () {
     $calculator = new PriceCalculator();
 
     expect($calculator->withTax(100, 0.20))->toBe(120.0);
-});
+})->linksAndCovers(PriceCalculator::class.'::withTax');
+
+test('handles zero tax rate', function () {
+    $calculator = new PriceCalculator();
+
+    expect($calculator->withTax(100, 0))->toBe(100.0);
+})->linksAndCovers(PriceCalculator::class.'::withTax');
+
+test('throws exception for negative price', function () {
+    $calculator = new PriceCalculator();
+
+    $calculator->withTax(-100, 0.20);
+})->throws(InvalidArgumentException::class, 'Price cannot be negative')
+  ->linksAndCovers(PriceCalculator::class.'::withTax');
+
+test('applies discount before tax', function () {
+    $calculator = new PriceCalculator();
+
+    expect($calculator->withDiscountAndTax(100, 0.10, 0.20))->toBe(108.0);
+})->linksAndCovers(PriceCalculator::class.'::withDiscountAndTax');
 ```
 
 ```php [PHPUnit]
-use App\Services\PriceCalculator;
+// tests/Unit/PriceCalculatorTest.php
 
-class PriceCalculationTest extends TestCase
+namespace Tests\Unit;
+
+use App\Services\PriceCalculator;
+use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use TestFlowLabs\TestingAttributes\LinksAndCovers;
+
+class PriceCalculatorTest extends TestCase
 {
-    public function test_calculates_total_with_tax(): void
+    #[Test]
+    #[LinksAndCovers(PriceCalculator::class, 'withTax')]
+    public function calculates_price_with_tax(): void
     {
         $calculator = new PriceCalculator();
 
         $this->assertSame(120.0, $calculator->withTax(100, 0.20));
+    }
+
+    #[Test]
+    #[LinksAndCovers(PriceCalculator::class, 'withTax')]
+    public function handles_zero_tax_rate(): void
+    {
+        $calculator = new PriceCalculator();
+
+        $this->assertSame(100.0, $calculator->withTax(100, 0));
+    }
+
+    #[Test]
+    #[LinksAndCovers(PriceCalculator::class, 'withTax')]
+    public function throws_exception_for_negative_price(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Price cannot be negative');
+
+        $calculator = new PriceCalculator();
+        $calculator->withTax(-100, 0.20);
+    }
+
+    #[Test]
+    #[LinksAndCovers(PriceCalculator::class, 'withDiscountAndTax')]
+    public function applies_discount_before_tax(): void
+    {
+        $calculator = new PriceCalculator();
+
+        $this->assertSame(108.0, $calculator->withDiscountAndTax(100, 0.10, 0.20));
     }
 }
 ```
 
 :::
 
-### Step 4: LINK - Add Traceability
+### Add Links to Production Code
 
-**Now** that the design is stable, add the bidirectional links:
+```php
+// app/Services/PriceCalculator.php
 
-::: code-group
-
-```php [Test - Pest]
-use App\Services\PriceCalculator;
-
-test('calculates total with tax', function () {
-    $calculator = new PriceCalculator();
-
-    expect($calculator->withTax(100, 0.20))->toBe(120.0);
-})->linksAndCovers(PriceCalculator::class.'::withTax');  // Added after design is stable
-```
-
-```php [Test - PHPUnit]
-use App\Services\PriceCalculator;
-use TestFlowLabs\TestingAttributes\LinksAndCovers;
-
-class PriceCalculationTest extends TestCase
-{
-    #[LinksAndCovers(PriceCalculator::class, 'withTax')]  // Added after design is stable
-    public function test_calculates_total_with_tax(): void
-    {
-        $calculator = new PriceCalculator();
-
-        $this->assertSame(120.0, $calculator->withTax(100, 0.20));
-    }
-}
-```
-
-```php [Production]
 namespace App\Services;
 
-use Tests\Unit\PriceCalculationTest;
+use InvalidArgumentException;
+use Tests\Unit\PriceCalculatorTest;
 use TestFlowLabs\TestingAttributes\TestedBy;
 
 class PriceCalculator
 {
-    #[TestedBy(PriceCalculationTest::class, 'test_calculates_total_with_tax')]
+    #[TestedBy(PriceCalculatorTest::class, 'calculates price with tax')]
+    #[TestedBy(PriceCalculatorTest::class, 'handles zero tax rate')]
+    #[TestedBy(PriceCalculatorTest::class, 'throws exception for negative price')]
     public function withTax(float $price, float $taxRate): float
     {
+        if ($price < 0) {
+            throw new InvalidArgumentException('Price cannot be negative');
+        }
+
         return $price * (1 + $taxRate);
+    }
+
+    #[TestedBy(PriceCalculatorTest::class, 'applies discount before tax')]
+    public function withDiscountAndTax(float $price, float $discount, float $taxRate): float
+    {
+        if ($price < 0) {
+            throw new InvalidArgumentException('Price cannot be negative');
+        }
+
+        $discountedPrice = $price * (1 - $discount);
+
+        return $discountedPrice * (1 + $taxRate);
     }
 }
 ```
 
-:::
-
-### Step 5: VALIDATE - Ensure Sync
+### Validate Links
 
 ```bash
 testlink validate
 ```
 
 ```
-Validation Report:
-  ✓ All links are synchronized!
+  Validation Report
+  ─────────────────
 
-  Bidirectional links: 1
+  Link Summary
+  ────────────
+
+    PHPUnit attribute links: 0
+    Pest method chain links: 4
+    Total links: 4
+
+  ✓ All links are valid!
 ```
+
+---
 
 ## Using Placeholders for Faster Iteration
 
-During rapid TDD cycles, writing full class references can slow you down. **Placeholders** let you establish links quickly, then resolve them later.
+During rapid TDD cycles, writing full class references can slow you down. **Placeholders** let you establish links quickly, then resolve them when design stabilizes.
 
-### With Placeholders
-
-Instead of full references during development:
+### During TDD (with Placeholders)
 
 ::: code-group
 
-```php [Test - Pest (with placeholder)]
-test('calculates total with tax', function () {
+```php [Test - Pest]
+test('calculates price with tax', function () {
     $calculator = new PriceCalculator();
 
     expect($calculator->withTax(100, 0.20))->toBe(120.0);
-})->linksAndCovers('@tax');  // Quick placeholder
+})->linksAndCovers('@price');
 ```
 
-```php [Production (with placeholder)]
-use TestFlowLabs\TestingAttributes\TestedBy;
-
-class PriceCalculator
+```php [Production]
+#[TestedBy('@price')]
+public function withTax(float $price, float $taxRate): float
 {
-    #[TestedBy('@tax')]  // Quick placeholder
-    public function withTax(float $price, float $taxRate): float
-    {
-        return $price * (1 + $taxRate);
-    }
+    // ...
 }
 ```
 
 :::
 
-### Resolve When Ready
-
-After several TDD cycles, resolve all placeholders at once:
+### Resolve When Design Stabilizes
 
 ```bash
-# Preview what will change
+# Preview changes
 testlink pair --dry-run
 
 # Apply changes
 testlink pair
 ```
 
-The placeholders become real class references:
-
-::: code-group
-
-```php [Test - Pest (resolved)]
-test('calculates total with tax', function () {
-    $calculator = new PriceCalculator();
-
-    expect($calculator->withTax(100, 0.20))->toBe(120.0);
-})->linksAndCovers(PriceCalculator::class.'::withTax');
-```
-
-```php [Production (resolved)]
-use TestFlowLabs\TestingAttributes\TestedBy;
-
-class PriceCalculator
-{
-    #[TestedBy('Tests\Unit\PriceCalculationTest', 'it calculates total with tax')]
-    public function withTax(float $price, float $taxRate): float
-    {
-        return $price * (1 + $taxRate);
-    }
-}
-```
-
-:::
-
-### When to Use Placeholders
-
-| Situation | Recommendation |
-|-----------|----------------|
-| Rapid iteration, design unstable | Use placeholders (`@A`, `@B`) |
-| Single focused feature | Use descriptive placeholder (`@price-calc`) |
-| Design is stable | Use full class references directly |
-| Before committing | Run `testlink pair` to resolve |
-
 See the [Placeholder Pairing Guide](/guide/placeholder-pairing) for complete documentation.
+
+---
 
 ## When to Add Links
 
-| Phase | Focus | Links? |
-|-------|-------|--------|
+| TDD Phase | Focus | Add Links? |
+|-----------|-------|------------|
 | **RED** | Describe behavior | No - design unknown |
-| **GREEN** | Make it work | No - design still evolving |
-| **REFACTOR** | Make it right | No - design may still change |
-| **STABLE** | Design is final | Yes - now document it |
+| **GREEN** | Make it work | No - design evolving |
+| **REFACTOR** | Make it right | No - design may change |
+| **STABLE** | Design is final | **Yes** - document it |
 
-## Multiple TDD Cycles, Then Link
+### Signs Your Design is Stable
 
-You might go through several Red-Green-Refactor cycles before the design stabilizes:
-
-```
-RED → GREEN → REFACTOR → RED → GREEN → REFACTOR → ... → STABLE → LINK
-```
-
-Don't add links after every cycle. Wait until:
-- The class/method names are stable
-- The public API is unlikely to change
+- Class and method names are final
+- Public API is unlikely to change
 - You're ready to commit
+- You've completed several TDD cycles without major restructuring
 
-## Batch Linking with Auto-Sync
+---
 
-If you've written many tests before adding links, use auto-sync:
-
-```bash
-# First, add #[TestedBy] attributes to production code
-# Then generate test links automatically:
-
-testlink sync --dry-run  # Preview
-testlink sync            # Apply
-```
-
-## CI Integration
-
-Add validation to catch sync issues before merging:
-
-```yaml
-# .github/workflows/test.yml
-- name: Validate coverage links
-  run: testlink validate --strict
-```
-
-## Summary
-
-TestLink complements TDD but doesn't change it:
+## Key Principles
 
 1. **TDD drives design** - Write tests first, let implementation emerge
-2. **Links document design** - Add them after the design is stable
-3. **Validation enforces sync** - Ensure links stay accurate over time
+2. **Run tests constantly** - Every step involves running tests
+3. **Take the minimum next step** - Don't over-engineer
+4. **Links document stable design** - Add them after design emerges
+5. **Validation ensures accuracy** - Keep links synchronized over time
 
 The power of TestLink in TDD is not in the RED phase - it's in maintaining accurate documentation of your test coverage as your codebase evolves.
+
+::: tip CI Integration
+To enforce link validation in your CI/CD pipeline, see the [CI Integration Guide](/best-practices/ci-integration).
+:::
