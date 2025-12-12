@@ -68,46 +68,51 @@ final class SyncCommand
         // 4. Build @see actions for production methods
         $seeActions = $this->buildSeeActions($registry, $seeRegistry);
 
-        // 5. Handle dry-run mode
-        if ($options->dryRun) {
-            // Let the CLI wrapper handle the output
-            return SyncResult::dryRun($actions, $seeActions);
+        // 5. Build prune actions if requested (computed before dry-run so dry-run can show them)
+        $seePruneActions = [];
+
+        if ($options->prune && $options->force) {
+            $seePruneActions = $this->buildSeePruneActions($seeRegistry, $registry);
         }
 
-        // 6. If no actions and no @see actions, exit
-        if ($actions === [] && $seeActions === []) {
+        // 6. Handle dry-run mode - show all actions without applying
+        if ($options->dryRun) {
+            // Let the CLI wrapper handle the output
+            return SyncResult::dryRun($actions, $seeActions, $seePruneActions);
+        }
+
+        // 7. If no actions and no @see actions, exit
+        if ($actions === [] && $seeActions === [] && $seePruneActions === []) {
             // Let the CLI wrapper handle the output
             return new SyncResult();
         }
 
-        // 7. Apply test file modifications
+        // 8. Apply test file modifications
         $result = $actions !== []
             ? $this->modifier->apply($actions, $options->linkOnly)
             : new SyncResult();
 
-        // 8. Apply @see tag modifications to production files
+        // 9. Apply @see tag modifications to production files
         if ($seeActions !== []) {
             $seeResult = $this->productionModifier->addSeeTags($seeActions);
             $result    = $result->merge($seeResult);
         }
 
-        // 9. Handle pruning if requested
+        // 10. Handle pruning if requested
         if ($options->prune && $options->force) {
             // Collect all test files that might have orphan links (not just from actions)
             $testFiles   = $this->collectAllTestFiles($options->path);
             $pruneResult = $this->modifier->prune($testFiles, $registry);
             $result      = $result->merge($pruneResult);
 
-            // Also prune orphan @see tags
-            $seePruneActions = $this->buildSeePruneActions($seeRegistry, $registry);
-
+            // Apply @see prune actions
             if ($seePruneActions !== []) {
                 $seePruneResult = $this->productionModifier->removeSeeTags($seePruneActions);
                 $result         = $result->merge($seePruneResult);
             }
         }
 
-        // 10. Let the CLI wrapper handle the result reporting
+        // 11. Let the CLI wrapper handle the result reporting
         return $result;
     }
 
@@ -223,6 +228,16 @@ final class SyncCommand
     {
         $pruneActions = [];
 
+        // Get all valid production method identifiers from the registry
+        $validProductionMethods = $registry->getAllMethods();
+
+        // Also include methods from #[TestedBy]
+        foreach (array_keys($registry->getTestedByLinks()) as $methodIdentifier) {
+            $validProductionMethods[] = $methodIdentifier;
+        }
+
+        $validProductionMethods = array_unique($validProductionMethods);
+
         // Get all valid test identifiers from the registry
         $validTests = array_keys($registry->getAllLinksByTest());
 
@@ -235,8 +250,8 @@ final class SyncCommand
 
         $validTests = array_unique($validTests);
 
-        // Find orphan @see tags in production code
-        $orphans = $seeRegistry->findOrphans([], $validTests);
+        // Find orphan @see tags
+        $orphans = $seeRegistry->findOrphans($validProductionMethods, $validTests);
 
         foreach ($orphans as $entry) {
             // Only process production @see entries
