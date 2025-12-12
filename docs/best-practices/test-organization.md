@@ -168,6 +168,50 @@ describe('UserService', function () {
 });
 ```
 
+### Nested describe() Blocks (Pest)
+
+For complex services, use nested describe blocks to organize tests hierarchically:
+
+```php
+describe('UserService', function () {
+    describe('create method', function () {
+        it('creates with valid data', function () {
+            // ...
+        })->linksAndCovers(UserService::class.'::create');
+
+        it('validates email format', function () {
+            // ...
+        })->linksAndCovers(UserService::class.'::create');
+    });
+
+    describe('delete method', function () {
+        it('soft deletes user', function () {
+            // ...
+        })->linksAndCovers(UserService::class.'::delete');
+
+        it('removes associated data', function () {
+            // ...
+        })->linksAndCovers(UserService::class.'::delete');
+    });
+});
+```
+
+::: warning Test Identifiers
+When using nested describe blocks, test identifiers include the full path:
+
+- `UserService > create method > creates with valid data`
+- `UserService > delete method > soft deletes user`
+
+This affects how tests are referenced in `#[TestedBy]` attributes:
+
+```php
+#[TestedBy(UserServiceTest::class, 'UserService > create method > creates with valid data')]
+public function create(): void { }
+```
+
+The `testlink pair` command handles this automatically when resolving placeholders.
+:::
+
 ### With beforeEach() (Pest)
 
 ```php
