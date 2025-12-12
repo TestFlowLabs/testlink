@@ -96,3 +96,60 @@
 .VPHero .tagline {
   font-weight: 400;
 }
+
+/* ==========================================
+   SVG Diagram Styles (Dark Mode Compatible)
+   ========================================== */
+
+:root {
+  /* Diagram color variables - Light mode */
+  --diagram-bg: #ffffff;
+  --diagram-bg-alt: #f8fafc;
+  --diagram-border: #0e3d54;
+  --diagram-text: #0e3d54;
+  --diagram-arrow: #9eadb6;
+
+  /* State colors */
+  --diagram-red-bg: #fef2f2;
+  --diagram-red-border: #ef4444;
+  --diagram-red-text: #dc2626;
+  --diagram-green-bg: #f0fdf4;
+  --diagram-green-border: #22c55e;
+  --diagram-green-text: #16a34a;
+  --diagram-yellow-bg: #fefce8;
+  --diagram-yellow-border: #f59e0b;
+  --diagram-yellow-text: #d97706;
+}
+
+.dark {
+  /* Diagram color variables - Dark mode */
+  --diagram-bg: #1e293b;
+  --diagram-bg-alt: #334155;
+  --diagram-border: #9eadb6;
+  --diagram-text: #e2e8f0;
+  --diagram-arrow: #64748b;
+
+  /* State colors */
+  --diagram-red-bg: #450a0a;
+  --diagram-red-border: #f87171;
+  --diagram-red-text: #fca5a5;
+  --diagram-green-bg: #052e16;
+  --diagram-green-border: #4ade80;
+  --diagram-green-text: #86efac;
+  --diagram-yellow-bg: #422006;
+  --diagram-yellow-border: #fbbf24;
+  --diagram-yellow-text: #fde047;
+}
+
+/* Diagram container */
+.diagram-container {
+  text-align: center;
+  margin: 2rem 0;
+  padding: 1rem;
+}
+
+.diagram-container img,
+.diagram-container svg {
+  max-width: 100%;
+  height: auto;
+}

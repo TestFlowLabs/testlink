@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 140">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="var(--diagram-arrow, #9eadb6)"/>
+    </marker>
+  </defs>
+
+  <!-- TDD Cycles Section -->
+  <rect x="20" y="20" width="480" height="100" rx="10"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+
+  <!-- Cycle 1 -->
+  <text x="60" y="50" font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-red-text, #dc2626)">RED</text>
+  <text x="60" y="65" font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">-></text>
+  <text x="85" y="50" font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-green-text, #16a34a)">GREEN</text>
+  <text x="85" y="65" font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">-></text>
+  <text x="130" y="50" font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-yellow-text, #d97706)">REFACTOR</text>
+
+  <!-- Arrow to Cycle 2 -->
+  <path d="M 185 55 L 205 55" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Cycle 2 -->
+  <text x="220" y="50" font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-red-text, #dc2626)">RED</text>
+  <text x="220" y="65" font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">-></text>
+  <text x="245" y="50" font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-green-text, #16a34a)">GREEN</text>
+  <text x="245" y="65" font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">-></text>
+  <text x="290" y="50" font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-yellow-text, #d97706)">REFACTOR</text>
+
+  <!-- Arrow to Cycle 3 -->
+  <path d="M 345 55 L 365 55" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Cycle 3 (ellipsis) -->
+  <text x="380" y="55" font-family="system-ui, sans-serif" font-size="14"
+        fill="var(--diagram-text, #0e3d54)">...</text>
+
+  <!-- Label -->
+  <text x="260" y="100" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12" font-weight="600"
+        fill="var(--diagram-text, #0e3d54)">TDD Cycles (Design Emerging)</text>
+
+  <!-- Arrow to TestLink -->
+  <path d="M 500 70 L 530 70" stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Design Stabilizes Label -->
+  <text x="515" y="55" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10" font-style="italic"
+        fill="var(--diagram-arrow, #9eadb6)">Design</text>
+  <text x="515" y="90" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10" font-style="italic"
+        fill="var(--diagram-arrow, #9eadb6)">Stabilizes</text>
+
+  <!-- TestLink Box -->
+  <rect x="550" y="20" width="230" height="100" rx="10"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="3"/>
+  <text x="665" y="55" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="16" font-weight="700"
+        fill="var(--diagram-border, #0e3d54)">ADD TESTLINK</text>
+  <text x="665" y="75" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12"
+        fill="var(--diagram-text, #0e3d54)">#[TestedBy] + linksAndCovers()</text>
+  <text x="665" y="100" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">testlink validate</text>
+</svg>

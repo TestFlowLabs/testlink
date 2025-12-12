@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 200">
+  <defs>
+    <marker id="arrow-main" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="var(--diagram-arrow, #9eadb6)"/>
+    </marker>
+  </defs>
+
+  <!-- Main container -->
+  <rect x="10" y="10" width="830" height="180" rx="12"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+
+  <!-- Title -->
+  <text x="425" y="35" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="15" font-weight="700"
+        fill="var(--diagram-border, #0e3d54)">BDD Flow + TestLink</text>
+
+  <!-- DISCOVER -->
+  <rect x="30" y="55" width="120" height="70" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="90" y="80" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="13" font-weight="600"
+        fill="var(--diagram-border, #0e3d54)">DISCOVER</text>
+  <text x="90" y="98" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">Talk to</text>
+  <text x="90" y="112" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">stakeholders</text>
+
+  <path d="M 150 90 L 170 90" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-main)"/>
+
+  <!-- FORMULATE -->
+  <rect x="180" y="55" width="120" height="70" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="240" y="80" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="13" font-weight="600"
+        fill="var(--diagram-border, #0e3d54)">FORMULATE</text>
+  <text x="240" y="98" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">Write scenarios</text>
+  <text x="240" y="112" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">(Gherkin)</text>
+
+  <path d="M 300 90 L 320 90" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-main)"/>
+
+  <!-- AUTOMATE -->
+  <rect x="330" y="55" width="120" height="70" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="390" y="80" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="13" font-weight="600"
+        fill="var(--diagram-border, #0e3d54)">AUTOMATE</text>
+  <text x="390" y="98" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">Write tests</text>
+  <text x="390" y="112" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">(failing)</text>
+
+  <path d="M 450 90 L 470 90" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-main)"/>
+
+  <!-- IMPLEMENT -->
+  <rect x="480" y="55" width="120" height="70" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="540" y="80" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="13" font-weight="600"
+        fill="var(--diagram-border, #0e3d54)">IMPLEMENT</text>
+  <text x="540" y="98" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">Build code</text>
+  <text x="540" y="112" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">(TDD loops)</text>
+
+  <path d="M 600 90 L 620 90" stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="3" fill="none" marker-end="url(#arrow-main)"/>
+
+  <!-- TESTLINK -->
+  <rect x="630" y="55" width="190" height="70" rx="8"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="3"/>
+  <text x="725" y="80" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="13" font-weight="700"
+        fill="var(--diagram-border, #0e3d54)">+ TESTLINK</text>
+  <text x="725" y="98" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">Add links</text>
+  <text x="725" y="112" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">Validate</text>
+
+  <!-- BDD bracket -->
+  <path d="M 30 145 L 30 155 L 600 155 L 600 145"
+        stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none"/>
+  <text x="315" y="175" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12" font-weight="500"
+        fill="var(--diagram-arrow, #9eadb6)">BDD</text>
+
+  <!-- TestLink bracket -->
+  <path d="M 630 145 L 630 155 L 820 155 L 820 145"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2" fill="none"/>
+  <text x="725" y="175" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12" font-weight="500"
+        fill="var(--diagram-border, #0e3d54)">TestLink</text>
+</svg>

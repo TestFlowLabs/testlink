@@ -6,33 +6,9 @@ Behavior-Driven Development (BDD) starts with business requirements expressed as
 
 BDD uses a "double loop" approach:
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                      OUTER LOOP (Acceptance)                        │
-│  ┌───────────────────────────────────────────────────────────────┐  │
-│  │                                                               │  │
-│  │   Acceptance    ┌─────────────────────────────────────┐       │  │
-│  │   Test (RED) ──►│        INNER LOOP (Unit TDD)        │       │  │
-│  │                 │                                     │       │  │
-│  │                 │    ┌─────┐     ┌───────┐            │       │  │
-│  │                 │    │ RED │────►│ GREEN │            │       │  │
-│  │                 │    └─────┘     └───┬───┘            │       │  │
-│  │                 │        ▲           │                │       │  │
-│  │                 │        │      ┌────▼────┐           │       │  │
-│  │                 │        └──────│REFACTOR │           │       │  │
-│  │                 │               └─────────┘           │       │  │
-│  │                 │                                     │       │  │
-│  │                 │    (repeat for each unit needed)    │       │  │
-│  │                 └──────────────────┬──────────────────┘       │  │
-│  │                                    │                          │  │
-│  │                                    ▼                          │  │
-│  │                           Acceptance Test (GREEN)             │  │
-│  │                                                               │  │
-│  └───────────────────────────────────────────────────────────────┘  │
-│                                                                     │
-│                      (repeat for each scenario)                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
+<div class="diagram-container">
+  <img src="/diagrams/bdd-double-loop.svg" alt="BDD Double Loop - Outer acceptance loop with inner TDD loop" />
+</div>
 
 **Outer Loop (Acceptance):**
 1. Write an acceptance test for a scenario - it fails (RED)
@@ -48,20 +24,9 @@ BDD uses a "double loop" approach:
 
 TestLink comes **after** the implementation phase, when the design is stable:
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                    BDD Flow + TestLink                           │
-│                                                                  │
-│  DISCOVER    FORMULATE    AUTOMATE    IMPLEMENT    + TESTLINK    │
-│  ─────────   ─────────    ────────    ─────────    ───────────   │
-│                                                                  │
-│  Talk to     Write        Write       Build code   Add links     │
-│  stakeholders scenarios   tests       (TDD loops)  Validate      │
-│              (Gherkin)    (failing)                              │
-│                                                                  │
-│  ◄─────────────── BDD ───────────────►◄── TestLink ──►           │
-└──────────────────────────────────────────────────────────────────┘
-```
+<div class="diagram-container">
+  <img src="/diagrams/bdd-flow-testlink.svg" alt="BDD Flow with TestLink integration point" />
+</div>
 
 ## Why Links Come After Implementation
 
@@ -1371,19 +1336,9 @@ BDD creates multiple test layers. Use different link types for each:
 
 ### Why Different Link Types?
 
-```
-Feature Test (links) ─────────────────────────────────────┐
-                                                          │
-Integration Test (linksAndCovers) ────────────────────┐   │
-                                                      │   │
-Unit Test (linksAndCovers) ───────────────────┐       │   │
-                                              │       │   │
-                                              ▼       ▼   ▼
-                                      ┌─────────────────────┐
-                                      │   Production Code   │
-                                      │  CartService::add() │
-                                      └─────────────────────┘
-```
+<div class="diagram-container">
+  <img src="/diagrams/bdd-traceability-layers.svg" alt="Test layers linking to production code" />
+</div>
 
 - **Unit tests** (`linksAndCovers`): Test isolated behavior, primary coverage
 - **Integration tests** (`linksAndCovers`): Test service collaboration, additional coverage

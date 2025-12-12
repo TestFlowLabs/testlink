@@ -78,6 +78,10 @@ Having explicit coverage links provides:
 
 TestLink uses a two-package architecture:
 
+<div class="diagram-container">
+  <img src="/diagrams/package-architecture.svg" alt="TestLink Two-Package Architecture" />
+</div>
+
 | Package | Contains | Install As |
 |---------|----------|------------|
 | **test-attributes** | All PHP attributes (`#[TestedBy]`, `#[LinksAndCovers]`, `#[Links]`) | Production dependency |

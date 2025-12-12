@@ -1,8 +1,14 @@
 # CLI Commands
 
-TestLink provides two ways to run commands: the standalone CLI (`testlink`) and Pest plugin integration (`pest --*`).
+TestLink provides a standalone CLI (`testlink`) that works with any testing framework.
 
-## Standalone CLI (Recommended)
+## Choosing the Right Command
+
+<div class="diagram-container">
+  <img src="/diagrams/cli-commands-decision.svg" alt="CLI Commands Decision Tree" />
+</div>
+
+## Standalone CLI
 
 The standalone CLI works with any testing framework (Pest, PHPUnit, or both).
 

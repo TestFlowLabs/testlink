@@ -4,30 +4,9 @@ Test-Driven Development (TDD) follows the **Red-Green-Refactor** cycle. TestLink
 
 ## The TDD Cycle
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                                                         │
-│     ┌─────────┐                                         │
-│     │   RED   │  Write a failing test                   │
-│     │  (FAIL) │  Run tests → See it fail                │
-│     └────┬────┘                                         │
-│          │                                              │
-│          ▼                                              │
-│     ┌─────────┐                                         │
-│     │  GREEN  │  Write minimum code to pass             │
-│     │  (PASS) │  Run tests → See it pass                │
-│     └────┬────┘                                         │
-│          │                                              │
-│          ▼                                              │
-│     ┌──────────┐                                        │
-│     │ REFACTOR │  Improve code structure                │
-│     │  (PASS)  │  Run tests → Still passing             │
-│     └────┬─────┘                                        │
-│          │                                              │
-│          └──────────────── Repeat ──────────────────────┘
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
+<div class="diagram-container">
+  <img src="/diagrams/tdd-cycle.svg" alt="TDD Red-Green-Refactor Cycle" />
+</div>
 
 ### The Three Rules of TDD
 
@@ -51,15 +30,9 @@ Every step in TDD involves running tests:
 
 TestLink is **not** part of the Red-Green-Refactor cycle. It comes **after** your design stabilizes:
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                                                         │
-│   RED → GREEN → REFACTOR → RED → GREEN → REFACTOR →... │
-│                                                         │
-│   ... → Design Stabilizes → ADD TESTLINK LINKS          │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
+<div class="diagram-container">
+  <img src="/diagrams/tdd-testlink-integration.svg" alt="TDD Cycles leading to TestLink integration" />
+</div>
 
 ### Why Links Come Last
 

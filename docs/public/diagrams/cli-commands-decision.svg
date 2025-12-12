@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <marker id="arrow-dec" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="var(--diagram-arrow, #9eadb6)"/>
+    </marker>
+  </defs>
+
+  <!-- Start -->
+  <rect x="300" y="20" width="200" height="50" rx="25"
+        fill="var(--diagram-border, #0e3d54)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="400" y="50" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="14" font-weight="600"
+        fill="var(--diagram-bg, #ffffff)">What do you need?</text>
+
+  <!-- Arrows from start -->
+  <path d="M 300 45 L 150 90" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-dec)"/>
+  <path d="M 400 70 L 400 100" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-dec)"/>
+  <path d="M 500 45 L 650 90" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-dec)"/>
+
+  <!-- Question 1: View links -->
+  <rect x="40" y="100" width="180" height="50" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="130" y="130" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12"
+        fill="var(--diagram-text, #0e3d54)">View current links?</text>
+
+  <!-- Question 2: Validate links -->
+  <rect x="300" y="110" width="200" height="50" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="400" y="140" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12"
+        fill="var(--diagram-text, #0e3d54)">Check if links are valid?</text>
+
+  <!-- Question 3: Modify links -->
+  <rect x="580" y="100" width="180" height="50" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="670" y="130" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12"
+        fill="var(--diagram-text, #0e3d54)">Modify links?</text>
+
+  <!-- Arrow to report -->
+  <path d="M 130 150 L 130 190" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-dec)"/>
+
+  <!-- Arrow to validate -->
+  <path d="M 400 160 L 400 190" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-dec)"/>
+
+  <!-- Arrows from modify -->
+  <path d="M 620 150 L 570 190" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-dec)"/>
+  <path d="M 720 150 L 720 190" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-dec)"/>
+
+  <!-- Report command -->
+  <rect x="40" y="200" width="180" height="80" rx="10"
+        fill="var(--diagram-green-bg, #f0fdf4)"
+        stroke="var(--diagram-green-border, #22c55e)"
+        stroke-width="3"/>
+  <text x="130" y="230" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="15" font-weight="700"
+        fill="var(--diagram-green-text, #16a34a)">report</text>
+  <text x="130" y="250" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">Shows all coverage</text>
+  <text x="130" y="265" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">links in project</text>
+
+  <!-- Validate command -->
+  <rect x="300" y="200" width="200" height="80" rx="10"
+        fill="var(--diagram-green-bg, #f0fdf4)"
+        stroke="var(--diagram-green-border, #22c55e)"
+        stroke-width="3"/>
+  <text x="400" y="230" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="15" font-weight="700"
+        fill="var(--diagram-green-text, #16a34a)">validate</text>
+  <text x="400" y="250" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">Checks bidirectional sync</text>
+  <text x="400" y="265" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">+ placeholder warnings</text>
+
+  <!-- Sub-questions for modify -->
+  <rect x="480" y="200" width="150" height="50" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="555" y="222" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">Have placeholders</text>
+  <text x="555" y="238" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">(@syntax)?</text>
+
+  <rect x="650" y="200" width="130" height="50" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="715" y="222" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">Sync TestedBy</text>
+  <text x="715" y="238" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">to tests?</text>
+
+  <!-- Arrows to commands -->
+  <path d="M 555 250 L 555 300" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-dec)"/>
+  <path d="M 715 250 L 715 300" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrow-dec)"/>
+
+  <!-- Pair command -->
+  <rect x="480" y="310" width="150" height="80" rx="10"
+        fill="var(--diagram-yellow-bg, #fefce8)"
+        stroke="var(--diagram-yellow-border, #f59e0b)"
+        stroke-width="3"/>
+  <text x="555" y="340" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="15" font-weight="700"
+        fill="var(--diagram-yellow-text, #d97706)">pair</text>
+  <text x="555" y="360" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">Resolves @placeholders</text>
+  <text x="555" y="375" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">to real class refs</text>
+
+  <!-- Sync command -->
+  <rect x="650" y="310" width="130" height="80" rx="10"
+        fill="var(--diagram-yellow-bg, #fefce8)"
+        stroke="var(--diagram-yellow-border, #f59e0b)"
+        stroke-width="3"/>
+  <text x="715" y="340" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="15" font-weight="700"
+        fill="var(--diagram-yellow-text, #d97706)">sync</text>
+  <text x="715" y="360" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">Adds links to</text>
+  <text x="715" y="375" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">test files</text>
+
+  <!-- Tips -->
+  <rect x="40" y="320" width="180" height="60" rx="6"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="130" y="345" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-arrow, #9eadb6)">Tip: Use --json for</text>
+  <text x="130" y="360" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-arrow, #9eadb6)">CI/CD integration</text>
+
+  <rect x="300" y="320" width="150" height="60" rx="6"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="375" y="345" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-arrow, #9eadb6)">Tip: Use --strict</text>
+  <text x="375" y="360" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10"
+        fill="var(--diagram-arrow, #9eadb6)">in CI pipelines</text>
+</svg>

@@ -125,6 +125,10 @@ class UserServiceTest extends TestCase
 
 The same placeholder creates links between **all** matching production methods and **all** matching tests.
 
+<div class="diagram-container">
+  <img src="/diagrams/placeholder-nm-matching.svg" alt="N:M Placeholder Matching - 2 production methods x 3 tests = 6 links" />
+</div>
+
 **Example:** If you have:
 - 2 production methods with `#[TestedBy('@A')]`
 - 3 tests with the same placeholder

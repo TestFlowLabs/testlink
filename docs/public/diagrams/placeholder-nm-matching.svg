@@ -1,0 +1,178 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 400">
+  <defs>
+    <marker id="arrow-nm" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="var(--diagram-arrow, #9eadb6)"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="var(--diagram-green-border, #22c55e)"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="425" y="30" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="18" font-weight="700"
+        fill="var(--diagram-border, #0e3d54)">N:M Placeholder Matching</text>
+
+  <!-- BEFORE Section -->
+  <text x="200" y="65" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="14" font-weight="600"
+        fill="var(--diagram-text, #0e3d54)">BEFORE (with placeholder)</text>
+
+  <!-- Production methods (N=2) -->
+  <rect x="30" y="85" width="160" height="130" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="110" y="105" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11" font-weight="600"
+        fill="var(--diagram-border, #0e3d54)">Production (N=2)</text>
+
+  <rect x="45" y="120" width="130" height="35" rx="4"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="1"/>
+  <text x="110" y="143" text-anchor="middle"
+        font-family="monospace" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">#[TestedBy('@cart')]</text>
+  <text x="110" y="153" text-anchor="middle"
+        font-family="monospace" font-size="9"
+        fill="var(--diagram-arrow, #9eadb6)">addItem()</text>
+
+  <rect x="45" y="165" width="130" height="35" rx="4"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="1"/>
+  <text x="110" y="188" text-anchor="middle"
+        font-family="monospace" font-size="10"
+        fill="var(--diagram-text, #0e3d54)">#[TestedBy('@cart')]</text>
+  <text x="110" y="198" text-anchor="middle"
+        font-family="monospace" font-size="9"
+        fill="var(--diagram-arrow, #9eadb6)">removeItem()</text>
+
+  <!-- Placeholder in center -->
+  <rect x="220" y="120" width="80" height="80" rx="40"
+        fill="var(--diagram-yellow-bg, #fefce8)"
+        stroke="var(--diagram-yellow-border, #f59e0b)"
+        stroke-width="3"/>
+  <text x="260" y="165" text-anchor="middle"
+        font-family="monospace" font-size="14" font-weight="700"
+        fill="var(--diagram-yellow-text, #d97706)">@cart</text>
+
+  <!-- Lines from production to placeholder -->
+  <line x1="175" y1="138" x2="220" y2="155"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+  <line x1="175" y1="183" x2="220" y2="165"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+
+  <!-- Test methods (M=3) -->
+  <rect x="330" y="85" width="160" height="175" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="410" y="105" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11" font-weight="600"
+        fill="var(--diagram-border, #0e3d54)">Tests (M=3)</text>
+
+  <rect x="345" y="120" width="130" height="30" rx="4"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="1"/>
+  <text x="410" y="140" text-anchor="middle"
+        font-family="monospace" font-size="9"
+        fill="var(--diagram-text, #0e3d54)">->linksAndCovers('@cart')</text>
+
+  <rect x="345" y="160" width="130" height="30" rx="4"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="1"/>
+  <text x="410" y="180" text-anchor="middle"
+        font-family="monospace" font-size="9"
+        fill="var(--diagram-text, #0e3d54)">->linksAndCovers('@cart')</text>
+
+  <rect x="345" y="200" width="130" height="30" rx="4"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="1"/>
+  <text x="410" y="220" text-anchor="middle"
+        font-family="monospace" font-size="9"
+        fill="var(--diagram-text, #0e3d54)">->linksAndCovers('@cart')</text>
+
+  <!-- Lines from placeholder to tests -->
+  <line x1="300" y1="150" x2="345" y2="135"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+  <line x1="300" y1="160" x2="345" y2="175"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+  <line x1="300" y1="170" x2="345" y2="215"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+
+  <!-- Arrow to AFTER -->
+  <path d="M 260 280 L 260 300 L 590 300 L 590 280"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="3" fill="none" marker-end="url(#arrow-nm)"/>
+  <text x="425" y="295" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12" font-weight="600"
+        fill="var(--diagram-border, #0e3d54)">testlink pair</text>
+
+  <!-- AFTER Section -->
+  <text x="650" y="65" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="14" font-weight="600"
+        fill="var(--diagram-green-text, #16a34a)">AFTER (resolved)</text>
+
+  <!-- Result box -->
+  <rect x="520" y="85" width="300" height="175" rx="8"
+        fill="var(--diagram-green-bg, #f0fdf4)"
+        stroke="var(--diagram-green-border, #22c55e)"
+        stroke-width="2"/>
+  <text x="670" y="108" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12" font-weight="700"
+        fill="var(--diagram-green-text, #16a34a)">2 x 3 = 6 Links Created</text>
+
+  <!-- Production result -->
+  <text x="590" y="130" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10" font-weight="600"
+        fill="var(--diagram-text, #0e3d54)">addItem():</text>
+  <text x="590" y="145" text-anchor="middle"
+        font-family="monospace" font-size="8"
+        fill="var(--diagram-arrow, #9eadb6)">3 #[TestedBy]</text>
+
+  <text x="590" y="165" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10" font-weight="600"
+        fill="var(--diagram-text, #0e3d54)">removeItem():</text>
+  <text x="590" y="180" text-anchor="middle"
+        font-family="monospace" font-size="8"
+        fill="var(--diagram-arrow, #9eadb6)">3 #[TestedBy]</text>
+
+  <!-- Test result -->
+  <text x="750" y="130" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="10" font-weight="600"
+        fill="var(--diagram-text, #0e3d54)">Each test:</text>
+  <text x="750" y="150" text-anchor="middle"
+        font-family="monospace" font-size="8"
+        fill="var(--diagram-arrow, #9eadb6)">->linksAndCovers(</text>
+  <text x="750" y="165" text-anchor="middle"
+        font-family="monospace" font-size="8"
+        fill="var(--diagram-arrow, #9eadb6)">  CartService::addItem)</text>
+  <text x="750" y="180" text-anchor="middle"
+        font-family="monospace" font-size="8"
+        fill="var(--diagram-arrow, #9eadb6)">->linksAndCovers(</text>
+  <text x="750" y="195" text-anchor="middle"
+        font-family="monospace" font-size="8"
+        fill="var(--diagram-arrow, #9eadb6)">  CartService::removeItem)</text>
+
+  <!-- Formula -->
+  <rect x="520" y="270" width="300" height="40" rx="6"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="1"/>
+  <text x="670" y="295" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12"
+        fill="var(--diagram-text, #0e3d54)">N production x M tests = N*M links</text>
+
+  <!-- Bottom labels -->
+  <text x="110" y="380" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">Same placeholder</text>
+  <text x="110" y="395" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">links ALL matches</text>
+</svg>

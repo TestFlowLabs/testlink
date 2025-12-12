@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 350">
+  <defs>
+    <marker id="arrow-down" markerWidth="10" markerHeight="7" refX="5" refY="7" orient="auto">
+      <polygon points="0 0, 10 0, 5 7" fill="var(--diagram-arrow, #9eadb6)"/>
+    </marker>
+  </defs>
+
+  <!-- Feature Test -->
+  <rect x="30" y="30" width="280" height="50" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="170" y="52" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="13" font-weight="600"
+        fill="var(--diagram-border, #0e3d54)">Feature Test</text>
+  <text x="170" y="68" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">links()</text>
+
+  <!-- Line from Feature to Production -->
+  <line x1="310" y1="55" x2="490" y2="55"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+  <line x1="490" y1="55" x2="490" y2="250"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+  <polygon points="485,250 490,265 495,250"
+           fill="var(--diagram-arrow, #9eadb6)"/>
+
+  <!-- Integration Test -->
+  <rect x="80" y="110" width="280" height="50" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="220" y="132" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="13" font-weight="600"
+        fill="var(--diagram-border, #0e3d54)">Integration Test</text>
+  <text x="220" y="148" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-green-text, #16a34a)">linksAndCovers()</text>
+
+  <!-- Line from Integration to Production -->
+  <line x1="360" y1="135" x2="430" y2="135"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+  <line x1="430" y1="135" x2="430" y2="250"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+  <polygon points="425,250 430,265 435,250"
+           fill="var(--diagram-arrow, #9eadb6)"/>
+
+  <!-- Unit Test -->
+  <rect x="130" y="190" width="280" height="50" rx="8"
+        fill="var(--diagram-bg-alt, #f8fafc)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2"/>
+  <text x="270" y="212" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="13" font-weight="600"
+        fill="var(--diagram-border, #0e3d54)">Unit Test</text>
+  <text x="270" y="228" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-green-text, #16a34a)">linksAndCovers()</text>
+
+  <!-- Line from Unit to Production -->
+  <line x1="270" y1="240" x2="270" y2="250"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+  <line x1="270" y1="250" x2="370" y2="250"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+  <line x1="370" y1="250" x2="370" y2="270"
+        stroke="var(--diagram-arrow, #9eadb6)" stroke-width="2"/>
+  <polygon points="365,270 370,285 375,270"
+           fill="var(--diagram-arrow, #9eadb6)"/>
+
+  <!-- Production Code Box -->
+  <rect x="280" y="290" width="250" height="50" rx="8"
+        fill="var(--diagram-bg, #ffffff)"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="3"/>
+  <text x="405" y="312" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="13" font-weight="700"
+        fill="var(--diagram-border, #0e3d54)">Production Code</text>
+  <text x="405" y="330" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-text, #0e3d54)">CartService::add()</text>
+</svg>

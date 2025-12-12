@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="var(--diagram-arrow, #9eadb6)"/>
+    </marker>
+  </defs>
+
+  <!-- RED Box -->
+  <rect x="230" y="30" width="140" height="80" rx="10"
+        fill="var(--diagram-red-bg, #fef2f2)"
+        stroke="var(--diagram-red-border, #ef4444)"
+        stroke-width="3"/>
+  <text x="300" y="60" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="18" font-weight="700"
+        fill="var(--diagram-red-text, #dc2626)">RED</text>
+  <text x="300" y="82" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12"
+        fill="var(--diagram-text, #0e3d54)">Write a failing test</text>
+  <text x="300" y="98" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">Run tests: FAIL</text>
+
+  <!-- Arrow from RED to GREEN -->
+  <path d="M 300 110 L 300 140" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- GREEN Box -->
+  <rect x="230" y="150" width="140" height="80" rx="10"
+        fill="var(--diagram-green-bg, #f0fdf4)"
+        stroke="var(--diagram-green-border, #22c55e)"
+        stroke-width="3"/>
+  <text x="300" y="180" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="18" font-weight="700"
+        fill="var(--diagram-green-text, #16a34a)">GREEN</text>
+  <text x="300" y="202" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12"
+        fill="var(--diagram-text, #0e3d54)">Write minimum code</text>
+  <text x="300" y="218" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">Run tests: PASS</text>
+
+  <!-- Arrow from GREEN to REFACTOR -->
+  <path d="M 300 230 L 300 260" stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- REFACTOR Box -->
+  <rect x="230" y="270" width="140" height="80" rx="10"
+        fill="var(--diagram-yellow-bg, #fefce8)"
+        stroke="var(--diagram-yellow-border, #f59e0b)"
+        stroke-width="3"/>
+  <text x="300" y="300" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="18" font-weight="700"
+        fill="var(--diagram-yellow-text, #d97706)">REFACTOR</text>
+  <text x="300" y="322" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="12"
+        fill="var(--diagram-text, #0e3d54)">Improve code structure</text>
+  <text x="300" y="338" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="11"
+        fill="var(--diagram-arrow, #9eadb6)">Run tests: PASS</text>
+
+  <!-- Curved arrow from REFACTOR back to RED -->
+  <path d="M 230 310 Q 100 310 100 70 Q 100 30 230 50"
+        stroke="var(--diagram-arrow, #9eadb6)"
+        stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+
+  <!-- Repeat label -->
+  <text x="80" y="190" text-anchor="middle"
+        font-family="system-ui, sans-serif" font-size="13" font-style="italic"
+        fill="var(--diagram-arrow, #9eadb6)">Repeat</text>
+
+  <!-- Outer frame -->
+  <rect x="50" y="10" width="500" height="380" rx="15"
+        fill="none"
+        stroke="var(--diagram-border, #0e3d54)"
+        stroke-width="2" stroke-dasharray="5,5"/>
+</svg>
