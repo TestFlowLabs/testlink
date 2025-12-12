@@ -9,7 +9,6 @@ use ReflectionClass;
 use PhpParser\Parser;
 use ReflectionMethod;
 use ReflectionAttribute;
-use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
 use Composer\Autoload\ClassLoader;
@@ -29,13 +28,11 @@ use TestFlowLabs\TestingAttributes\LinksAndCovers;
 final class PlaceholderScanner
 {
     private readonly Parser $parser;
-    private readonly NodeFinder $nodeFinder;
     private ?string $projectRoot = null;
 
     public function __construct()
     {
-        $this->parser     = (new ParserFactory())->createForNewestSupportedVersion();
-        $this->nodeFinder = new NodeFinder();
+        $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
     }
 
     /**

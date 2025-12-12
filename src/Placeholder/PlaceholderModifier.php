@@ -90,7 +90,7 @@ final class PlaceholderModifier
         // Key: "placeholder|production_identifier" to group tests for each production method
         $actionsByPlaceholderAndMethod = [];
         foreach ($actions as $action) {
-            $key                                  = $action->placeholderId.'|'.$action->getProductionMethodIdentifier();
+            $key                                   = $action->placeholderId.'|'.$action->getProductionMethodIdentifier();
             $actionsByPlaceholderAndMethod[$key][] = $action;
         }
 
@@ -150,7 +150,7 @@ final class PlaceholderModifier
         // Key: "placeholder|test_identifier" to group production methods for each test
         $actionsByPlaceholderAndTest = [];
         foreach ($actions as $action) {
-            $key                                = $action->placeholderId.'|'.$action->getTestIdentifier();
+            $key                                 = $action->placeholderId.'|'.$action->getTestIdentifier();
             $actionsByPlaceholderAndTest[$key][] = $action;
         }
 
