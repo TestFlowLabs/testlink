@@ -9,6 +9,7 @@ use PhpParser\Parser;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
+use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\NodeVisitor\ParentConnectingVisitor;
 use TestFlowLabs\TestLink\Contract\TestParserInterface;
 
@@ -123,7 +124,7 @@ final class PestTestParser implements TestParserInterface
     }
 
     /**
-     * Parse code into AST with parent connections.
+     * Parse code into AST with parent connections and resolved names.
      *
      * @return array<Node>|null
      */
@@ -136,8 +137,9 @@ final class PestTestParser implements TestParserInterface
                 return null;
             }
 
-            // Connect parent nodes for traversal
+            // Resolve names (converts short class names to FQN) and connect parent nodes
             $traverser = new NodeTraverser();
+            $traverser->addVisitor(new NameResolver());
             $traverser->addVisitor(new ParentConnectingVisitor());
 
             return $traverser->traverse($ast);
@@ -233,8 +235,8 @@ final class PestTestParser implements TestParserInterface
     {
         $tests = [];
 
-        $describeCalls = $this->nodeFinder->find($ast, fn (Node $node): bool => $node instanceof Node\Expr\FuncCall
-            && $this->getFunctionName($node) === 'describe');
+        // Only find describe blocks at the current level, not recursively
+        $describeCalls = $this->findDirectDescribeCalls($ast);
 
         foreach ($describeCalls as $describe) {
             if (!$describe instanceof Node\Expr\FuncCall) {
@@ -283,6 +285,29 @@ final class PestTestParser implements TestParserInterface
     }
 
     /**
+     * Find direct describe() calls at the current level (not recursive).
+     *
+     * @param  array<Node>  $nodes
+     *
+     * @return list<Node\Expr\FuncCall>
+     */
+    private function findDirectDescribeCalls(array $nodes): array
+    {
+        $calls = [];
+
+        foreach ($nodes as $node) {
+            if ($node instanceof Node\Stmt\Expression
+                && $node->expr instanceof Node\Expr\FuncCall
+                && $this->getFunctionName($node->expr) === 'describe'
+            ) {
+                $calls[] = $node->expr;
+            }
+        }
+
+        return $calls;
+    }
+
+    /**
      * Find direct test() or it() calls (not recursive).
      *
      * @param  array<Node>  $nodes
@@ -304,11 +329,33 @@ final class PestTestParser implements TestParserInterface
                 }
             }
 
-            // Also check method chains starting with test/it
+            // Also check method chains starting with test/it (wrapped in Expression)
             if ($node instanceof Node\Stmt\Expression
                 && $node->expr instanceof Node\Expr\MethodCall
             ) {
                 $rootCall = $this->getRootFuncCall($node->expr);
+
+                if ($rootCall instanceof \PhpParser\Node\Expr\FuncCall) {
+                    $funcName = $this->getFunctionName($rootCall);
+
+                    if (in_array($funcName, ['test', 'it'], true)) {
+                        $calls[] = $rootCall;
+                    }
+                }
+            }
+
+            // Handle arrow function bodies (raw expressions without Statement wrapper)
+            if ($node instanceof Node\Expr\FuncCall) {
+                $funcName = $this->getFunctionName($node);
+
+                if (in_array($funcName, ['test', 'it'], true)) {
+                    $calls[] = $node;
+                }
+            }
+
+            // Handle arrow function bodies with method chains
+            if ($node instanceof Node\Expr\MethodCall) {
+                $rootCall = $this->getRootFuncCall($node);
 
                 if ($rootCall instanceof \PhpParser\Node\Expr\FuncCall) {
                     $funcName = $this->getFunctionName($rootCall);
@@ -486,6 +533,8 @@ final class PestTestParser implements TestParserInterface
 
     /**
      * Extract value from a concatenation like Class::class.'::method'.
+     *
+     * Uses the resolved FQN from NameResolver when available.
      */
     private function extractConcatValue(Node\Expr\BinaryOp\Concat $concat): ?string
     {
@@ -497,7 +546,12 @@ final class PestTestParser implements TestParserInterface
 
         if ($left instanceof Node\Expr\ClassConstFetch && $left->name instanceof Node\Identifier && $left->name->toString() === 'class' && $left->class instanceof Node\Name
         ) {
-            $leftValue = $left->class->toString();
+            // Use resolved name (FQN) if available, otherwise fall back to the original name
+            /** @var Node\Name|null $resolvedName */
+            $resolvedName = $left->class->getAttribute('resolvedName');
+            $leftValue    = $resolvedName instanceof Node\Name
+                ? $resolvedName->toString()
+                : $left->class->toString();
         }
 
         if ($right instanceof Node\Scalar\String_) {
