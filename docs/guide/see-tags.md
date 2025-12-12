@@ -386,11 +386,3 @@ This gives you:
  */
 public function create(string $email): User
 ```
-
-## Related Documentation
-
-- [TestedBy Attribute](/guide/testedby-attribute) - Production → Test linking
-- [Covers Method Helper](/guide/covers-method-helper) - Test → Production linking
-- [Validation](/guide/validation) - Link validation
-- [Sync Command](/sync/sync-command) - Automatic link synchronization
-- [ADR: @see Tag Support](/decisions/see-tag-support) - Design decision record
