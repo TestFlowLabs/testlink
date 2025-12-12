@@ -127,12 +127,15 @@ The same placeholder creates links between **all** matching production methods a
 
 **Example:** If you have:
 - 2 production methods with `#[TestedBy('@A')]`
-- 3 tests with `->linksAndCovers('@A')`
+- 3 tests with the same placeholder
 
 Result: **6 links** (2 × 3 = 6)
 
-```php
-// Production: 2 methods
+### Before Pairing
+
+::: code-group
+
+```php [Production Code]
 class UserService
 {
     #[TestedBy('@A')]
@@ -141,17 +144,75 @@ class UserService
     #[TestedBy('@A')]
     public function update(): void { }
 }
+```
 
-// Tests: 3 tests
+```php [Pest Tests]
 test('creates user', fn() => ...)->linksAndCovers('@A');
 test('validates user', fn() => ...)->linksAndCovers('@A');
 test('stores user', fn() => ...)->linksAndCovers('@A');
-
-// After pairing: each method links to all 3 tests
-// create() → 3 tests
-// update() → 3 tests
-// Total: 6 links
 ```
+
+```php [PHPUnit Tests]
+#[LinksAndCovers('@A')]
+public function test_creates_user(): void { }
+
+#[LinksAndCovers('@A')]
+public function test_validates_user(): void { }
+
+#[LinksAndCovers('@A')]
+public function test_stores_user(): void { }
+```
+
+:::
+
+### After Pairing
+
+::: code-group
+
+```php [Production Code]
+class UserService
+{
+    #[TestedBy(UserServiceTest::class, 'creates user')]
+    #[TestedBy(UserServiceTest::class, 'validates user')]
+    #[TestedBy(UserServiceTest::class, 'stores user')]
+    public function create(): void { }
+
+    #[TestedBy(UserServiceTest::class, 'creates user')]
+    #[TestedBy(UserServiceTest::class, 'validates user')]
+    #[TestedBy(UserServiceTest::class, 'stores user')]
+    public function update(): void { }
+}
+```
+
+```php [Pest Tests]
+test('creates user', fn() => ...)
+    ->linksAndCovers(UserService::class.'::create')
+    ->linksAndCovers(UserService::class.'::update');
+test('validates user', fn() => ...)
+    ->linksAndCovers(UserService::class.'::create')
+    ->linksAndCovers(UserService::class.'::update');
+test('stores user', fn() => ...)
+    ->linksAndCovers(UserService::class.'::create')
+    ->linksAndCovers(UserService::class.'::update');
+```
+
+```php [PHPUnit Tests]
+#[LinksAndCovers(UserService::class, 'create')]
+#[LinksAndCovers(UserService::class, 'update')]
+public function test_creates_user(): void { }
+
+#[LinksAndCovers(UserService::class, 'create')]
+#[LinksAndCovers(UserService::class, 'update')]
+public function test_validates_user(): void { }
+
+#[LinksAndCovers(UserService::class, 'create')]
+#[LinksAndCovers(UserService::class, 'update')]
+public function test_stores_user(): void { }
+```
+
+:::
+
+Each method links to all 3 tests, each test links to both methods = **6 links total**.
 
 ## Running testlink pair
 
