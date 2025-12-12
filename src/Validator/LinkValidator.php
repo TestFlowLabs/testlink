@@ -76,7 +76,7 @@ final class LinkValidator
     }
 
     /**
-     * Get all links from both registries combined.
+     * Get all links from both registries combined, including TestedBy links.
      *
      * @return array<string, list<string>>
      */
@@ -86,7 +86,7 @@ final class LinkValidator
     ): array {
         $allLinks = [];
 
-        // Add attribute links
+        // Add attribute links (from #[LinksAndCovers]/#[Links] in test files)
         foreach ($attributeRegistry->getAllLinksByTest() as $test => $methods) {
             foreach ($methods as $method) {
                 $allLinks[$method] ??= [];
@@ -94,9 +94,19 @@ final class LinkValidator
             }
         }
 
-        // Add runtime links
+        // Add runtime links (from Pest linksAndCovers()/links() calls)
         foreach ($runtimeRegistry->getAllLinksByTest() as $test => $methods) {
             foreach ($methods as $method) {
+                if (!isset($allLinks[$method]) || !in_array($test, $allLinks[$method], true)) {
+                    $allLinks[$method] ??= [];
+                    $allLinks[$method][] = $test;
+                }
+            }
+        }
+
+        // Add TestedBy links (from #[TestedBy] in production files)
+        foreach ($attributeRegistry->getTestedByLinks() as $method => $tests) {
+            foreach ($tests as $test) {
                 if (!isset($allLinks[$method]) || !in_array($test, $allLinks[$method], true)) {
                     $allLinks[$method] ??= [];
                     $allLinks[$method][] = $test;
