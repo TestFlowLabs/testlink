@@ -7,12 +7,14 @@ namespace TestFlowLabs\TestLink\Console\Command;
 use TestFlowLabs\TestLink\Console\Output;
 use TestFlowLabs\TestLink\DocBlock\SeeTagEntry;
 use TestFlowLabs\TestLink\Console\ArgumentParser;
+use TestFlowLabs\TestLink\DocBlock\FqcnValidator;
 use TestFlowLabs\TestLink\DocBlock\SeeTagRegistry;
+use TestFlowLabs\TestLink\Scanner\PestLinkScanner;
 use TestFlowLabs\TestLink\Validator\LinkValidator;
 use TestFlowLabs\TestLink\DocBlock\DocBlockScanner;
 use TestFlowLabs\TestLink\Scanner\AttributeScanner;
-use TestFlowLabs\TestLink\Scanner\PestLinkScanner;
 use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
+use TestFlowLabs\TestLink\DocBlock\FqcnIssueRegistry;
 use TestFlowLabs\TestLink\Placeholder\PlaceholderScanner;
 use TestFlowLabs\TestLink\Placeholder\PlaceholderRegistry;
 
@@ -42,16 +44,29 @@ final class ValidateCommand
 
         // Scan for @see tags and find orphans
         $seeRegistry = $this->scanSeeTags($path);
-        $seeOrphans  = $this->findSeeOrphans($seeRegistry, $attributeRegistry);
+        $seeOrphans  = $this->findSeeOrphans($seeRegistry);
+
+        // Validate @see tags for FQCN format
+        $fqcnValidator = new FqcnValidator();
+        $fqcnIssues    = $fqcnValidator->validate($seeRegistry);
 
         $isJson   = $parser->hasOption('json');
         $isStrict = $parser->hasOption('strict');
+        $isFix    = $parser->hasOption('fix');
+        $isDryRun = $parser->hasOption('dry-run');
 
-        if ($isJson) {
-            return $this->outputJson($result, $placeholderRegistry, $seeRegistry, $seeOrphans, $output);
+        // Handle --fix mode
+        $fixResult = null;
+
+        if ($isFix && $fqcnIssues->hasIssues()) {
+            $fixResult = $fqcnValidator->fix($fqcnIssues, $isDryRun);
         }
 
-        return $this->outputConsole($result, $placeholderRegistry, $seeRegistry, $seeOrphans, $output, $isStrict);
+        if ($isJson) {
+            return $this->outputJson($result, $placeholderRegistry, $seeRegistry, $seeOrphans, $fqcnIssues, $fixResult, $output);
+        }
+
+        return $this->outputConsole($result, $placeholderRegistry, $seeRegistry, $seeOrphans, $fqcnIssues, $fixResult, $output, $isStrict, $isDryRun);
     }
 
     /**
@@ -130,7 +145,7 @@ final class ValidateCommand
      *
      * @return list<SeeTagEntry>
      */
-    private function findSeeOrphans(SeeTagRegistry $seeRegistry, TestLinkRegistry $attributeRegistry): array
+    private function findSeeOrphans(SeeTagRegistry $seeRegistry): array
     {
         $orphans = [];
 
@@ -197,8 +212,9 @@ final class ValidateCommand
      *
      * @param  array{valid: bool, attributeLinks: array<string, list<string>>, runtimeLinks: array<string, list<string>>, duplicates: list<array{test: string, method: string}>, totalLinks: int}  $result
      * @param  list<SeeTagEntry>  $seeOrphans
+     * @param  array{fixed: int, files: array<string, list<string>>, errors: list<string>}|null  $fixResult
      */
-    private function outputJson(array $result, PlaceholderRegistry $placeholderRegistry, SeeTagRegistry $seeRegistry, array $seeOrphans, Output $output): int
+    private function outputJson(array $result, PlaceholderRegistry $placeholderRegistry, SeeTagRegistry $seeRegistry, array $seeOrphans, FqcnIssueRegistry $fqcnIssues, ?array $fixResult, Output $output): int
     {
         $placeholderIds = $placeholderRegistry->getAllPlaceholderIds();
 
@@ -216,6 +232,24 @@ final class ValidateCommand
             'method'    => $entry->getMethodIdentifier(),
         ], $seeOrphans);
 
+        // Build FQCN issues array
+        $fqcnIssueList = [];
+
+        foreach ($fqcnIssues->getAllByFile() as $filePath => $issues) {
+            foreach ($issues as $issue) {
+                $fqcnIssueList[] = [
+                    'reference' => $issue->originalReference,
+                    'resolved'  => $issue->resolvedFqcn,
+                    'file'      => $filePath,
+                    'line'      => $issue->line,
+                    'context'   => $issue->context,
+                    'method'    => $issue->getMethodIdentifier(),
+                    'fixable'   => $issue->isFixable(),
+                    'error'     => $issue->errorMessage,
+                ];
+            }
+        }
+
         $outputData = [
             ...$result,
             'unresolvedPlaceholders' => $unresolvedPlaceholders,
@@ -225,14 +259,29 @@ final class ValidateCommand
                 'total'      => $seeRegistry->count(),
                 'orphans'    => $orphanSeeTags,
             ],
+            'fqcnIssues' => [
+                'total'   => $fqcnIssues->count(),
+                'fixable' => $fqcnIssues->countFixable(),
+                'issues'  => $fqcnIssueList,
+            ],
         ];
+
+        // Add fix result if available
+        if ($fixResult !== null) {
+            $outputData['fqcnFix'] = [
+                'fixed'  => $fixResult['fixed'],
+                'files'  => $fixResult['files'],
+                'errors' => $fixResult['errors'],
+            ];
+        }
 
         $json = json_encode($outputData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         $output->writeln($json !== false ? $json : '{}');
 
-        $hasOrphans = $seeOrphans !== [];
+        $hasOrphans    = $seeOrphans !== [];
+        $hasFqcnIssues = $fqcnIssues->hasIssues();
 
-        return ($result['valid'] && !$hasOrphans) ? 0 : 1;
+        return ($result['valid'] && !$hasOrphans && !$hasFqcnIssues) ? 0 : 1;
     }
 
     /**
@@ -240,8 +289,9 @@ final class ValidateCommand
      *
      * @param  array{valid: bool, attributeLinks: array<string, list<string>>, runtimeLinks: array<string, list<string>>, duplicates: list<array{test: string, method: string}>, totalLinks: int}  $result
      * @param  list<SeeTagEntry>  $seeOrphans
+     * @param  array{fixed: int, files: array<string, list<string>>, errors: list<string>}|null  $fixResult
      */
-    private function outputConsole(array $result, PlaceholderRegistry $placeholderRegistry, SeeTagRegistry $seeRegistry, array $seeOrphans, Output $output, bool $strict): int
+    private function outputConsole(array $result, PlaceholderRegistry $placeholderRegistry, SeeTagRegistry $seeRegistry, array $seeOrphans, FqcnIssueRegistry $fqcnIssues, ?array $fixResult, Output $output, bool $strict, bool $isDryRun): int
     {
         $output->title('Validation Report');
 
@@ -305,6 +355,20 @@ final class ValidateCommand
             $hasErrors = true;
         }
 
+        // Report FQCN issues or fix results
+        if ($fixResult !== null) {
+            $this->outputFqcnFixResults($fixResult, $fqcnIssues, $output, $isDryRun);
+            // After fix, only unfixable issues count as errors
+            $unfixableIssues = $fqcnIssues->getUnfixableIssues();
+
+            if ($unfixableIssues !== []) {
+                $hasErrors = true;
+            }
+        } elseif ($fqcnIssues->hasIssues()) {
+            $this->outputFqcnIssues($fqcnIssues, $output);
+            $hasErrors = true;
+        }
+
         // Return early if there are errors
         if ($hasErrors) {
             return 1;
@@ -340,6 +404,97 @@ final class ValidateCommand
         $output->newLine();
 
         return 0;
+    }
+
+    /**
+     * Output FQCN validation issues.
+     */
+    private function outputFqcnIssues(FqcnIssueRegistry $fqcnIssues, Output $output): void
+    {
+        $output->section('Non-FQCN @see Tags');
+        $output->comment('These @see tags should use fully qualified class names:');
+        $output->newLine();
+
+        foreach ($fqcnIssues->getAllByFile() as $filePath => $issues) {
+            $output->writeln('    '.$this->shortenPath($filePath));
+
+            foreach ($issues as $issue) {
+                $icon = $issue->isFixable()
+                    ? $output->yellow('!')
+                    : $output->red('✗');
+
+                $output->writeln("      {$icon} Line {$issue->line}: {$issue->originalReference}");
+
+                if ($issue->isFixable()) {
+                    $output->writeln('        → '.$output->green((string) $issue->resolvedFqcn));
+                } else {
+                    $output->writeln('        → '.$output->gray((string) $issue->errorMessage));
+                }
+            }
+        }
+
+        $output->newLine();
+
+        if ($fqcnIssues->countFixable() > 0) {
+            $output->warning('Run "testlink validate --fix" to convert to FQCN format.');
+        }
+
+        $output->newLine();
+    }
+
+    /**
+     * Output FQCN fix results.
+     *
+     * @param  array{fixed: int, files: array<string, list<string>>, errors: list<string>}  $fixResult
+     */
+    private function outputFqcnFixResults(array $fixResult, FqcnIssueRegistry $fqcnIssues, Output $output, bool $isDryRun): void
+    {
+        $prefix = $isDryRun ? '[DRY-RUN] ' : '';
+
+        if ($fixResult['fixed'] > 0) {
+            $output->section("{$prefix}FQCN Conversion Results");
+
+            foreach ($fixResult['files'] as $filePath => $changes) {
+                $output->writeln('    '.$output->green('✓').' '.$this->shortenPath($filePath));
+
+                foreach ($changes as $change) {
+                    $output->writeln('      + '.$change);
+                }
+            }
+
+            $output->newLine();
+
+            $fileCount = count($fixResult['files']);
+            $output->success("{$prefix}Converted {$fixResult['fixed']} @see tag(s) in {$fileCount} file(s).");
+            $output->newLine();
+        }
+
+        // Report unfixable issues
+        $unfixableIssues = $fqcnIssues->getUnfixableIssues();
+
+        if ($unfixableIssues !== []) {
+            $output->section('Unfixable @see Tags');
+
+            foreach ($unfixableIssues as $issue) {
+                $location = $this->shortenPath($issue->filePath).':'.$issue->line;
+                $output->writeln('    '.$output->red('✗').' '.$issue->originalReference);
+                $output->writeln('      → '.$output->gray((string) $issue->errorMessage));
+                $output->writeln('      → '.$output->gray($location));
+            }
+
+            $output->newLine();
+        }
+
+        // Report errors
+        if ($fixResult['errors'] !== []) {
+            $output->section('Fix Errors');
+
+            foreach ($fixResult['errors'] as $error) {
+                $output->writeln('    '.$output->red('✗').' '.$error);
+            }
+
+            $output->newLine();
+        }
     }
 
     /**
