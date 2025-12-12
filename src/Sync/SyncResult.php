@@ -33,9 +33,23 @@ final readonly class SyncResult
      */
     public static function dryRun(array $actions): self
     {
+        // Build modifiedFiles from actions for CLI display
+        $modifiedFiles = [];
+
+        foreach ($actions as $action) {
+            if (!isset($modifiedFiles[$action->testFile])) {
+                $modifiedFiles[$action->testFile] = [];
+            }
+
+            foreach ($action->methodsToAdd as $method) {
+                $modifiedFiles[$action->testFile][] = $method;
+            }
+        }
+
         return new self(
             isDryRun: true,
             linksAdded: array_sum(array_map(fn (SyncAction $a): int => count($a->methodsToAdd), $actions)),
+            modifiedFiles: $modifiedFiles,
             actions: $actions,
         );
     }
