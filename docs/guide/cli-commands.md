@@ -203,6 +203,27 @@ Options:
 The validate command automatically detects unresolved placeholders. In normal mode, this shows a warning but doesn't fail. Use `--strict` to fail when placeholders are found.
 :::
 
+Example with `--strict` (fails when placeholders found):
+
+```bash
+testlink validate --strict
+```
+
+```
+  Validation Report
+  ─────────────────
+
+  Unresolved Placeholders
+  ───────────────────────
+
+    ⚠ @user-create  (1 production, 2 tests)
+
+    ✗ Validation failed: unresolved placeholders found.
+    Run "testlink pair" to resolve placeholders.
+
+Exit code: 1
+```
+
 #### Sync
 
 Synchronize `#[TestedBy]` attributes to test files:
@@ -370,51 +391,6 @@ Available for all commands:
 | `--version, -v` | Show version |
 | `--verbose` | Show detailed output |
 | `--no-color` | Disable colored output |
-
-## Pest Plugin (Alternative)
-
-If you're using Pest, you can also use these commands through the Pest CLI:
-
-### Report
-
-```bash
-pest --coverage-links
-```
-
-### Report as JSON
-
-```bash
-pest --coverage-links-json
-```
-
-### Validate
-
-```bash
-pest --validate-coverage-links
-```
-
-### Sync
-
-```bash
-pest --sync-coverage-links
-pest --sync-coverage-links --dry-run
-pest --sync-coverage-links --link-only
-pest --sync-coverage-links --prune --force
-```
-
-### Help
-
-```bash
-pest --help-testlink
-```
-
-::: tip Choosing Between CLIs
-The standalone `testlink` CLI is recommended because:
-- Works with both Pest and PHPUnit
-- Framework-agnostic output
-- Better for CI/CD pipelines
-- Consistent behavior across projects
-:::
 
 ## Error Handling
 
