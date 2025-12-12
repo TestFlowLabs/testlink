@@ -179,7 +179,8 @@ describe('TestFileModifier', function (): void {
                 PHP);
 
             $registry = new TestLinkRegistry();
-            $registry->registerLink('Tests\Unit\Test::test', 'App\User::valid');
+            // Register TestedBy to indicate production method declares this test as valid
+            $registry->registerTestedBy('App\User::valid', 'Tests\Unit\Test::test');
 
             $result = $this->modifier->prune([$filePath], $registry);
 

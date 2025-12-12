@@ -46,7 +46,8 @@ describe('OrphanPruner', function (): void {
                 PHP);
 
             $registry = new TestLinkRegistry();
-            $registry->registerLink('Tests\Unit\Test::test', 'App\User::create');
+            // Register TestedBy to indicate production method declares this test as valid
+            $registry->registerTestedBy('App\User::create', 'Tests\Unit\Test::test');
 
             $orphans = $this->pruner->findOrphans($filePath, $registry);
 
