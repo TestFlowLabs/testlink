@@ -9,6 +9,7 @@ use PhpParser\Parser;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\ParserFactory;
+use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\NodeVisitor\ParentConnectingVisitor;
 use TestFlowLabs\TestLink\Sync\Parser\ParsedTestCase;
 use TestFlowLabs\TestLink\Contract\TestParserInterface;
@@ -113,7 +114,7 @@ final class PhpUnitTestParser implements TestParserInterface
     }
 
     /**
-     * Parse code into AST with parent connections.
+     * Parse code into AST with parent connections and resolved names.
      *
      * @return array<Node>|null
      */
@@ -126,7 +127,9 @@ final class PhpUnitTestParser implements TestParserInterface
                 return null;
             }
 
+            // Resolve names (converts short class names to FQN) and connect parent nodes
             $traverser = new NodeTraverser();
+            $traverser->addVisitor(new NameResolver());
             $traverser->addVisitor(new ParentConnectingVisitor());
 
             return $traverser->traverse($ast);
@@ -271,6 +274,8 @@ final class PhpUnitTestParser implements TestParserInterface
      * - #[Links(UserService::class, 'create')]
      * - #[LinksAndCovers(UserService::class, 'create')]
      * - #[Links(UserService::class)] (class-level)
+     *
+     * Uses the resolved FQN from NameResolver when available.
      */
     private function extractMethodIdentifierFromAttribute(Node\Attribute $attr): ?string
     {
@@ -289,7 +294,12 @@ final class PhpUnitTestParser implements TestParserInterface
             && $classArg->value->name->toString() === 'class'
             && $classArg->value->class instanceof Node\Name
         ) {
-            $className = $classArg->value->class->toString();
+            // Use resolved name (FQN) if available, otherwise fall back to the original name
+            /** @var Node\Name|null $resolvedName */
+            $resolvedName = $classArg->value->class->getAttribute('resolvedName');
+            $className    = $resolvedName instanceof Node\Name
+                ? $resolvedName->toString()
+                : $classArg->value->class->toString();
         } elseif ($classArg->value instanceof Node\Scalar\String_) {
             $className = $classArg->value->value;
         }

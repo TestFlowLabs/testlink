@@ -67,3 +67,17 @@ test('it returns correct number of tests')
         return count($tests);
     })
     ->toBe(3);
+
+test('it resolves class names to FQN in link attributes')
+    ->linksAndCovers(PhpUnitTestParser::class.'::parseFile')
+    ->expect(function () {
+        $tests = $this->parser->parseFile($this->fixturesPath.'/AttributeTestCase.php');
+
+        // Find the test with link attribute
+        $testWithLinks = array_filter($tests, fn ($t) => $t->name === 'test_it_creates_user');
+        $test          = array_values($testWithLinks)[0] ?? null;
+
+        return $test?->existingCoversMethod[0] ?? null;
+    })
+    // Should be FQN, not short class name
+    ->toBe('App\Services\UserService::create');
