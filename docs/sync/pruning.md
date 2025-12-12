@@ -1,10 +1,11 @@
 # Pruning Orphans
 
-Pruning removes test links that no longer have matching `#[TestedBy]` attributes. This happens when:
+Pruning removes test links and @see tags that no longer have valid targets. This happens when:
 
 - A `#[TestedBy]` attribute is removed from production code
 - A production method is deleted
 - A production method is renamed
+- An @see tag points to a non-existent class or method
 
 ## What Are Orphans?
 
@@ -249,3 +250,47 @@ testlink sync --prune --force --dry-run
 # Review output
 testlink sync --prune --force
 ```
+
+## @see Tag Pruning
+
+Pruning also removes orphan @see tags from production docblocks:
+
+### Orphaned @see Tags
+
+```php
+/**
+ * @see \Tests\Unit\OldTest::deleted_test  ← Orphan (test deleted)
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(): User
+```
+
+### After Pruning
+
+```php
+/**
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(): User
+```
+
+### Empty Docblocks
+
+If all @see tags are removed and the docblock becomes empty, it's also cleaned up:
+
+```php
+// Before (only had orphan @see)
+/**
+ * @see \Tests\Unit\OldTest::deleted_test
+ */
+public function create(): User
+
+// After (empty docblock removed)
+public function create(): User
+```
+
+::: tip @see Tags
+For detailed @see tag usage, see the [@see Tags Guide](/guide/see-tags).
+:::

@@ -16,6 +16,7 @@ testlink sync
 4. **Injects links**:
    - **Pest**: Adds `->linksAndCovers()` calls before the semicolon
    - **PHPUnit**: Adds `#[LinksAndCovers]` attributes above the method
+5. **Generates @see tags** - Adds `@see` PHPDoc tags to production method docblocks
 
 ## Command Output
 
@@ -160,6 +161,74 @@ Output:
 ```php
 #[LinksAndCovers(UserService::class, 'create')]
 ```
+
+## @see Tag Generation
+
+When syncing, TestLink also generates `@see` tags in production code docblocks:
+
+::: code-group
+
+```php [Before]
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(): User
+{
+    // ...
+}
+```
+
+```php [After]
+/**
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(): User
+{
+    // ...
+}
+```
+
+:::
+
+### Why @see Tags?
+
+| Feature | @see | Attribute |
+|---------|------|-----------|
+| IDE method navigation | :white_check_mark: Full | :x: Class only |
+| Production dependency | :white_check_mark: None | :x: test-attributes |
+| TestLink validation | :white_check_mark: Yes | :white_check_mark: Yes |
+
+### Existing Docblocks
+
+@see tags are added to existing docblocks, preserving other tags:
+
+```php
+/**
+ * Create a new user.
+ *
+ * @param string $name User's name
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(string $name): User
+```
+
+### Multiple Tests
+
+When a method has multiple `#[TestedBy]` attributes, multiple @see tags are generated:
+
+```php
+/**
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ * @see \Tests\Unit\UserServiceTest::test_validates_email
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+#[TestedBy(UserServiceTest::class, 'test_validates_email')]
+public function create(string $email): User
+```
+
+::: tip @see Tags Guide
+For detailed @see tag usage, see the [@see Tags Guide](/guide/see-tags).
+:::
 
 ## Placement
 
