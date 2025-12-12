@@ -611,6 +611,476 @@ vendor/bin/testlink pair --dry-run
 
 ---
 
+## Fase 11: @see Tag Temel Kullanim
+
+@see tag'ler sync komutuyla otomatik olusturulur ve IDE'de tam method navigasyonu saglar.
+
+### 11.1 Sync ile @see Olusturma
+
+Production dosyasina TestedBy ekle:
+
+```php
+// src/Services/UserService.php
+use TestFlowLabs\TestingAttributes\TestedBy;
+
+class UserService
+{
+    #[TestedBy(UserServiceTest::class, 'test_creates_user')]
+    public function create(): User
+    {
+        // ...
+    }
+}
+```
+
+```bash
+# Sync calistir
+vendor/bin/testlink sync
+
+# Sonuc: Production dosyasinda @see tag olusacak
+```
+
+Beklenen sonuc:
+```php
+/**
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(): User
+```
+
+### 11.2 Report'ta @see Goruntuleme
+
+```bash
+vendor/bin/testlink report
+```
+
+Beklenen cikti:
+```
+  Coverage Links Report
+  ─────────────────────
+
+  App\Services\UserService
+
+    create()
+      → Tests\Unit\UserServiceTest::test_creates_user
+
+  @see Tags
+  ─────────
+
+  Production code → Tests:
+    App\Services\UserService::create
+      → Tests\Unit\UserServiceTest::test_creates_user
+
+  Summary
+    Methods with tests: 1
+    Total test links: 1
+    @see tags: 1
+```
+
+### 11.3 Validate'te @see Sayisi
+
+```bash
+vendor/bin/testlink validate
+```
+
+Beklenen cikti:
+```
+  Validation Report
+  ─────────────────
+
+  Link Summary
+    PHPUnit attribute links: 1
+    @see tags: 1
+    Total links: 1
+
+  ✓ All links are valid!
+```
+
+### 11.4 PHPUnit Test → Production @see
+
+PHPUnit test dosyasina @see ekle:
+
+```php
+// tests/Unit/UserServiceTest.php
+use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+
+class UserServiceTest extends TestCase
+{
+    /**
+     * @see \App\Services\UserService::create
+     */
+    #[Test]
+    public function test_creates_user(): void
+    {
+        // ...
+    }
+}
+```
+
+```bash
+# Test → Production @see de tespit edilmeli
+vendor/bin/testlink report
+```
+
+Beklenen cikti "Test code → Production" bolumunde gorunmeli.
+
+---
+
+## Fase 12: @see Tag Orphan Tespiti
+
+### 12.1 Gecersiz Test Class'ina Isaret Eden @see
+
+Manuel olarak gecersiz @see ekle:
+
+```php
+// src/Services/UserService.php
+/**
+ * @see \Tests\Unit\DeletedTest::test_old_method
+ */
+public function create(): User
+```
+
+```bash
+vendor/bin/testlink validate
+```
+
+Beklenen cikti:
+```
+  Validation Report
+  ─────────────────
+
+  Orphan @see Tags
+  ────────────────
+
+    ⚠ @see \Tests\Unit\DeletedTest::test_old_method
+      in src/Services/UserService.php:15
+
+  Link Summary
+    @see tags: 1 (1 orphan)
+
+  ✓ All links are valid!
+```
+
+### 12.2 Gecersiz Method'a Isaret Eden @see
+
+```php
+/**
+ * @see \Tests\Unit\UserServiceTest::deleted_test
+ */
+public function create(): User
+```
+
+### 12.3 JSON Ciktisinda Orphan @see
+
+```bash
+vendor/bin/testlink validate --json
+```
+
+Beklenen:
+```json
+{
+  "valid": true,
+  "seeTags": {
+    "production": 1,
+    "test": 0,
+    "total": 1,
+    "orphans": 1
+  },
+  "orphanSeeTags": [
+    {
+      "reference": "\\Tests\\Unit\\DeletedTest::test_old_method",
+      "file": "src/Services/UserService.php",
+      "line": 15
+    }
+  ]
+}
+```
+
+---
+
+## Fase 13: @see Tag Pruning
+
+### 13.1 Orphan @see Temizleme
+
+Orphan @see iceren dosya:
+```php
+/**
+ * @see \Tests\Unit\DeletedTest::old_test
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(): User
+```
+
+```bash
+# Dry-run ile onizleme
+vendor/bin/testlink sync --prune --force --dry-run
+
+# Uygula
+vendor/bin/testlink sync --prune --force
+```
+
+Beklenen sonuc:
+```php
+/**
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(): User
+```
+
+### 13.2 Bos Docblock Temizleme
+
+Sadece orphan @see iceren docblock:
+```php
+/**
+ * @see \Tests\Unit\DeletedTest::old_test
+ */
+public function create(): User
+```
+
+Prune sonrasi:
+```php
+public function create(): User
+```
+
+### 13.3 Diger PHPDoc Tag'leri Koruma
+
+```php
+/**
+ * Create a new user.
+ *
+ * @param string $name
+ * @see \Tests\Unit\DeletedTest::old_test
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ * @return User
+ */
+```
+
+Prune sonrasi (diger tag'ler korunmali):
+```php
+/**
+ * Create a new user.
+ *
+ * @param string $name
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ * @return User
+ */
+```
+
+---
+
+## Fase 14: @see Edge Cases
+
+### 14.1 Mevcut Docblock'a @see Ekleme
+
+Sync oncesi:
+```php
+/**
+ * Create a new user.
+ *
+ * @param string $name User's name
+ * @return User The created user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(string $name): User
+```
+
+Sync sonrasi:
+```php
+/**
+ * Create a new user.
+ *
+ * @param string $name User's name
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ * @return User The created user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(string $name): User
+```
+
+### 14.2 Birden Fazla @see Tag
+
+```php
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+#[TestedBy(UserServiceTest::class, 'test_validates_email')]
+public function create(): User
+```
+
+Sync sonrasi:
+```php
+/**
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ * @see \Tests\Unit\UserServiceTest::test_validates_email
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+#[TestedBy(UserServiceTest::class, 'test_validates_email')]
+public function create(): User
+```
+
+### 14.3 Farkli Indentation Seviyeleri
+
+4 space indent (varsayilan):
+```php
+class Foo {
+    /**
+     * @see \Tests\FooTest::test
+     */
+    public function bar() {}
+}
+```
+
+2 space indent:
+```php
+class Foo {
+  /**
+   * @see \Tests\FooTest::test
+   */
+  public function bar() {}
+}
+```
+
+Tab indent:
+```php
+class Foo {
+	/**
+	 * @see \Tests\FooTest::test
+	 */
+	public function bar() {}
+}
+```
+
+### 14.4 Abstract/Static/Final Metodlar
+
+```php
+abstract class BaseService
+{
+    #[TestedBy(BaseServiceTest::class, 'test_abstract')]
+    abstract public function process(): void;
+
+    #[TestedBy(BaseServiceTest::class, 'test_static')]
+    public static function getInstance(): self {}
+
+    #[TestedBy(BaseServiceTest::class, 'test_final')]
+    final public function lock(): void {}
+}
+```
+
+Tum method turleri icin @see tag olusturulmali.
+
+### 14.5 Constructor ve Magic Metodlar
+
+```php
+class Service
+{
+    #[TestedBy(ServiceTest::class, 'test_constructor')]
+    public function __construct() {}
+
+    #[TestedBy(ServiceTest::class, 'test_invoke')]
+    public function __invoke(): void {}
+
+    #[TestedBy(ServiceTest::class, 'test_to_string')]
+    public function __toString(): string {}
+}
+```
+
+### 14.6 Interface ve Trait
+
+```php
+interface ServiceInterface
+{
+    #[TestedBy(ServiceTest::class, 'test_process')]
+    public function process(): void;
+}
+
+trait Loggable
+{
+    #[TestedBy(LoggableTest::class, 'test_log')]
+    public function log(string $message): void {}
+}
+```
+
+### 14.7 Duplicate @see Onleme
+
+```php
+/**
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
+public function create(): User
+```
+
+Sync tekrar calistirildiginda duplicate @see eklenmemeli.
+
+```bash
+# Birden fazla kez calistir
+vendor/bin/testlink sync
+vendor/bin/testlink sync
+vendor/bin/testlink sync
+
+# Hala tek @see olmali
+```
+
+### 14.8 Pest @see Limitation
+
+Pest icin @see sadece Test → Production yonunde calisir:
+
+```php
+/**
+ * @see \App\Services\UserService::create
+ */
+test('creates a user', function () {
+    // ...
+})->linksAndCovers(UserService::class.'::create');
+```
+
+Production → Pest @see CALISMAZ cunku Pest test isimleri space icerir:
+```php
+// BU CALISMAZ - gecersiz PHP identifier
+@see \Tests\Unit\UserServiceTest::creates a user
+```
+
+### 14.9 Readonly ve Enum Class'lar
+
+```php
+readonly class ImmutableValue
+{
+    #[TestedBy(ValueTest::class, 'test_create')]
+    public function create(): self {}
+}
+
+enum Status: string
+{
+    case ACTIVE = 'active';
+
+    #[TestedBy(StatusTest::class, 'test_label')]
+    public function label(): string
+    {
+        return match($this) {
+            self::ACTIVE => 'Active',
+        };
+    }
+}
+```
+
+### 14.10 Anonymous Class (Desteklenmez)
+
+```php
+// Anonymous class'lar DESTEKLENMEZ
+$service = new class {
+    #[TestedBy(Test::class, 'test')]
+    public function method() {}
+};
+```
+
+### 14.11 Nested Class (Desteklenmez)
+
+PHP nested class desteklemedigi icin bu senaryo gecerli degil.
+
+---
+
 ## Kontrol Listesi
 
 Her fase sonrasi kontrol edilecekler:
@@ -622,6 +1092,20 @@ Her fase sonrasi kontrol edilecekler:
 - [ ] JSON output gecerli ve parse edilebilir
 - [ ] --dry-run gercekten dosya degistirmiyor
 - [ ] --verbose daha fazla bilgi gosteriyor
+
+### @see Tag Spesifik Kontroller
+
+- [ ] Sync sonrasi @see tag olusturuldu
+- [ ] @see tag dogru formatta: `@see \FQCN::method`
+- [ ] @see tag dogru indentation ile olusturuldu
+- [ ] Mevcut docblock korundu, @see eklendi
+- [ ] Duplicate @see eklenmedi
+- [ ] Report'ta @see tag'ler gorunuyor
+- [ ] Validate'te @see sayisi dogru
+- [ ] Orphan @see tespit ediliyor
+- [ ] Prune ile orphan @see siliniyor
+- [ ] Bos docblock temizleniyor
+- [ ] Diger PHPDoc tag'ler korunuyor
 
 ---
 
@@ -778,6 +1262,88 @@ Beklenen:
   "duplicates": [],
   "unresolvedPlaceholders": []
 }
+```
+
+### Validate Ciktisi (@see Tag'ler ile)
+
+```
+vendor/bin/testlink validate
+```
+
+Beklenen:
+```
+  Validation Report
+  ─────────────────
+
+  Link Summary
+  ────────────
+
+    PHPUnit attribute links: 1
+    Pest method chain links: 0
+    @see tags: 2
+    Total links: 1
+
+  ✓ All links are valid!
+```
+
+### Validate Ciktisi (Orphan @see Tag Varken)
+
+```
+vendor/bin/testlink validate
+```
+
+Beklenen:
+```
+  Validation Report
+  ─────────────────
+
+  Orphan @see Tags
+  ────────────────
+
+    ⚠ @see \Tests\Unit\DeletedTest::old_test
+      in src/Services/UserService.php:15
+
+  Link Summary
+  ────────────
+
+    PHPUnit attribute links: 1
+    @see tags: 2 (1 orphan)
+    Total links: 1
+
+  ✓ All links are valid!
+```
+
+### Report Ciktisi (@see Tag'ler ile)
+
+```
+vendor/bin/testlink report
+```
+
+Beklenen:
+```
+  Coverage Links Report
+  ─────────────────────
+
+  App\Services\UserService
+
+    create()
+      → Tests\Unit\UserServiceTest::test_creates_user
+
+  @see Tags
+  ─────────
+
+  Production code → Tests:
+    App\Services\UserService::create
+      → Tests\Unit\UserServiceTest::test_creates_user
+
+  Test code → Production:
+    Tests\Unit\UserServiceTest::test_creates_user
+      → App\Services\UserService::create
+
+  Summary
+    Methods with tests: 1
+    Total test links: 1
+    @see tags: 2
 ```
 
 ### Sync Dry-Run Ciktisi
@@ -977,4 +1543,64 @@ echo -e "\n8. Pair Dry-Run"
 vendor/bin/testlink pair --dry-run
 
 echo -e "\n=== All basic tests passed ==="
+```
+
+### @see Tag Test Scripti
+
+@see tag islevselligini test etmek icin:
+
+```bash
+#!/bin/bash
+set -e
+
+echo "=== @see Tag Tests ==="
+
+# Oncelikle TestedBy attribute'lu bir production method olusturun
+# ve sync ile @see tag olusturun
+
+echo -e "\n1. Sync (generates @see tags)"
+vendor/bin/testlink sync
+
+echo -e "\n2. Report (@see tags should appear)"
+vendor/bin/testlink report
+
+echo -e "\n3. Validate (@see count should appear)"
+vendor/bin/testlink validate
+
+echo -e "\n4. Check for orphan @see (add invalid @see manually first)"
+# Manuel olarak gecersiz @see ekleyip validate calistirin
+vendor/bin/testlink validate
+
+echo -e "\n5. Prune orphan @see tags"
+vendor/bin/testlink sync --prune --force --dry-run
+
+echo -e "\n=== @see Tag tests completed ==="
+```
+
+### @see Edge Case Kontrol Listesi
+
+Manuel kontrol icin:
+
+```bash
+# 1. Mevcut docblock'a @see ekleme
+# - @param, @return gibi tag'ler korunmali
+
+# 2. Birden fazla TestedBy = birden fazla @see
+vendor/bin/testlink sync
+# Dosyayi kontrol et: Her TestedBy icin bir @see olmali
+
+# 3. Duplicate onleme
+vendor/bin/testlink sync
+vendor/bin/testlink sync
+# Dosyayi kontrol et: @see duplicate olmamali
+
+# 4. Indentation
+# - 4 space, 2 space, tab icin ayri test
+
+# 5. Abstract/static/final metodlar
+# - Tum method turleri icin @see olusturulmali
+
+# 6. Interface ve trait
+# - Interface method'lari icin @see olusturulmali
+# - Trait method'lari icin @see olusturulmali
 ```
