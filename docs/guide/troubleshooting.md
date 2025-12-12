@@ -57,6 +57,18 @@ RuntimeBootstrap::init();
    testlink validate --path=tests/Unit
    ```
 
+### New Files Not Detected
+
+**Problem:** `testlink validate` or `testlink pair` doesn't detect newly created files.
+
+**Solution:** After creating new test or production files, run:
+
+```bash
+composer dump-autoload -o
+```
+
+This updates Composer's classmap so TestLink can find new classes. This is especially important after creating files with `#[TestedBy]` or `#[LinksAndCovers]` attributes.
+
 ### Unresolved Placeholders Warning
 
 **Problem:** Validation shows warnings about unresolved placeholders:

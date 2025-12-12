@@ -261,6 +261,8 @@ Options:
 | Option | Description |
 |--------|-------------|
 | `--strict` | Fail on warnings (including unresolved placeholders) |
+| `--fix` | Auto-fix non-FQCN @see tags |
+| `--dry-run` | Preview fixes without applying (use with --fix) |
 | `--json` | Output as JSON |
 | `--path=<dir>` | Limit scan to directory |
 
@@ -426,6 +428,7 @@ Options:
 |--------|-------------|
 | `--dry-run` | Preview changes without applying |
 | `--placeholder=@X` | Resolve only the specified placeholder |
+| `--path=<dir>` | Limit scan to directory |
 
 Examples:
 
@@ -438,6 +441,9 @@ testlink pair
 
 # Resolve only a specific placeholder
 testlink pair --placeholder=@user-create
+
+# Limit pairing to specific directory
+testlink pair --path=src/Services
 ```
 
 ::: tip Placeholder Syntax
