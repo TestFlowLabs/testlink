@@ -34,7 +34,6 @@ final class SyncCommand
         private readonly TestFileModifier $modifier = new TestFileModifier(),
         private readonly ProductionFileModifier $productionModifier = new ProductionFileModifier(),
         private readonly DocBlockScanner $docBlockScanner = new DocBlockScanner(),
-        private readonly SyncReporter $reporter = new SyncReporter(),
     ) {}
 
     /**
@@ -65,15 +64,13 @@ final class SyncCommand
 
         // 5. Handle dry-run mode
         if ($options->dryRun) {
-            $this->reporter->reportDryRun($actions);
-
+            // Let the CLI wrapper handle the output
             return SyncResult::dryRun($actions);
         }
 
-        // 6. If no actions and no @see actions, report and exit
+        // 6. If no actions and no @see actions, exit
         if ($actions === [] && $seeActions === []) {
-            $this->reporter->reportNoChanges();
-
+            // Let the CLI wrapper handle the output
             return new SyncResult();
         }
 
@@ -103,9 +100,7 @@ final class SyncCommand
             }
         }
 
-        // 10. Report results
-        $this->reporter->reportResults($result);
-
+        // 10. Let the CLI wrapper handle the result reporting
         return $result;
     }
 
