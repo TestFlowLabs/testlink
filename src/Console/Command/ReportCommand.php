@@ -6,15 +6,17 @@ namespace TestFlowLabs\TestLink\Console\Command;
 
 use TestFlowLabs\TestLink\Console\Output;
 use TestFlowLabs\TestLink\Console\ArgumentParser;
+use TestFlowLabs\TestLink\DocBlock\SeeTagRegistry;
 use TestFlowLabs\TestLink\Validator\LinkValidator;
+use TestFlowLabs\TestLink\DocBlock\DocBlockScanner;
 use TestFlowLabs\TestLink\Scanner\AttributeScanner;
 use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
 
 /**
  * Report command - displays coverage links from test files.
  *
- * Shows links from both PHPUnit attributes (#[LinksAndCovers], #[Links])
- * and Pest method chains (linksAndCovers(), links()).
+ * Shows links from both PHPUnit attributes (#[LinksAndCovers], #[Links]),
+ * Pest method chains (linksAndCovers(), links()), and @see tags.
  */
 final class ReportCommand
 {
@@ -23,19 +25,24 @@ final class ReportCommand
      */
     public function execute(ArgumentParser $parser, Output $output): int
     {
-        $attributeRegistry = $this->scanAttributes($parser->getString('path'));
+        $path = $parser->getString('path');
+
+        $attributeRegistry = $this->scanAttributes($path);
         $runtimeRegistry   = TestLinkRegistry::getInstance();
 
         $validator = new LinkValidator();
         $allLinks  = $validator->getAllLinks($attributeRegistry, $runtimeRegistry);
 
+        // Scan for @see tags
+        $seeRegistry = $this->scanSeeTags($path);
+
         $isJson = $parser->hasOption('json');
 
         if ($isJson) {
-            return $this->outputJson($allLinks, $output);
+            return $this->outputJson($allLinks, $seeRegistry, $output);
         }
 
-        return $this->outputConsole($allLinks, $output);
+        return $this->outputConsole($allLinks, $seeRegistry, $output);
     }
 
     /**
@@ -56,17 +63,39 @@ final class ReportCommand
     }
 
     /**
+     * Scan for @see tags in docblocks.
+     */
+    private function scanSeeTags(?string $path): SeeTagRegistry
+    {
+        $registry = new SeeTagRegistry();
+        $scanner  = new DocBlockScanner();
+
+        if ($path !== null) {
+            $scanner->setProjectRoot($path);
+        }
+
+        $scanner->scan($registry);
+
+        return $registry;
+    }
+
+    /**
      * Output as JSON.
      *
      * @param  array<string, list<string>>  $allLinks
      */
-    private function outputJson(array $allLinks, Output $output): int
+    private function outputJson(array $allLinks, SeeTagRegistry $seeRegistry, Output $output): int
     {
         $data = [
             'links'   => $allLinks,
+            'seeTags' => [
+                'production' => $this->formatSeeTags($seeRegistry->getAllProductionSeeTags()),
+                'test'       => $this->formatSeeTags($seeRegistry->getAllTestSeeTags()),
+            ],
             'summary' => [
-                'total_methods' => count($allLinks),
-                'total_tests'   => $this->countUniqueTests($allLinks),
+                'total_methods'  => count($allLinks),
+                'total_tests'    => $this->countUniqueTests($allLinks),
+                'see_tags_total' => $seeRegistry->count(),
             ],
         ];
 
@@ -81,9 +110,11 @@ final class ReportCommand
      *
      * @param  array<string, list<string>>  $allLinks
      */
-    private function outputConsole(array $allLinks, Output $output): int
+    private function outputConsole(array $allLinks, SeeTagRegistry $seeRegistry, Output $output): int
     {
-        if ($allLinks === []) {
+        $seeCount = $seeRegistry->count();
+
+        if ($allLinks === [] && $seeCount === 0) {
             $output->title('Coverage Links Report');
             $output->warning('No coverage links found.');
             $output->newLine();
@@ -125,10 +156,47 @@ final class ReportCommand
             }
         }
 
+        // Report @see tags if any
+        if ($seeCount > 0) {
+            $output->section('@see Tags');
+
+            $productionSeeTags = $seeRegistry->getAllProductionSeeTags();
+            $testSeeTags       = $seeRegistry->getAllTestSeeTags();
+
+            if ($productionSeeTags !== []) {
+                $output->writeln('    '.$output->bold('Production code → Tests:'));
+
+                foreach ($productionSeeTags as $methodId => $entries) {
+                    $output->writeln('      '.$output->cyan($this->shortenMethod($methodId)));
+
+                    foreach ($entries as $entry) {
+                        $output->writeln('        → '.$output->gray($entry->reference));
+                    }
+                }
+
+                $output->newLine();
+            }
+
+            if ($testSeeTags !== []) {
+                $output->writeln('    '.$output->bold('Test code → Production:'));
+
+                foreach ($testSeeTags as $testId => $entries) {
+                    $output->writeln('      '.$output->cyan($this->shortenMethod($testId)));
+
+                    foreach ($entries as $entry) {
+                        $output->writeln('        → '.$output->gray($entry->reference));
+                    }
+                }
+
+                $output->newLine();
+            }
+        }
+
         $output->newLine();
         $output->writeln($output->bold('  Summary'));
         $output->writeln("    Methods with tests: {$totalMethods}");
         $output->writeln("    Total test links: {$totalTests}");
+        $output->writeln("    @see tags: {$seeCount}");
         $output->newLine();
 
         return 0;
@@ -148,5 +216,42 @@ final class ReportCommand
         }
 
         return $count;
+    }
+
+    /**
+     * Format @see tags for JSON output.
+     *
+     * @param  array<string, list<\TestFlowLabs\TestLink\DocBlock\SeeTagEntry>>  $seeTags
+     *
+     * @return array<string, list<array{reference: string, file: string, line: int}>>
+     */
+    private function formatSeeTags(array $seeTags): array
+    {
+        $result = [];
+
+        foreach ($seeTags as $identifier => $entries) {
+            $result[$identifier] = array_map(fn (\TestFlowLabs\TestLink\DocBlock\SeeTagEntry $entry): array => [
+                'reference' => $entry->reference,
+                'file'      => $entry->filePath,
+                'line'      => $entry->line,
+            ], $entries);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Shorten method identifier for display.
+     */
+    private function shortenMethod(string $method): string
+    {
+        // Convert App\Services\UserService::create to UserService::create
+        if (str_contains($method, '\\')) {
+            $parts = explode('\\', $method);
+
+            return array_pop($parts);
+        }
+
+        return $method;
     }
 }
