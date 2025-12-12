@@ -79,6 +79,14 @@ export default defineConfig({
           { text: 'CI Integration', link: '/best-practices/ci-integration' },
         ]
       },
+      {
+        text: 'Decisions',
+        collapsed: true,
+        items: [
+          { text: 'ADR Index', link: '/decisions/' },
+          { text: '@see Tag Support', link: '/decisions/see-tag-support' },
+        ]
+      },
     ],
 
     socialLinks: [
