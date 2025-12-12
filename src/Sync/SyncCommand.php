@@ -65,7 +65,7 @@ final class SyncCommand
         // 5. Handle dry-run mode
         if ($options->dryRun) {
             // Let the CLI wrapper handle the output
-            return SyncResult::dryRun($actions);
+            return SyncResult::dryRun($actions, $seeActions);
         }
 
         // 6. If no actions and no @see actions, exit

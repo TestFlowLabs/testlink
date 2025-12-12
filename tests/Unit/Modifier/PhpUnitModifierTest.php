@@ -137,4 +137,4 @@ PHP;
             withCoverage: true,
         );
     })
-    ->toContain('use TestFlowLabs\\PestTestLink\\Attribute\\LinksAndCovers;');
+    ->toContain('use TestFlowLabs\\TestingAttributes\\LinksAndCovers;');

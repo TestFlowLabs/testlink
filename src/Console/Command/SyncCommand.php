@@ -75,11 +75,12 @@ final class SyncCommand
             return 1;
         }
 
-        // Get modified files
+        // Get modified files and @see actions
         $modifiedFiles = $result->modifiedFiles;
         $prunedFiles   = $result->prunedFiles;
+        $seeActions    = $result->seeActions;
 
-        if ($modifiedFiles === [] && $prunedFiles === []) {
+        if ($modifiedFiles === [] && $prunedFiles === [] && $seeActions === []) {
             $output->success('No changes needed. All links are up to date.');
             $output->newLine();
 
@@ -118,25 +119,54 @@ final class SyncCommand
             $output->newLine();
         }
 
+        // Report @see tag additions
+        if ($seeActions !== []) {
+            $action = $dryRun ? 'Would add @see tags to' : 'Added @see tags to';
+            $output->section($action);
+
+            foreach ($seeActions as $methodIdentifier => $references) {
+                $output->writeln('    '.$output->green('✓').' '.$this->shortenMethod($methodIdentifier));
+
+                foreach ($references as $reference) {
+                    $output->writeln('      + '.$output->cyan('@see '.$this->shortenMethod($reference)));
+                }
+            }
+
+            $output->newLine();
+        }
+
         // Summary
         $modifiedCount = count($modifiedFiles);
         $prunedCount   = count($prunedFiles);
+        $seeTagCount   = $result->seeTagsAdded;
 
         if ($dryRun) {
-            $output->info("Dry run complete. Would modify {$modifiedCount} file(s).");
+            if ($modifiedCount > 0) {
+                $output->info("Dry run complete. Would modify {$modifiedCount} file(s).");
+            }
 
             if ($prunedCount > 0) {
                 $output->info("Would prune from {$prunedCount} file(s).");
+            }
+
+            if ($seeTagCount > 0) {
+                $output->info("Would add {$seeTagCount} @see tag(s).");
             }
 
             $output->newLine();
             $output->writeln('    Run without --dry-run to apply changes:');
             $output->writeln('    testlink sync');
         } else {
-            $output->success("Sync complete. Modified {$modifiedCount} file(s).");
+            if ($modifiedCount > 0) {
+                $output->success("Sync complete. Modified {$modifiedCount} file(s).");
+            }
 
             if ($prunedCount > 0) {
                 $output->success("Pruned from {$prunedCount} file(s).");
+            }
+
+            if ($seeTagCount > 0) {
+                $output->success("Added {$seeTagCount} @see tag(s).");
             }
         }
 

@@ -11,6 +11,7 @@ use TestFlowLabs\TestLink\DocBlock\SeeTagRegistry;
 use TestFlowLabs\TestLink\Validator\LinkValidator;
 use TestFlowLabs\TestLink\DocBlock\DocBlockScanner;
 use TestFlowLabs\TestLink\Scanner\AttributeScanner;
+use TestFlowLabs\TestLink\Scanner\PestLinkScanner;
 use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
 use TestFlowLabs\TestLink\Placeholder\PlaceholderScanner;
 use TestFlowLabs\TestLink\Placeholder\PlaceholderRegistry;
@@ -31,10 +32,10 @@ final class ValidateCommand
         $path = $parser->getString('path');
 
         $attributeRegistry = $this->scanAttributes($path);
-        $runtimeRegistry   = TestLinkRegistry::getInstance();
+        $pestRegistry      = $this->scanPestLinks($path);
 
         $validator = new LinkValidator();
-        $result    = $validator->validate($attributeRegistry, $runtimeRegistry);
+        $result    = $validator->validate($attributeRegistry, $pestRegistry);
 
         // Scan for unresolved placeholders
         $placeholderRegistry = $this->scanPlaceholders($path);
@@ -66,6 +67,23 @@ final class ValidateCommand
         }
 
         $scanner->discoverAndScanAll($registry);
+
+        return $registry;
+    }
+
+    /**
+     * Scan Pest test files for linksAndCovers() and links() method chains.
+     */
+    private function scanPestLinks(?string $path): TestLinkRegistry
+    {
+        $registry = new TestLinkRegistry();
+        $scanner  = new PestLinkScanner();
+
+        if ($path !== null) {
+            $scanner->setProjectRoot($path);
+        }
+
+        $scanner->scan($registry);
 
         return $registry;
     }
