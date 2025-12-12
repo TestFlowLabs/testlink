@@ -8,12 +8,6 @@ Validation ensures your `#[TestedBy]` attributes and test links stay synchronize
 testlink validate
 ```
 
-Or via Pest:
-
-```bash
-pest --validate-coverage-links
-```
-
 ## What Gets Validated
 
 ### 1. TestedBy → Test Links
@@ -89,46 +83,56 @@ public function test_creates_user(): void { }
 ### Success
 
 ```
-Scanning for #[TestedBy] attributes...
+  Validation Report
+  ─────────────────
 
-Found 12 production methods with #[TestedBy] attributes:
-  UserService::create (2 tests)
-  UserService::update (1 test)
-  OrderService::place (3 tests)
-  ...
+  Link Summary
+  ────────────
 
-Validation Results:
-  ✓ All 15 links are synchronized
+    PHPUnit attribute links: 5
+    Pest method chain links: 10
+    Total links: 15
 
-Coverage Summary:
-  Methods with tests: 12
-  Total test links: 15
-  Orphaned links: 0
+  ✓ All links are valid!
 ```
 
-### Failure
+### With Unresolved Placeholders
 
 ```
-Scanning for #[TestedBy] attributes...
+  Validation Report
+  ─────────────────
 
-Found 12 production methods with #[TestedBy] attributes
+  Unresolved Placeholders
+  ───────────────────────
 
-Validation Results:
-  ✗ 3 synchronization issues found
+    ⚠ @user-create  (1 production, 2 tests)
+    ⚠ @A  (2 production, 0 tests)
 
-Issues:
-  1. Missing link for: App\Services\UserService::create
-     Declared in: #[TestedBy(UserServiceTest::class, 'creates user')]
-     Expected in: tests/Unit/UserServiceTest.php
+    ⚠ Run "testlink pair" to resolve placeholders.
 
-  2. Test not found: App\Services\OrderService::place
-     Declared in: #[TestedBy(OrderServiceTest::class, 'missing test')]
+  Link Summary
+  ────────────
 
-  3. Orphaned link in: tests/Unit/LegacyTest.php
-     Method: linksAndCovers(OldService::class.'::removed')
-     No matching #[TestedBy] attribute found
+    PHPUnit attribute links: 5
+    Pest method chain links: 10
+    Total links: 15
 
-Exit code: 1
+  ✓ All links are valid!
+```
+
+### Failure (Duplicate Links)
+
+```
+  Validation Report
+  ─────────────────
+
+  Duplicate Links Found
+  ─────────────────────
+
+    ! Tests\Unit\UserServiceTest::test_creates_user
+      → App\Services\UserService::create
+
+  ⚠ Consider using only one linking method per test.
 ```
 
 ## Fixing Validation Errors

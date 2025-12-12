@@ -8,12 +8,6 @@ The `testlink sync` command synchronizes `#[TestedBy]` attributes to test links.
 testlink sync
 ```
 
-Or via Pest:
-
-```bash
-pest --sync-coverage-links
-```
-
 ## How It Works
 
 1. **Scans production code** - Finds all `#[TestedBy]` attributes via Composer classmap
@@ -25,43 +19,46 @@ pest --sync-coverage-links
 
 ## Command Output
 
-### Normal Mode
+### Normal Mode (with changes)
 
-```bash
-$ testlink sync
+```
+  Syncing Coverage Links
+  ──────────────────────
 
-Scanning production code for #[TestedBy] attributes...
+  Scanning test files for coverage links...
 
-✓ Sync complete!
+  ✓ Sync complete!
 
-  3 link(s) added
+    3 link(s) added
 
-Modified files:
-  - tests/Unit/UserServiceTest.php (2 links added)
-  - tests/Unit/OrderServiceTest.php (1 link added)
+  Modified files:
+    tests/Unit/UserServiceTest.php (2 links added)
+    tests/Unit/OrderServiceTest.php (1 link added)
 ```
 
 ### No Changes Needed
 
-```bash
-$ testlink sync
+```
+  Syncing Coverage Links
+  ──────────────────────
 
-Scanning production code for #[TestedBy] attributes...
+  Scanning test files for coverage links...
 
-✓ All coverage links are already in sync.
+  No changes needed. All links are up to date.
 ```
 
 ### With Errors
 
-```bash
-$ testlink sync
+```
+  Syncing Coverage Links
+  ──────────────────────
 
-Scanning production code for #[TestedBy] attributes...
+  Scanning test files for coverage links...
 
-Sync failed with errors:
+  Sync failed with errors:
 
-  ✗ Test not found: "nonexistent test" in tests/Unit/UserServiceTest.php
-  ✗ File not found: tests/Unit/MissingTest.php
+    ✗ Test not found: "nonexistent test" in tests/Unit/UserServiceTest.php
+    ✗ File not found: tests/Unit/MissingTest.php
 ```
 
 ## Options Reference
