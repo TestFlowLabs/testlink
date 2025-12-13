@@ -174,16 +174,18 @@ final class PlaceholderModifier
 
             // Check if this should use @see tags (@@prefix)
             $useSeeTag = $testActions[0]->useSeeTagOnTest();
-
             if ($isPest && $useSeeTag) {
                 // Pest does not support @see tags - skip processing
                 // This should have been caught in PlaceholderResolver but we double-check here
                 continue;
-            } elseif ($isPest) {
+            }
+
+            if ($isPest) {
                 $result = $this->replacePestPlaceholder($code, $placeholderId, array_values($productionMethods));
             } elseif ($useSeeTag) {
                 $result = $this->replacePhpUnitPlaceholderWithSeeTag($code, $placeholderId, array_values($productionMethods));
-            } else {
+            }
+            else {
                 $result = $this->replacePhpUnitPlaceholder($code, $placeholderId, array_values($productionMethods));
             }
 

@@ -139,12 +139,10 @@ final class ProductionAttributeModifier
                     $testMethod = $this->extractMethodName($testIdentifier);
 
                     // Check for class::class reference
-                    if (str_contains($line, "{$testClass}::class")) {
-                        // If there's a method, check for it too
-                        if ($testMethod === null || str_contains($line, "'{$testMethod}'")) {
-                            $shouldRemove = true;
-                            break;
-                        }
+                    // If there's a method, check for it too
+                    if (str_contains($line, "{$testClass}::class") && ($testMethod === null || str_contains($line, "'{$testMethod}'"))) {
+                        $shouldRemove = true;
+                        break;
                     }
                 }
             }
@@ -186,11 +184,9 @@ final class ProductionAttributeModifier
         for ($i = max(0, $methodLine - 20); $i < $methodLine; $i++) {
             $line = $lines[$i];
 
-            if (preg_match('/#\[TestedBy\s*\(/', $line)) {
-                if (str_contains($line, "{$testClass}::class")) {
-                    if ($testMethod === null || str_contains($line, "'{$testMethod}'")) {
-                        return true;
-                    }
+            if (preg_match('/#\[TestedBy\s*\(/', $line) && str_contains($line, "{$testClass}::class")) {
+                if ($testMethod === null || str_contains($line, "'{$testMethod}'")) {
+                    return true;
                 }
             }
         }
@@ -331,7 +327,7 @@ final class ProductionAttributeModifier
         }
 
         // Check if a partial use statement exists
-        if (str_contains($code, 'TestFlowLabs\\TestingAttributes\\TestedBy')) {
+        if (str_contains($code, \TestFlowLabs\TestingAttributes\TestedBy::class)) {
             return $code;
         }
 

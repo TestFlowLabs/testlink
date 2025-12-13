@@ -49,7 +49,7 @@ final class PlaceholderRegistry
      */
     public static function isPlaceholder(string $value): bool
     {
-        if ($value === '' || $value === '@' || $value === '@@') {
+        if (in_array($value, ['', '@', '@@'], true)) {
             return false;
         }
 
