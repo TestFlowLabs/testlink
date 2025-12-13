@@ -13,10 +13,16 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "TestFlowLabs",
-            "email": "hello@testflowlabs.com"
+            "name": "Yunus Emre Deligöz",
+            "email": "ye@deligoz.me"
         }
     ],
+    "homepage": "https://link.testflowlabs.dev/",
+    "support": {
+        "issues": "https://github.com/TestFlowLabs/testlink/issues",
+        "source": "https://github.com/TestFlowLabs/testlink",
+        "docs": "https://link.testflowlabs.dev/"
+    },
     "bin": [
         "bin/testlink"
     ],
@@ -24,7 +30,7 @@
         "php": "^8.3",
         "nikic/php-parser": "^5.0",
         "phpstan/phpdoc-parser": "^2.0",
-        "testflowlabs/test-attributes": "dev-master"
+        "testflowlabs/test-attributes": "^1.0"
     },
     "suggest": {
         "pestphp/pest": "For Pest testing framework integration",
