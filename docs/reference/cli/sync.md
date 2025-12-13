@@ -1,6 +1,6 @@
 # sync
 
-Synchronize coverage links between production code and tests.
+Synchronize coverage links bidirectionally between production code and tests.
 
 ## Synopsis
 
@@ -10,21 +10,27 @@ testlink sync [options]
 
 ## Description
 
-The `sync` command:
+The `sync` command maintains bidirectional links between production and test code:
 
-1. Reads `#[TestedBy]` attributes from production code
-2. Adds corresponding @see tags or method chains to test files
-3. Optionally adds @see tags to production code from test links
-4. Can prune orphaned @see tags
+**Production → Test (forward sync):**
+- Reads `#[TestedBy]` attributes from production code
+- Adds `->linksAndCovers()` (Pest) or `#[LinksAndCovers]` (PHPUnit) to test files
+- Adds `@see` tags to production code for IDE navigation
+
+**Test → Production (reverse sync):**
+- Reads `->linksAndCovers()` or `#[LinksAndCovers]` from test files
+- Adds `#[TestedBy]` attributes to production methods
+
+This ensures both directions stay synchronized regardless of which side you add links first.
 
 ## Options
 
 | Option | Description |
 |--------|-------------|
 | `--dry-run` | Preview changes without modifying files |
-| `--prune` | Remove orphaned @see tags |
-| `--link-only` | Only add links, don't modify production |
-| `--force` | Overwrite existing links |
+| `--prune` | Remove orphaned links |
+| `--link-only` | Add links without coverage (uses `->links()` instead of `->linksAndCovers()`) |
+| `--force` | Required with `--prune` to confirm destructive operation |
 | `--verbose`, `-v` | Show detailed information |
 | `--path=<path>` | Filter by directory or file path |
 
@@ -42,18 +48,19 @@ Output:
   ──────────────────────
   Running in dry-run mode. No files will be modified.
 
+  Would modify test files
+    ✓ tests/Unit/UserServiceTest.php
+      + linksAndCovers(UserService::class.'::create')
 
-  Would add @see tags to
+  Would add @see tags to production
     ✓ UserService::create
       + @see UserServiceTest::test_creates_user
-      + @see UserServiceTest::test_validates_email
+
+  Would add #[TestedBy] to production
     ✓ OrderService::process
-      + @see OrderServiceTest::test_processes_order
+      + #[TestedBy(OrderServiceTest::class, 'test_processes_order')]
 
-  Would add 3 @see tag(s).
-
-    Run without --dry-run to apply changes:
-    testlink sync
+  Dry run complete. Would modify 3 file(s).
 ```
 
 ### Apply sync
@@ -69,7 +76,7 @@ Output:
 
   Modified Files
     ✓ tests/Unit/UserServiceTest.php (2 changes)
-    ✓ tests/Unit/OrderServiceTest.php (1 change)
+    ✓ src/Services/OrderService.php (1 change)
 
   Sync complete. Modified 2 file(s).
 ```
@@ -77,7 +84,7 @@ Output:
 ### Sync with pruning
 
 ```bash
-./vendor/bin/testlink sync --prune
+./vendor/bin/testlink sync --prune --force
 ```
 
 Output:
@@ -89,25 +96,9 @@ Output:
     ✓ tests/UserServiceTest.php (+1)
 
   Pruning orphans
-    ✓ tests/OldTest.php (-2 orphan @see tags)
+    ✓ tests/OldTest.php (-2 orphan links)
 
   Sync complete. Modified 2 file(s).
-```
-
-### Link-only mode
-
-Only add links, don't modify production code:
-
-```bash
-./vendor/bin/testlink sync --link-only
-```
-
-### Force overwrite
-
-Replace existing links even if different:
-
-```bash
-./vendor/bin/testlink sync --force
 ```
 
 ### Filter by path
@@ -118,45 +109,90 @@ Replace existing links even if different:
 
 ## What Gets Synced
 
-### From #[TestedBy] to tests
+### Forward Sync: Production → Test
 
-Production:
+When production has `#[TestedBy]`:
 ```php
 class UserService
 {
-    #[TestedBy('Tests\UserServiceTest', 'test_creates_user')]
+    #[TestedBy(UserServiceTest::class, 'test_creates_user')]
     public function create(): User { }
 }
 ```
 
 After sync, test file gets:
+
+:::tabs key:stack
+== Pest
+```php
+test('creates user', function () {
+    // ...
+})->linksAndCovers(UserService::class.'::create');
+```
+== PHPUnit + Attributes
+```php
+#[LinksAndCovers(UserService::class, 'create')]
+public function test_creates_user(): void { }
+```
+== PHPUnit + @see
 ```php
 /**
  * @see \App\Services\UserService::create
  */
 public function test_creates_user(): void { }
 ```
+:::
 
-### From tests to production (with --link-only)
+### Reverse Sync: Test → Production
 
-Test:
+When test has a link but production doesn't have `#[TestedBy]`:
+
+:::tabs key:stack
+== Pest
 ```php
 test('creates user', function () {
     // ...
 })->linksAndCovers(UserService::class.'::create');
 ```
-
-After sync --link-only, production gets:
+== PHPUnit + Attributes
+```php
+#[LinksAndCovers(UserService::class, 'create')]
+public function test_creates_user(): void { }
+```
+== PHPUnit + @see
 ```php
 /**
- * @see \Tests\UserServiceTest::test_creates_user
+ * @see \App\Services\UserService::create
  */
+public function test_creates_user(): void { }
+```
+:::
+
+After sync, production gets:
+```php
+use TestFlowLabs\TestingAttributes\TestedBy;
+
+class UserService
+{
+    #[TestedBy(UserServiceTest::class, 'test_creates_user')]
+    public function create(): User { }
+}
+```
+
+### @see Tags for IDE Navigation
+
+Production methods always get `@see` tags for Cmd+Click navigation:
+```php
+/**
+ * @see \Tests\Unit\UserServiceTest::test_creates_user
+ */
+#[TestedBy(UserServiceTest::class, 'test_creates_user')]
 public function create(): User { }
 ```
 
 ## Pruning Behavior
 
-With `--prune`, removes @see tags that:
+With `--prune --force`, removes links that:
 - Point to non-existent classes
 - Point to non-existent methods
 - Point to removed tests
@@ -195,9 +231,23 @@ Example:
 
 ```bash
 # Preview sync and prune
-./vendor/bin/testlink sync --dry-run --prune
+./vendor/bin/testlink sync --dry-run --prune --force
 
 # Apply
-./vendor/bin/testlink sync --prune
+./vendor/bin/testlink sync --prune --force
 ```
 
+## Bidirectional Sync Explained
+
+The sync command is truly bidirectional:
+
+| You add link here | sync adds to |
+|-------------------|--------------|
+| Production: `#[TestedBy(...)]` | Test: `linksAndCovers()` or `#[LinksAndCovers]` |
+| Test: `linksAndCovers()` or `#[LinksAndCovers]` | Production: `#[TestedBy(...)]` |
+
+Both sides also get `@see` tags for IDE navigation.
+
+This means you can start linking from either side:
+1. Add `#[TestedBy]` to production, run `sync` → test gets link
+2. Add `linksAndCovers()` to test, run `sync` → production gets `#[TestedBy]`
