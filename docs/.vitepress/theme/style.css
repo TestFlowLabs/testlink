@@ -256,11 +256,6 @@
   align-items: flex-start;
   gap: 48px;
   padding: 64px 0;
-  border-top: 1px solid var(--vp-c-divider);
-}
-
-.feature-section:first-child {
-  border-top: none;
 }
 
 /* Alternate layout: even sections have code on left */
@@ -279,8 +274,6 @@
   color: var(--vp-c-text-1);
   margin: 0 0 16px;
   line-height: 1.3;
-  border-top: none;
-  padding-top: 0;
 }
 
 .feature-text p {
