@@ -173,4 +173,97 @@ describe('PlaceholderAction', function (): void {
             })
             ->toBeFalse();
     });
+
+    describe('useSeeTagOnProduction', function (): void {
+        it('returns true when production entry has @@prefix')
+            ->linksAndCovers(PlaceholderAction::class.'::useSeeTagOnProduction')
+            ->expect(function () {
+                $prodEntry = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\UserService::create', '/path', 25, 'production', null, true
+                );
+                $testEntry = new PlaceholderEntry(
+                    '@@A', 'Tests\\Unit\\Test::testMethod', '/path', 15, 'test', 'phpunit', true
+                );
+                $action = new PlaceholderAction('@@A', $prodEntry, $testEntry);
+
+                return $action->useSeeTagOnProduction();
+            })
+            ->toBeTrue();
+
+        it('returns false when production entry has @prefix')
+            ->linksAndCovers(PlaceholderAction::class.'::useSeeTagOnProduction')
+            ->expect(function () {
+                $action = new PlaceholderAction('@A', $this->productionEntry, $this->testEntry);
+
+                return $action->useSeeTagOnProduction();
+            })
+            ->toBeFalse();
+    });
+
+    describe('useSeeTagOnTest', function (): void {
+        it('returns true when test entry has @@prefix')
+            ->linksAndCovers(PlaceholderAction::class.'::useSeeTagOnTest')
+            ->expect(function () {
+                $prodEntry = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\UserService::create', '/path', 25, 'production', null, true
+                );
+                $testEntry = new PlaceholderEntry(
+                    '@@A', 'Tests\\Unit\\Test::testMethod', '/path', 15, 'test', 'phpunit', true
+                );
+                $action = new PlaceholderAction('@@A', $prodEntry, $testEntry);
+
+                return $action->useSeeTagOnTest();
+            })
+            ->toBeTrue();
+
+        it('returns false when test entry has @prefix')
+            ->linksAndCovers(PlaceholderAction::class.'::useSeeTagOnTest')
+            ->expect(function () {
+                $action = new PlaceholderAction('@A', $this->productionEntry, $this->testEntry);
+
+                return $action->useSeeTagOnTest();
+            })
+            ->toBeFalse();
+    });
+
+    describe('isSeeTagWithPest', function (): void {
+        it('returns true when @@prefix is used with Pest test')
+            ->linksAndCovers(PlaceholderAction::class.'::isSeeTagWithPest')
+            ->expect(function () {
+                $prodEntry = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\UserService::create', '/path', 25, 'production', null, true
+                );
+                $testEntry = new PlaceholderEntry(
+                    '@@A', 'Tests\\Unit\\Test::it creates user', '/path', 15, 'test', 'pest', true
+                );
+                $action = new PlaceholderAction('@@A', $prodEntry, $testEntry);
+
+                return $action->isSeeTagWithPest();
+            })
+            ->toBeTrue();
+
+        it('returns false when @@prefix is used with PHPUnit test')
+            ->linksAndCovers(PlaceholderAction::class.'::isSeeTagWithPest')
+            ->expect(function () {
+                $prodEntry = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\UserService::create', '/path', 25, 'production', null, true
+                );
+                $testEntry = new PlaceholderEntry(
+                    '@@A', 'Tests\\Unit\\Test::testMethod', '/path', 15, 'test', 'phpunit', true
+                );
+                $action = new PlaceholderAction('@@A', $prodEntry, $testEntry);
+
+                return $action->isSeeTagWithPest();
+            })
+            ->toBeFalse();
+
+        it('returns false when @prefix is used with Pest test')
+            ->linksAndCovers(PlaceholderAction::class.'::isSeeTagWithPest')
+            ->expect(function () {
+                $action = new PlaceholderAction('@A', $this->productionEntry, $this->testEntry);
+
+                return $action->isSeeTagWithPest();
+            })
+            ->toBeFalse();
+    });
 });

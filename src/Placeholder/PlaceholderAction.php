@@ -102,4 +102,34 @@ final readonly class PlaceholderAction
     {
         return $this->testEntry->isPhpUnit();
     }
+
+    /**
+     * Check if this action should use @see tags on the production side.
+     *
+     * True if the production entry used @@prefix.
+     */
+    public function useSeeTagOnProduction(): bool
+    {
+        return $this->productionEntry->useSeeTag;
+    }
+
+    /**
+     * Check if this action should use @see tags on the test side.
+     *
+     * True if the test entry used @@prefix.
+     */
+    public function useSeeTagOnTest(): bool
+    {
+        return $this->testEntry->useSeeTag;
+    }
+
+    /**
+     * Check if @see tags are requested but the test is Pest (unsupported).
+     *
+     * Returns true if @@prefix was used with a Pest test.
+     */
+    public function isSeeTagWithPest(): bool
+    {
+        return $this->testEntry->useSeeTag && $this->testEntry->isPest();
+    }
 }
