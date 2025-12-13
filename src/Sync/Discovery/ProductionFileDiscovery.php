@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace TestFlowLabs\TestLink\Sync\Discovery;
 
-use Composer\Autoload\ClassLoader;
 use ReflectionClass;
+use Composer\Autoload\ClassLoader;
 use TestFlowLabs\TestLink\Sync\Exception\ProductionFileNotFoundException;
 
 /**

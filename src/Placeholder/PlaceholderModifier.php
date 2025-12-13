@@ -184,8 +184,7 @@ final class PlaceholderModifier
                 $result = $this->replacePestPlaceholder($code, $placeholderId, array_values($productionMethods));
             } elseif ($useSeeTag) {
                 $result = $this->replacePhpUnitPlaceholderWithSeeTag($code, $placeholderId, array_values($productionMethods));
-            }
-            else {
+            } else {
                 $result = $this->replacePhpUnitPlaceholder($code, $placeholderId, array_values($productionMethods));
             }
 

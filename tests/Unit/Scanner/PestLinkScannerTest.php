@@ -7,8 +7,8 @@ use TestFlowLabs\TestLink\Registry\TestLinkRegistry;
 
 describe('PestLinkScanner', function (): void {
     beforeEach(function (): void {
-        $this->scanner  = new PestLinkScanner();
-        $this->testDir  = sys_get_temp_dir().'/testlink-pest-scanner-'.uniqid();
+        $this->scanner = new PestLinkScanner();
+        $this->testDir = sys_get_temp_dir().'/testlink-pest-scanner-'.uniqid();
 
         @mkdir($this->testDir.'/tests/Unit', 0777, true);
     });

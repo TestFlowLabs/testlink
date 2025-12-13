@@ -159,18 +159,18 @@ describe('PlaceholderResolver', function (): void {
                 $result   = $resolver->resolve($registry);
 
                 return [
-                    'has_errors'        => $result->hasErrors(),
-                    'has_actions'       => $result->hasActions(),
-                    'error_contains_at' => str_contains($result->errors[0], '@@A'),
-                    'error_mentions_see' => str_contains($result->errors[0], '@see'),
+                    'has_errors'          => $result->hasErrors(),
+                    'has_actions'         => $result->hasActions(),
+                    'error_contains_at'   => str_contains($result->errors[0], '@@A'),
+                    'error_mentions_see'  => str_contains($result->errors[0], '@see'),
                     'error_mentions_pest' => str_contains($result->errors[0], 'Pest'),
                 ];
             })
             ->toMatchArray([
-                'has_errors'        => true,
-                'has_actions'       => false,
-                'error_contains_at' => true,
-                'error_mentions_see' => true,
+                'has_errors'          => true,
+                'has_actions'         => false,
+                'error_contains_at'   => true,
+                'error_mentions_see'  => true,
                 'error_mentions_pest' => true,
             ]);
 

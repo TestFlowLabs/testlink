@@ -55,8 +55,8 @@ final class ProductionAttributeModifier
                 $newCode = $this->injectTestedBy($code, $action);
 
                 if ($newCode !== $code) {
-                    $code         = $newCode;
-                    $modified     = true;
+                    $code           = $newCode;
+                    $modified       = true;
                     $addedMethods[] = $action->testIdentifier;
                 }
             }
@@ -184,10 +184,8 @@ final class ProductionAttributeModifier
         for ($i = max(0, $methodLine - 20); $i < $methodLine; $i++) {
             $line = $lines[$i];
 
-            if (preg_match('/#\[TestedBy\s*\(/', $line) && str_contains($line, "{$testClass}::class")) {
-                if ($testMethod === null || str_contains($line, "'{$testMethod}'")) {
-                    return true;
-                }
+            if (preg_match('/#\[TestedBy\s*\(/', $line) && str_contains($line, "{$testClass}::class") && ($testMethod === null || str_contains($line, "'{$testMethod}'"))) {
+                return true;
             }
         }
 

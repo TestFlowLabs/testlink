@@ -22,9 +22,7 @@ final class PlaceholderRegistry
      */
     private const PLACEHOLDER_PATTERN = '/^@@?[A-Za-z][A-Za-z0-9_-]*$/';
 
-    /**
-     * Regex pattern for @see tag placeholders (@@prefix).
-     */
+    /** Regex pattern for @see tag placeholders (@@prefix). */
     private const SEE_TAG_PLACEHOLDER_PATTERN = '/^@@[A-Za-z][A-Za-z0-9_-]*$/';
 
     /**

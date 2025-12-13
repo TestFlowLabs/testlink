@@ -14,9 +14,9 @@ use TestFlowLabs\TestLink\Sync\Modifier\TestFileModifier;
 use TestFlowLabs\TestLink\Sync\Discovery\TestFileDiscovery;
 use TestFlowLabs\TestLink\Sync\Modifier\ProductionFileModifier;
 use TestFlowLabs\TestLink\Sync\Discovery\ProductionFileDiscovery;
-use TestFlowLabs\TestLink\Sync\Modifier\ProductionAttributeModifier;
 use TestFlowLabs\TestLink\Sync\Exception\TestCaseNotFoundException;
 use TestFlowLabs\TestLink\Sync\Exception\TestFileNotFoundException;
+use TestFlowLabs\TestLink\Sync\Modifier\ProductionAttributeModifier;
 use TestFlowLabs\TestLink\Sync\Exception\ProductionFileNotFoundException;
 
 /**

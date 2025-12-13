@@ -410,17 +410,17 @@ PHP);
                 $content = file_get_contents($prodFile);
 
                 return [
-                    'has_see_tag'       => str_contains($content, '@see'),
-                    'has_fqcn'          => str_contains($content, '\\Tests\\Unit\\SeeTagServiceTest::testCreate'),
-                    'no_testedby'       => !str_contains($content, '#[TestedBy'),
-                    'no_placeholder'    => !str_contains($content, '@@A'),
+                    'has_see_tag'    => str_contains($content, '@see'),
+                    'has_fqcn'       => str_contains($content, '\\Tests\\Unit\\SeeTagServiceTest::testCreate'),
+                    'no_testedby'    => !str_contains($content, '#[TestedBy'),
+                    'no_placeholder' => !str_contains($content, '@@A'),
                 ];
             })
             ->toMatchArray([
-                'has_see_tag'       => true,
-                'has_fqcn'          => true,
-                'no_testedby'       => true,
-                'no_placeholder'    => true,
+                'has_see_tag'    => true,
+                'has_fqcn'       => true,
+                'no_testedby'    => true,
+                'no_placeholder' => true,
             ]);
 
         it('replaces @@prefix placeholder with @see tag in PHPUnit test')
@@ -452,17 +452,17 @@ PHP);
                 $content = file_get_contents($testFile);
 
                 return [
-                    'has_see_tag'      => str_contains($content, '@see'),
-                    'has_fqcn'         => str_contains($content, '\\App\\Services\\UserService::create'),
-                    'no_attribute'     => !str_contains($content, '#[LinksAndCovers'),
-                    'no_placeholder'   => !str_contains($content, '@@A'),
+                    'has_see_tag'    => str_contains($content, '@see'),
+                    'has_fqcn'       => str_contains($content, '\\App\\Services\\UserService::create'),
+                    'no_attribute'   => !str_contains($content, '#[LinksAndCovers'),
+                    'no_placeholder' => !str_contains($content, '@@A'),
                 ];
             })
             ->toMatchArray([
-                'has_see_tag'      => true,
-                'has_fqcn'         => true,
-                'no_attribute'     => true,
-                'no_placeholder'   => true,
+                'has_see_tag'    => true,
+                'has_fqcn'       => true,
+                'no_attribute'   => true,
+                'no_placeholder' => true,
             ]);
 
         it('uses FQCN with leading backslash in @see tags')
@@ -546,7 +546,7 @@ PHP);
         it('does not modify Pest test files for @@prefix (unsupported)')
             ->linksAndCovers(PlaceholderModifier::class.'::apply')
             ->expect(function () {
-                $testFile = $this->tempDir.'/PestSeeTest.php';
+                $testFile        = $this->tempDir.'/PestSeeTest.php';
                 $originalContent = <<<'PHP'
 <?php
 test('pest test', function () {
