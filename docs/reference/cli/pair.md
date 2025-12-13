@@ -124,17 +124,29 @@ Only resolves the `@user-create` placeholder.
 ## Placeholder Syntax
 
 Valid placeholders must:
-- Start with `@`
+- Start with `@` (for attributes) or `@@` (for `@see` tags)
 - Followed by a letter
 - Can contain letters, numbers, hyphens, underscores
 
-Examples:
+### Single `@` prefix (attributes)
+
+These placeholders resolve to PHP attributes:
 - `@A` - Single letter
 - `@user-create` - Kebab case
 - `@UserCreate` - Pascal case
 - `@user_create` - Snake case
 
-Invalid:
+### Double `@@` prefix (`@see` tags)
+
+These placeholders resolve to PHPDoc `@see` tags with FQCN:
+- `@@A` - Resolves to `/** @see \Namespace\Class::method */`
+- `@@user-create` - Same, with FQCN format
+
+::: warning PHPUnit only
+The `@@` prefix is only supported with PHPUnit tests. Pest tests do not support `@see` tags. Using `@@` with Pest will result in an error.
+:::
+
+### Invalid syntax
 - `@123` - Must start with letter
 - `@-test` - Must start with letter
 - `user` - Must start with @
@@ -182,6 +194,47 @@ public function process() { }
 test('validates order')
     ->linksAndCovers(CheckoutService::class.'::validate')
     ->linksAndCovers(CheckoutService::class.'::process');
+```
+
+## Using `@@` Prefix for `@see` Tags
+
+The `@@` prefix generates PHPDoc `@see` tags instead of attributes. This is useful when you prefer documentation-style links over attributes.
+
+::: warning PHPUnit Only
+The `@@` prefix only works with PHPUnit tests. Pest tests do not support `@see` tags.
+:::
+
+### Before resolution
+
+```php
+// Production
+#[TestedBy('@@user-create')]
+public function create(): User { }
+
+// Test (PHPUnit)
+#[LinksAndCovers('@@user-create')]
+public function testCreatesUser(): void { }
+```
+
+### After resolution
+
+```php
+// Production - @see tag with FQCN
+/** @see \Tests\Unit\UserServiceTest::testCreatesUser */
+public function create(): User { }
+
+// Test - @see tag with FQCN
+/** @see \App\Services\UserService::create */
+public function testCreatesUser(): void { }
+```
+
+### Error with Pest
+
+Using `@@` with Pest results in an error:
+
+```
+Error: Placeholder @@user-create uses @@prefix (for @see tags) but Pest tests
+do not support @see tags. Use @user-create instead.
 ```
 
 ## Error Handling

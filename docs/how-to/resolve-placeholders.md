@@ -220,6 +220,55 @@ After:
 public function test_creates_user(): void
 ```
 
+## Using `@@` Prefix for `@see` Tags
+
+Instead of attributes, you can use the `@@` prefix to generate `@see` tags in PHPDoc comments.
+
+::: warning PHPUnit Only
+The `@@` prefix only works with PHPUnit. Pest tests do not support `@see` tags.
+:::
+
+### When to use `@@`
+
+- You prefer documentation-style links
+- Your team uses `@see` tags for traceability
+- You want FQCN format in docblocks
+
+### Example
+
+Before:
+```php
+// Production
+#[TestedBy('@@user-create')]
+public function create(): User { }
+
+// Test (PHPUnit)
+#[LinksAndCovers('@@user-create')]
+public function testCreatesUser(): void { }
+```
+
+After:
+```php
+// Production
+/** @see \Tests\Unit\UserServiceTest::testCreatesUser */
+public function create(): User { }
+
+// Test
+/** @see \App\Services\UserService::create */
+public function testCreatesUser(): void { }
+```
+
+### Error with Pest
+
+Using `@@` with Pest tests results in an error:
+
+```
+Error: Placeholder @@user-create uses @@prefix (for @see tags) but Pest tests
+do not support @see tags. Use @user-create instead.
+```
+
+Switch to `@user-create` (single `@`) to use attributes instead.
+
 ## Best Practices
 
 ### 1. Resolve before committing

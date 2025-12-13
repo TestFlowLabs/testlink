@@ -103,6 +103,54 @@ Always use fully qualified class names:
 /** @see UserService::create */
 ```
 
+## Generating @see Tags with Pair (@@prefix)
+
+The `pair` command can generate `@see` tags directly using the `@@` prefix on placeholders.
+
+::: warning PHPUnit Only
+The `@@` prefix only works with PHPUnit. Pest tests do not support `@see` tags.
+:::
+
+### Using @@prefix
+
+Before pairing:
+```php
+// Production
+#[TestedBy('@@user-create')]
+public function create(array $data): User { }
+
+// Test (PHPUnit)
+#[LinksAndCovers('@@user-create')]
+public function testCreatesUser(): void { }
+```
+
+Run pair:
+```bash
+./vendor/bin/testlink pair
+```
+
+After pairing:
+```php
+// Production - @see tag with FQCN
+/** @see \Tests\Unit\UserServiceTest::testCreatesUser */
+public function create(array $data): User { }
+
+// Test - @see tag with FQCN
+/** @see \App\Services\UserService::create */
+public function testCreatesUser(): void { }
+```
+
+### @@prefix vs @prefix
+
+| Prefix | Result |
+|--------|--------|
+| `@A` | PHP attributes (`#[TestedBy]`, `#[LinksAndCovers]`) |
+| `@@A` | PHPDoc `@see` tags with FQCN |
+
+Choose based on your team's preference:
+- Use `@` for attribute-based traceability
+- Use `@@` for documentation-style `@see` tags
+
 ## Generating @see Tags with Sync
 
 ### From #[TestedBy] attributes
@@ -189,16 +237,26 @@ Output:
     @see UserService::create (should use FQCN: \App\Services\UserService)
 ```
 
-### Fix FQCN issues
+### Fix FQCN issues automatically
 
-Change:
-```php
-/** @see UserService::create */
+```bash
+# Preview fixes
+./vendor/bin/testlink validate --fix --dry-run
+
+# Apply fixes
+./vendor/bin/testlink validate --fix
 ```
 
-To:
+TestLink resolves short names using `use` statements in the file:
+
 ```php
-/** @see \App\Services\UserService::create */
+use Tests\Unit\UserServiceTest;
+
+// Before fix:
+/** @see UserServiceTest::creates_user */
+
+// After fix:
+/** @see \Tests\Unit\UserServiceTest::creates_user */
 ```
 
 ## Pruning Orphan @see Tags

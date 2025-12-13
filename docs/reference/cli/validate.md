@@ -24,6 +24,7 @@ The `validate` command checks that:
 |--------|-------------|
 | `--strict` | Fail on warnings (not just errors) |
 | `--json` | Output in JSON format |
+| `--fix` | Auto-fix non-FQCN @see tags |
 | `--verbose`, `-v` | Show detailed information |
 | `--path=<path>` | Filter by directory or file path |
 
@@ -174,12 +175,42 @@ Placeholder hasn't been resolved:
 @see tag doesn't use fully qualified name:
 
 ```
-  ⚠ Found FQCN issue (warning):
-    tests/UserServiceTest.php:15
-      @see UserService::create (should be \App\Services\UserService)
+  Non-FQCN @see Tags
+  These @see tags should use fully qualified class names:
+
+    src/TestLink/UserService.php
+      ✗ Line 15: Tests\TestLink\UserServiceTest::creates
+        → Could not resolve 'Tests\TestLink\UserServiceTest' - not found in use statements
 ```
 
-**Fix:** Update to use FQCN.
+**Fix:** Run `testlink validate --fix` to auto-convert.
+
+### Auto-Fix Non-FQCN @see Tags
+
+Automatically convert short class names to FQCN:
+
+```bash
+# Preview what would be fixed
+./vendor/bin/testlink validate --fix --dry-run
+
+# Apply fixes
+./vendor/bin/testlink validate --fix
+```
+
+Output:
+```
+  Validation Report
+  ─────────────────
+
+  FQCN Conversion Results
+    ✓ src/TestLink/UserService.php
+      + Tests\TestLink\UserServiceTest::creates
+        → \Tests\TestLink\UserServiceTest::creates
+
+  Converted 1 @see tag(s) in 1 file(s).
+```
+
+The resolver uses PHP `use` statements to determine the correct FQCN.
 
 ## Exit Codes
 
