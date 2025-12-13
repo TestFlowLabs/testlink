@@ -9,16 +9,21 @@ namespace TestFlowLabs\TestLink\Placeholder;
  *
  * A placeholder is a temporary marker (like @A, @user-create) that links
  * production methods to tests before the actual class::method identifiers are known.
+ *
+ * Placeholders can use two prefixes:
+ * - `@` (single): Resolves to attributes (#[TestedBy], #[LinksAndCovers], ->linksAndCovers())
+ * - `@@` (double): Resolves to @see tags (PHPUnit only, not supported in Pest)
  */
 final readonly class PlaceholderEntry
 {
     /**
-     * @param  string  $placeholder  The placeholder identifier (e.g., '@A', '@user-create')
+     * @param  string  $placeholder  The placeholder identifier (e.g., '@A', '@@user-create')
      * @param  string  $identifier  The full identifier (e.g., 'App\Services\UserService::create' or 'Tests\Unit\UserServiceTest::it creates user')
      * @param  string  $filePath  Absolute path to the file containing the placeholder
      * @param  int  $line  Line number where the placeholder is defined
      * @param  'production'|'test'  $type  Whether this entry is from production or test code
      * @param  'pest'|'phpunit'|null  $framework  The test framework (null for production entries)
+     * @param  bool  $useSeeTag  Whether to use @see tag instead of attribute (@@prefix)
      */
     public function __construct(
         public string $placeholder,
@@ -27,6 +32,7 @@ final readonly class PlaceholderEntry
         public int $line,
         public string $type,
         public ?string $framework = null,
+        public bool $useSeeTag = false,
     ) {}
 
     /**
@@ -84,5 +90,19 @@ final readonly class PlaceholderEntry
         $parts = explode('::', $this->identifier);
 
         return $parts[1] ?? null;
+    }
+
+    /**
+     * Get the normalized placeholder ID (without @@ prefix, just @).
+     *
+     * For '@@A' returns '@A', for '@A' returns '@A'.
+     */
+    public function getNormalizedPlaceholder(): string
+    {
+        if ($this->useSeeTag && str_starts_with($this->placeholder, '@@')) {
+            return '@'.substr($this->placeholder, 2);
+        }
+
+        return $this->placeholder;
     }
 }

@@ -201,4 +201,71 @@ describe('PlaceholderEntry', function (): void {
             })
             ->toBe('it creates user');
     });
+
+    describe('useSeeTag flag', function (): void {
+        it('defaults to false when not provided')
+            ->expect(function () {
+                $entry = new PlaceholderEntry(
+                    '@A', 'Class::method', '/path', 1, 'production', null
+                );
+
+                return $entry->useSeeTag;
+            })
+            ->toBeFalse();
+
+        it('stores true when @@prefix is used')
+            ->expect(function () {
+                $entry = new PlaceholderEntry(
+                    '@@A', 'Class::method', '/path', 1, 'production', null, true
+                );
+
+                return $entry->useSeeTag;
+            })
+            ->toBeTrue();
+
+        it('stores false when @prefix is used')
+            ->expect(function () {
+                $entry = new PlaceholderEntry(
+                    '@A', 'Class::method', '/path', 1, 'production', null, false
+                );
+
+                return $entry->useSeeTag;
+            })
+            ->toBeFalse();
+    });
+
+    describe('getNormalizedPlaceholder', function (): void {
+        it('returns @A for @@A placeholder when useSeeTag is true')
+            ->linksAndCovers(PlaceholderEntry::class.'::getNormalizedPlaceholder')
+            ->expect(function () {
+                $entry = new PlaceholderEntry(
+                    '@@A', 'Class::method', '/path', 1, 'production', null, true
+                );
+
+                return $entry->getNormalizedPlaceholder();
+            })
+            ->toBe('@A');
+
+        it('returns @A unchanged for @A placeholder')
+            ->linksAndCovers(PlaceholderEntry::class.'::getNormalizedPlaceholder')
+            ->expect(function () {
+                $entry = new PlaceholderEntry(
+                    '@A', 'Class::method', '/path', 1, 'production', null, false
+                );
+
+                return $entry->getNormalizedPlaceholder();
+            })
+            ->toBe('@A');
+
+        it('normalizes @@user-create to @user-create')
+            ->linksAndCovers(PlaceholderEntry::class.'::getNormalizedPlaceholder')
+            ->expect(function () {
+                $entry = new PlaceholderEntry(
+                    '@@user-create', 'Class::method', '/path', 1, 'production', null, true
+                );
+
+                return $entry->getNormalizedPlaceholder();
+            })
+            ->toBe('@user-create');
+    });
 });
