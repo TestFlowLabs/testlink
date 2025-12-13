@@ -310,6 +310,11 @@
   margin: 0;
 }
 
+/* Add spacing between consecutive code blocks */
+.feature-code div[class*='language-'] + div[class*='language-'] {
+  margin-top: 16px;
+}
+
 /* Remove extra margin from code blocks in feature sections */
 .feature-code .vp-adaptive-theme {
   margin: 0;
