@@ -382,5 +382,195 @@ PHP);
                 'no_placeholder' => true,
                 'count_links'    => 2,
             ]);
+
+        it('replaces @@prefix placeholder with @see tag in production code')
+            ->linksAndCovers(PlaceholderModifier::class.'::apply')
+            ->expect(function () {
+                $prodFile = $this->tempDir.'/SeeTagService.php';
+                file_put_contents($prodFile, <<<'PHP'
+<?php
+class SeeTagService
+{
+    #[TestedBy('@@A')]
+    public function create(): void {}
+}
+PHP);
+
+                $prodEntry = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\SeeTagService::create', $prodFile, 4, 'production', null, true
+                );
+                $testEntry = new PlaceholderEntry(
+                    '@@A', 'Tests\\Unit\\SeeTagServiceTest::testCreate', '/test.php', 10, 'test', 'phpunit', true
+                );
+                $action = new PlaceholderAction('@@A', $prodEntry, $testEntry);
+
+                $modifier = new PlaceholderModifier();
+                $modifier->apply([$action], dryRun: false);
+
+                $content = file_get_contents($prodFile);
+
+                return [
+                    'has_see_tag'       => str_contains($content, '@see'),
+                    'has_fqcn'          => str_contains($content, '\\Tests\\Unit\\SeeTagServiceTest::testCreate'),
+                    'no_testedby'       => !str_contains($content, '#[TestedBy'),
+                    'no_placeholder'    => !str_contains($content, '@@A'),
+                ];
+            })
+            ->toMatchArray([
+                'has_see_tag'       => true,
+                'has_fqcn'          => true,
+                'no_testedby'       => true,
+                'no_placeholder'    => true,
+            ]);
+
+        it('replaces @@prefix placeholder with @see tag in PHPUnit test')
+            ->linksAndCovers(PlaceholderModifier::class.'::apply')
+            ->expect(function () {
+                $testFile = $this->tempDir.'/SeeTagPhpUnitTest.php';
+                file_put_contents($testFile, <<<'PHP'
+<?php
+namespace Tests\Unit;
+
+class SeeTagServiceTest extends TestCase
+{
+    #[LinksAndCovers('@@A')]
+    public function testCreate(): void {}
+}
+PHP);
+
+                $prodEntry = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\UserService::create', '/prod.php', 4, 'production', null, true
+                );
+                $testEntry = new PlaceholderEntry(
+                    '@@A', 'Tests\\Unit\\SeeTagServiceTest::testCreate', $testFile, 7, 'test', 'phpunit', true
+                );
+                $action = new PlaceholderAction('@@A', $prodEntry, $testEntry);
+
+                $modifier = new PlaceholderModifier();
+                $modifier->apply([$action], dryRun: false);
+
+                $content = file_get_contents($testFile);
+
+                return [
+                    'has_see_tag'      => str_contains($content, '@see'),
+                    'has_fqcn'         => str_contains($content, '\\App\\Services\\UserService::create'),
+                    'no_attribute'     => !str_contains($content, '#[LinksAndCovers'),
+                    'no_placeholder'   => !str_contains($content, '@@A'),
+                ];
+            })
+            ->toMatchArray([
+                'has_see_tag'      => true,
+                'has_fqcn'         => true,
+                'no_attribute'     => true,
+                'no_placeholder'   => true,
+            ]);
+
+        it('uses FQCN with leading backslash in @see tags')
+            ->linksAndCovers(PlaceholderModifier::class.'::apply')
+            ->expect(function () {
+                $prodFile = $this->tempDir.'/FqcnService.php';
+                file_put_contents($prodFile, <<<'PHP'
+<?php
+class FqcnService
+{
+    #[TestedBy('@@A')]
+    public function method(): void {}
+}
+PHP);
+
+                $prodEntry = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\FqcnService::method', $prodFile, 4, 'production', null, true
+                );
+                $testEntry = new PlaceholderEntry(
+                    '@@A', 'Tests\\Unit\\FqcnServiceTest::testMethod', '/test.php', 10, 'test', 'phpunit', true
+                );
+                $action = new PlaceholderAction('@@A', $prodEntry, $testEntry);
+
+                $modifier = new PlaceholderModifier();
+                $modifier->apply([$action], dryRun: false);
+
+                $content = file_get_contents($prodFile);
+
+                // FQCN should start with backslash
+                return str_contains($content, '@see \\Tests\\Unit\\FqcnServiceTest::testMethod');
+            })
+            ->toBeTrue();
+
+        it('handles N:M placeholders with @@prefix for @see tags')
+            ->linksAndCovers(PlaceholderModifier::class.'::apply')
+            ->expect(function () {
+                $prodFile = $this->tempDir.'/MultiSeeService.php';
+                file_put_contents($prodFile, <<<'PHP'
+<?php
+class MultiSeeService
+{
+    #[TestedBy('@@A')]
+    public function method(): void {}
+}
+PHP);
+
+                $prodEntry = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\MultiSeeService::method', $prodFile, 4, 'production', null, true
+                );
+
+                // Two tests with same @@placeholder
+                $testEntry1 = new PlaceholderEntry(
+                    '@@A', 'Tests\\Unit\\Test1::testMethod1', '/test1.php', 10, 'test', 'phpunit', true
+                );
+                $testEntry2 = new PlaceholderEntry(
+                    '@@A', 'Tests\\Unit\\Test2::testMethod2', '/test2.php', 20, 'test', 'phpunit', true
+                );
+
+                $action1 = new PlaceholderAction('@@A', $prodEntry, $testEntry1);
+                $action2 = new PlaceholderAction('@@A', $prodEntry, $testEntry2);
+
+                $modifier = new PlaceholderModifier();
+                $modifier->apply([$action1, $action2], dryRun: false);
+
+                $content = file_get_contents($prodFile);
+
+                return [
+                    'has_test1'      => str_contains($content, 'Test1::testMethod1'),
+                    'has_test2'      => str_contains($content, 'Test2::testMethod2'),
+                    'no_placeholder' => !str_contains($content, '@@A'),
+                    'count_see_tags' => substr_count($content, '@see'),
+                ];
+            })
+            ->toMatchArray([
+                'has_test1'      => true,
+                'has_test2'      => true,
+                'no_placeholder' => true,
+                'count_see_tags' => 2,
+            ]);
+
+        it('does not modify Pest test files for @@prefix (unsupported)')
+            ->linksAndCovers(PlaceholderModifier::class.'::apply')
+            ->expect(function () {
+                $testFile = $this->tempDir.'/PestSeeTest.php';
+                $originalContent = <<<'PHP'
+<?php
+test('pest test', function () {
+    // test
+})->linksAndCovers('@@A');
+PHP;
+                file_put_contents($testFile, $originalContent);
+
+                $prodEntry = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\UserService::create', '/prod.php', 4, 'production', null, true
+                );
+                $testEntry = new PlaceholderEntry(
+                    '@@A', 'Tests\\PestSeeTest::pest test', $testFile, 4, 'test', 'pest', true
+                );
+                $action = new PlaceholderAction('@@A', $prodEntry, $testEntry);
+
+                $modifier = new PlaceholderModifier();
+                $modifier->apply([$action], dryRun: false);
+
+                $content = file_get_contents($testFile);
+
+                // Pest file should remain unchanged (@@+Pest is unsupported)
+                return $content === $originalContent;
+            })
+            ->toBeTrue();
     });
 });

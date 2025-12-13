@@ -104,13 +104,21 @@ final class PlaceholderModifier
                 $methodActions
             ));
 
-            $result = $this->replaceProductionPlaceholder($code, $placeholderId, array_values($testIdentifiers));
+            // Check if this should use @see tags (@@prefix)
+            $useSeeTag = $methodActions[0]->useSeeTagOnProduction();
+
+            if ($useSeeTag) {
+                $result = $this->replaceProductionPlaceholderWithSeeTag($code, $placeholderId, array_values($testIdentifiers));
+            } else {
+                $result = $this->replaceProductionPlaceholder($code, $placeholderId, array_values($testIdentifiers));
+            }
+
             if ($result['changed']) {
                 $code      = $result['code'];
                 $changes[] = [
                     'file'        => $filePath,
                     'placeholder' => $placeholderId,
-                    'replacement' => implode(', ', $testIdentifiers),
+                    'replacement' => ($useSeeTag ? '@see ' : '').implode(', ', $testIdentifiers),
                 ];
             }
         }
@@ -164,8 +172,17 @@ final class PlaceholderModifier
                 $testActions
             ));
 
-            if ($isPest) {
+            // Check if this should use @see tags (@@prefix)
+            $useSeeTag = $testActions[0]->useSeeTagOnTest();
+
+            if ($isPest && $useSeeTag) {
+                // Pest does not support @see tags - skip processing
+                // This should have been caught in PlaceholderResolver but we double-check here
+                continue;
+            } elseif ($isPest) {
                 $result = $this->replacePestPlaceholder($code, $placeholderId, array_values($productionMethods));
+            } elseif ($useSeeTag) {
+                $result = $this->replacePhpUnitPlaceholderWithSeeTag($code, $placeholderId, array_values($productionMethods));
             } else {
                 $result = $this->replacePhpUnitPlaceholder($code, $placeholderId, array_values($productionMethods));
             }
@@ -175,7 +192,7 @@ final class PlaceholderModifier
                 $changes[] = [
                     'file'        => $filePath,
                     'placeholder' => $placeholderId,
-                    'replacement' => implode(', ', $productionMethods),
+                    'replacement' => ($useSeeTag ? '@see ' : '').implode(', ', $productionMethods),
                 ];
             }
         }
@@ -471,5 +488,144 @@ final class PlaceholderModifier
         }
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * Replace placeholder in production #[TestedBy] with @see tags.
+     *
+     * Replaces #[TestedBy('@@A')] with /** @see \TestClass::method *​/
+     *
+     * @param  list<string>  $testIdentifiers
+     *
+     * @return array{code: string, changed: bool}
+     */
+    private function replaceProductionPlaceholderWithSeeTag(string $code, string $placeholderId, array $testIdentifiers): array
+    {
+        $changed = false;
+
+        // Pattern to match #[TestedBy('@@placeholder')] - note the double @@
+        $escapedPlaceholder = preg_quote($placeholderId, '/');
+        $pattern            = "/#\[TestedBy\s*\(\s*['\"]".$escapedPlaceholder."['\"]\s*\)\]/";
+
+        if (preg_match($pattern, $code)) {
+            // Build @see tags with FQCN
+            $seeTags = [];
+            foreach ($testIdentifiers as $testId) {
+                $fqcn      = $this->formatAsFqcn($testId);
+                $seeTags[] = "@see {$fqcn}";
+            }
+
+            // Detect indentation from the attribute line
+            $indent = '    ';
+            if (preg_match('/^(\s*)#\[TestedBy/m', $code, $indentMatch)) {
+                $indent = $indentMatch[1];
+            }
+
+            // Build docblock
+            if (count($seeTags) === 1) {
+                $replacement = "/** {$seeTags[0]} */";
+            } else {
+                $replacement = "/**\n";
+                foreach ($seeTags as $tag) {
+                    $replacement .= "{$indent} * {$tag}\n";
+                }
+                $replacement .= "{$indent} */";
+            }
+
+            $result = preg_replace($pattern, $replacement, $code, 1);
+            if ($result !== null) {
+                $code    = $result;
+                $changed = true;
+            }
+        }
+
+        return ['code' => $code, 'changed' => $changed];
+    }
+
+    /**
+     * Replace placeholder in PHPUnit #[LinksAndCovers] or #[Links] with @see tags.
+     *
+     * Replaces #[LinksAndCovers('@@A')] with /** @see \ProductionClass::method *​/
+     *
+     * @param  list<string>  $productionMethods
+     *
+     * @return array{code: string, changed: bool}
+     */
+    private function replacePhpUnitPlaceholderWithSeeTag(string $code, string $placeholderId, array $productionMethods): array
+    {
+        $changed = false;
+
+        // Pattern to match #[LinksAndCovers('@@placeholder')] or #[Links('@@placeholder')]
+        $escapedPlaceholder = preg_quote($placeholderId, '/');
+        $pattern            = "/#\[(LinksAndCovers|Links)\s*\(\s*['\"]".$escapedPlaceholder."['\"]\s*\)\]/";
+
+        // Count how many placeholder occurrences exist
+        $occurrenceCount = preg_match_all($pattern, $code, $matches);
+
+        if ($occurrenceCount === 0 || $occurrenceCount === false) {
+            return ['code' => $code, 'changed' => $changed];
+        }
+
+        // Detect indentation
+        $indent = '    ';
+        if (preg_match('/^(\s*)#\[(LinksAndCovers|Links)/m', $code, $indentMatch)) {
+            $indent = $indentMatch[1];
+        }
+
+        if ($occurrenceCount === 1) {
+            // SINGLE placeholder: Add all @see tags
+            $seeTags = [];
+            foreach ($productionMethods as $method) {
+                $fqcn      = $this->formatAsFqcn($method);
+                $seeTags[] = "@see {$fqcn}";
+            }
+
+            // Build docblock
+            if (count($seeTags) === 1) {
+                $replacement = "/** {$seeTags[0]} */";
+            } else {
+                $replacement = "/**\n";
+                foreach ($seeTags as $tag) {
+                    $replacement .= "{$indent} * {$tag}\n";
+                }
+                $replacement .= "{$indent} */";
+            }
+
+            $result = preg_replace($pattern, $replacement, $code, 1);
+            if ($result !== null) {
+                $code    = $result;
+                $changed = true;
+            }
+        } else {
+            // MULTIPLE placeholders: Replace each with one @see tag
+            foreach ($productionMethods as $method) {
+                $fqcn        = $this->formatAsFqcn($method);
+                $replacement = "/** @see {$fqcn} */";
+                $result      = preg_replace($pattern, $replacement, $code, 1);
+
+                if ($result !== null && $result !== $code) {
+                    $code    = $result;
+                    $changed = true;
+                }
+            }
+        }
+
+        return ['code' => $code, 'changed' => $changed];
+    }
+
+    /**
+     * Format identifier as FQCN for @see tags.
+     *
+     * Input: "App\Services\UserService::create"
+     * Output: "\App\Services\UserService::create"
+     */
+    private function formatAsFqcn(string $identifier): string
+    {
+        // Ensure leading backslash for FQCN
+        if (!str_starts_with($identifier, '\\')) {
+            return '\\'.$identifier;
+        }
+
+        return $identifier;
     }
 }
