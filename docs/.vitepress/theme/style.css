@@ -256,11 +256,11 @@
   align-items: flex-start;
   gap: 48px;
   padding: 64px 0;
-  border-bottom: 1px solid var(--vp-c-divider);
+  border-top: 1px solid var(--vp-c-divider);
 }
 
-.feature-section:last-child {
-  border-bottom: none;
+.feature-section:first-child {
+  border-top: none;
 }
 
 /* Alternate layout: even sections have code on left */
