@@ -13,8 +13,11 @@ use TestFlowLabs\TestLink\Sync\Discovery\TestCaseFinder;
 use TestFlowLabs\TestLink\Sync\Modifier\TestFileModifier;
 use TestFlowLabs\TestLink\Sync\Discovery\TestFileDiscovery;
 use TestFlowLabs\TestLink\Sync\Modifier\ProductionFileModifier;
+use TestFlowLabs\TestLink\Sync\Discovery\ProductionFileDiscovery;
+use TestFlowLabs\TestLink\Sync\Modifier\ProductionAttributeModifier;
 use TestFlowLabs\TestLink\Sync\Exception\TestCaseNotFoundException;
 use TestFlowLabs\TestLink\Sync\Exception\TestFileNotFoundException;
+use TestFlowLabs\TestLink\Sync\Exception\ProductionFileNotFoundException;
 
 /**
  * Main orchestrator for the sync command.
@@ -36,6 +39,8 @@ final class SyncCommand
         private readonly TestFileModifier $modifier = new TestFileModifier(),
         private readonly ProductionFileModifier $productionModifier = new ProductionFileModifier(),
         private readonly DocBlockScanner $docBlockScanner = new DocBlockScanner(),
+        private readonly ProductionFileDiscovery $productionDiscovery = new ProductionFileDiscovery(),
+        private readonly ProductionAttributeModifier $productionAttributeModifier = new ProductionAttributeModifier(),
     ) {}
 
     /**
@@ -50,6 +55,7 @@ final class SyncCommand
             $this->scanner->setProjectRoot($options->path);
             $this->pestScanner->setProjectRoot($options->path);
             $this->docBlockScanner->setProjectRoot($options->path);
+            $this->productionDiscovery->setProjectRoot($options->path);
         }
 
         // Scan test files for #[LinksAndCovers]/#[Links] and production files for #[TestedBy]
@@ -68,37 +74,46 @@ final class SyncCommand
         // 4. Build @see actions for production methods
         $seeActions = $this->buildSeeActions($registry, $seeRegistry);
 
-        // 5. Build prune actions if requested (computed before dry-run so dry-run can show them)
+        // 5. Build reverse #[TestedBy] actions for production methods (test → production)
+        $reverseActions = $this->buildReverseTestedByActions($registry);
+
+        // 6. Build prune actions if requested (computed before dry-run so dry-run can show them)
         $seePruneActions = [];
 
         if ($options->prune && $options->force) {
             $seePruneActions = $this->buildSeePruneActions($seeRegistry, $registry);
         }
 
-        // 6. Handle dry-run mode - show all actions without applying
+        // 7. Handle dry-run mode - show all actions without applying
         if ($options->dryRun) {
             // Let the CLI wrapper handle the output
-            return SyncResult::dryRun($actions, $seeActions, $seePruneActions);
+            return SyncResult::dryRun($actions, $seeActions, $seePruneActions, $reverseActions);
         }
 
-        // 7. If no actions and no @see actions, exit
-        if ($actions === [] && $seeActions === [] && $seePruneActions === []) {
+        // 8. If no actions and no @see actions and no reverse actions, exit
+        if ($actions === [] && $seeActions === [] && $seePruneActions === [] && $reverseActions === []) {
             // Let the CLI wrapper handle the output
             return new SyncResult();
         }
 
-        // 8. Apply test file modifications
+        // 9. Apply test file modifications
         $result = $actions !== []
             ? $this->modifier->apply($actions, $options->linkOnly)
             : new SyncResult();
 
-        // 9. Apply @see tag modifications to production files
+        // 10. Apply @see tag modifications to production files
         if ($seeActions !== []) {
             $seeResult = $this->productionModifier->addSeeTags($seeActions);
             $result    = $result->merge($seeResult);
         }
 
-        // 10. Handle pruning if requested
+        // 11. Apply reverse #[TestedBy] attributes to production files (test → production)
+        if ($reverseActions !== []) {
+            $reverseResult = $this->productionAttributeModifier->apply($reverseActions);
+            $result        = $result->merge($reverseResult);
+        }
+
+        // 12. Handle pruning if requested
         if ($options->prune && $options->force) {
             // Collect all test files that might have orphan links (not just from actions)
             $testFiles   = $this->collectAllTestFiles($options->path);
@@ -156,6 +171,55 @@ final class SyncCommand
                     );
                 } catch (TestFileNotFoundException) {
                     // Skip tests we can't find
+                    continue;
+                }
+            }
+        }
+
+        return $actions;
+    }
+
+    /**
+     * Build reverse sync actions from test-side links (test → production).
+     *
+     * Creates actions to add #[TestedBy] attributes to production methods
+     * based on existing linksAndCovers()/LinksAndCovers in test files.
+     *
+     * @return list<ReverseTestedByAction>
+     */
+    private function buildReverseTestedByActions(TestLinkRegistry $registry): array
+    {
+        $actions = [];
+
+        // Get all test-side links (from linksAndCovers/LinksAndCovers)
+        foreach ($registry->getAllLinksByTest() as $testIdentifier => $methodIdentifiers) {
+            foreach ($methodIdentifiers as $methodIdentifier) {
+                // Check if production already has #[TestedBy] pointing to this test
+                $existingTests = $registry->getTestedByForMethod($methodIdentifier);
+
+                if (in_array($testIdentifier, $existingTests, true)) {
+                    continue; // Already has this #[TestedBy]
+                }
+
+                // Try to find the production file
+                try {
+                    $productionFile = $this->productionDiscovery->findProductionFile($methodIdentifier);
+                    $className      = $this->productionDiscovery->extractClassName($methodIdentifier);
+                    $methodName     = $this->productionDiscovery->extractMethodName($methodIdentifier);
+
+                    if ($methodName === null) {
+                        continue; // Class-level links not supported for reverse sync
+                    }
+
+                    $actions[] = new ReverseTestedByAction(
+                        productionFile: $productionFile,
+                        methodIdentifier: $methodIdentifier,
+                        testIdentifier: $testIdentifier,
+                        className: $className,
+                        methodName: $methodName,
+                    );
+                } catch (ProductionFileNotFoundException) {
+                    // Skip methods we can't find
                     continue;
                 }
             }
