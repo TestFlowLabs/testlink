@@ -859,6 +859,10 @@ vendor/bin/testlink pair --placeholder=@A
 vendor/bin/testlink pair --placeholder=@user-create
 vendor/bin/testlink pair --placeholder=@UserCreate123
 vendor/bin/testlink pair --placeholder=@test_helper
+
+# @@prefix also valid (for @see tags - PHPUnit only)
+vendor/bin/testlink pair --placeholder=@@A
+vendor/bin/testlink pair --placeholder=@@user-create
 ```
 
 ### 13.4 Invalid Path
@@ -922,6 +926,137 @@ vendor/bin/testlink pair --help
 
 ---
 
+## Phase 15: @@Prefix for @see Tags
+
+**Tasks (5):**
+
+The `@@` prefix generates `@see` tags instead of attributes. This is PHPUnit only.
+
+### 15.1 Setup @@Prefix Placeholder (PHPUnit)
+
+Production:
+```php
+// src/Services/SeeTagService.php
+use TestFlowLabs\TestingAttributes\TestedBy;
+
+class SeeTagService
+{
+    #[TestedBy('@@see-tag-test')]
+    public function process(): void
+    {
+        // ...
+    }
+}
+```
+
+Test (PHPUnit):
+```php
+// tests/Unit/SeeTagServiceTest.php
+use TestFlowLabs\TestingAttributes\LinksAndCovers;
+
+class SeeTagServiceTest extends TestCase
+{
+    #[LinksAndCovers('@@see-tag-test')]
+    public function testProcess(): void
+    {
+        $this->assertTrue(true);
+    }
+}
+```
+
+### 15.2 Pair Dry-Run (@@prefix)
+
+```bash
+# Should show @see tag generation
+vendor/bin/testlink pair --dry-run
+
+# Output should indicate @see tags will be generated:
+# "@@see-tag-test  1 production × 1 test = 1 link"
+```
+
+### 15.3 Pair and Verify @see Tags
+
+```bash
+vendor/bin/testlink pair
+```
+
+**Verify production file:**
+```php
+// src/Services/SeeTagService.php
+/** @see \Tests\Unit\SeeTagServiceTest::testProcess */
+public function process(): void
+```
+
+**Verify test file:**
+```php
+// tests/Unit/SeeTagServiceTest.php
+/** @see \App\Services\SeeTagService::process */
+public function testProcess(): void
+```
+
+Note:
+- `#[TestedBy]` replaced with `/** @see ... */`
+- `#[LinksAndCovers]` replaced with `/** @see ... */`
+- FQCN format with leading backslash
+
+### 15.4 @@Prefix with Pest (Error)
+
+Production:
+```php
+#[TestedBy('@@pest-error-test')]
+public function method(): void { }
+```
+
+Test (Pest):
+```php
+test('pest test', function () {
+    // ...
+})->linksAndCovers('@@pest-error-test');
+```
+
+```bash
+# Should show error about Pest not supporting @see tags
+vendor/bin/testlink pair --dry-run
+
+# Expected error:
+# "Placeholder @@pest-error-test uses @@prefix (for @see tags) but Pest tests
+#  do not support @see tags. Use @pest-error-test instead."
+```
+
+### 15.5 N:M @@Prefix Resolution
+
+Production (2 methods):
+```php
+#[TestedBy('@@nm-see')]
+public function methodA(): void { }
+
+#[TestedBy('@@nm-see')]
+public function methodB(): void { }
+```
+
+Test (2 tests, PHPUnit):
+```php
+#[LinksAndCovers('@@nm-see')]
+public function testMethodA(): void { }
+
+#[LinksAndCovers('@@nm-see')]
+public function testMethodB(): void { }
+```
+
+```bash
+vendor/bin/testlink pair --dry-run
+
+# Should show "2 production x 2 tests = 4 links"
+```
+
+After pair:
+- `methodA()` has 2 @see tags
+- `methodB()` has 2 @see tags
+- `testMethodA()` has 2 @see tags
+- `testMethodB()` has 2 @see tags
+
+---
+
 ## Checklist
 
 After each phase, verify:
@@ -968,6 +1103,17 @@ After each phase, verify:
 - [ ] `--fix --dry-run` shows preview
 - [ ] `--fix` converts to FQCN format
 - [ ] Use statement resolution works (simple, aliased, grouped)
+
+### @@Prefix Specific Checks
+
+- [ ] `@@` prefix recognized as valid placeholder
+- [ ] `@@` prefix generates @see tags (not attributes)
+- [ ] @see tags use FQCN format with leading backslash
+- [ ] `@@` prefix with PHPUnit works correctly
+- [ ] `@@` prefix with Pest shows clear error
+- [ ] N:M matching works with `@@` prefix
+- [ ] Mixed `@` and `@@` placeholders handled separately
+- [ ] `--placeholder=@@name` filter works
 
 ---
 
