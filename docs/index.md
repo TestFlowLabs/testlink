@@ -264,4 +264,49 @@ $ ./vendor/bin/testlink pair
 </div>
 </div>
 
+<div class="feature-section">
+<div class="feature-text">
+
+## 🔧 Auto-Fix @see Tags
+
+Short class names in `@see` tags? **Fix them automatically.**
+
+TestLink detects non-FQCN references and resolves them using your `use` statements. One command converts `UserService::create` to `\App\Services\UserService::create`.
+
+[Using @see tags →](/how-to/use-see-tags)
+
+</div>
+<div class="feature-code">
+
+```php
+// Before: Short class name (IDE can't navigate)
+/**
+ * @see UserServiceTest::creates_user
+ */
+public function create(): User { }
+
+// After: FQCN (Cmd+Click works!)
+/**
+ * @see \Tests\Unit\UserServiceTest::creates_user
+ */
+public function create(): User { }
+```
+
+```bash
+$ ./vendor/bin/testlink validate --fix
+
+  Validation Report
+  ─────────────────
+
+  FQCN Conversion Results
+    ✓ src/TestLink/UserService.php
+      + Tests\TestLink\UserServiceTest::creates
+        → \Tests\TestLink\UserServiceTest::creates
+
+  Converted 1 @see tag(s) in 1 file(s).
+```
+
+</div>
+</div>
+
 </div>
