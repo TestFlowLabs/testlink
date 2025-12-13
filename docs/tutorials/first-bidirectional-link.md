@@ -495,5 +495,10 @@ This ensures your documentation stays accurate.
 Now that you understand bidirectional linking:
 
 - [Understanding Reports](./understanding-reports) - Learn to interpret report output
-- [TDD Workflow](./tdd/) - Learn to add links during TDD
+- [Sync Links Automatically](/how-to/sync-links-automatically) - Let TestLink propagate links for you
+- [TDD Workflow](/workflows/tdd/) - Learn to add links during TDD
 - [Placeholder Strategy](/explanation/placeholder-strategy) - Temporary markers for rapid development
+
+::: tip Automate This!
+Instead of manually adding links to both production and test files, you can add a link to one side and run `testlink sync` to propagate it automatically. See [How-to: Sync Links Automatically](/how-to/sync-links-automatically).
+:::

@@ -797,5 +797,5 @@ They're a bridge between "test first" methodology and TestLink's requirement for
 
 - [How-to: Resolve Placeholders](/how-to/resolve-placeholders)
 - [How-to: Handle N:M Relationships](/how-to/handle-nm-relationships)
-- [Tutorial: TDD with Placeholders](/tutorials/tdd/placeholder-tdd)
+- [TDD Workflow: Placeholders](/workflows/tdd/placeholders)
 - [CLI: pair Command](/reference/cli/pair)

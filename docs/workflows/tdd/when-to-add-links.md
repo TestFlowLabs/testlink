@@ -314,4 +314,4 @@ This ensures links are always present, accurately represent relationships, and s
 
 - [Why TDD with Links](./why-tdd-with-links)
 - [Placeholder Strategy](/explanation/placeholder-strategy)
-- [Tutorial: Placeholder TDD](/tutorials/tdd/placeholder-tdd)
+- [Placeholders](/workflows/tdd/placeholders)

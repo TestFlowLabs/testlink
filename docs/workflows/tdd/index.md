@@ -35,7 +35,7 @@ The key question is: **when during the TDD cycle should you add links?**
 | Tutorial | What You'll Learn |
 |----------|-------------------|
 | [Red-Green-Refactor](./red-green-refactor) | The classic TDD cycle with links at each phase |
-| [Placeholder TDD](./placeholder-tdd) | Using `@placeholder` markers for fast iteration |
+| [Placeholders](./placeholders) | Using `@placeholder` markers for fast iteration |
 | [Complete Example](./complete-example) | Build a `PriceCalculator` from scratch using TDD |
 
 ## Quick Start Example
@@ -77,6 +77,20 @@ class PriceCalculator
 ./vendor/bin/testlink validate
 ✓ All links are valid!
 ```
+
+::: tip Automate with Sync
+Instead of manually adding links to both sides, you can add a link to one side and let `testlink sync` propagate it:
+
+```bash
+# Add #[TestedBy] to production, then run:
+./vendor/bin/testlink sync
+
+# Or add linksAndCovers() to test, then run:
+./vendor/bin/testlink sync
+```
+
+See [How-to: Sync Links Automatically](/how-to/sync-links-automatically) for details.
+:::
 
 ## Prerequisites
 

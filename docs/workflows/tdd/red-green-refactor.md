@@ -436,5 +436,5 @@ Summary
 
 ## What's Next?
 
-- [Placeholder TDD](./placeholder-tdd) - Use placeholders for faster iteration
+- [Placeholders](./placeholders) - Use placeholders for faster iteration
 - [Complete Example](./complete-example) - A more comprehensive TDD walkthrough

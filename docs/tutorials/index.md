@@ -22,10 +22,10 @@ Learn how to integrate TestLink into your Test-Driven Development workflow:
 
 | Tutorial | Description | Time |
 |----------|-------------|------|
-| [TDD Introduction](./tdd/) | Overview of TDD with TestLink | 5 min |
-| [Red-Green-Refactor](./tdd/red-green-refactor) | The classic TDD cycle with links | 15 min |
-| [Placeholder TDD](./tdd/placeholder-tdd) | Fast TDD using placeholder markers | 15 min |
-| [Complete TDD Example](./tdd/complete-example) | Build a feature from scratch with TDD | 20 min |
+| [TDD Introduction](/workflows/tdd/) | Overview of TDD with TestLink | 5 min |
+| [Red-Green-Refactor](/workflows/tdd/red-green-refactor) | The classic TDD cycle with links | 15 min |
+| [Placeholders](/workflows/tdd/placeholders) | Fast TDD using placeholder markers | 15 min |
+| [Complete TDD Example](/workflows/tdd/complete-example) | Build a feature from scratch with TDD | 20 min |
 
 ## BDD Workflow
 
@@ -33,11 +33,11 @@ Learn how to integrate TestLink into your Behavior-Driven Development workflow:
 
 | Tutorial | Description | Time |
 |----------|-------------|------|
-| [BDD Introduction](./bdd/) | Overview of BDD with TestLink | 5 min |
-| [Double-Loop TDD](./bdd/double-loop) | Outer acceptance and inner unit loops | 15 min |
-| [Acceptance to Unit](./bdd/acceptance-to-unit) | From acceptance tests to unit tests | 15 min |
-| [Placeholder BDD](./bdd/placeholder-bdd) | Using placeholders in BDD workflows | 15 min |
-| [Complete BDD Example](./bdd/complete-example) | Build a feature from scratch with BDD | 25 min |
+| [BDD Introduction](/workflows/bdd/) | Overview of BDD with TestLink | 5 min |
+| [Double-Loop](/workflows/bdd/double-loop) | Outer acceptance and inner unit loops | 15 min |
+| [Acceptance to Unit](/workflows/bdd/acceptance-to-unit) | From acceptance tests to unit tests | 15 min |
+| [Placeholders](/workflows/bdd/placeholders) | Using placeholders in BDD workflows | 15 min |
+| [Complete BDD Example](/workflows/bdd/complete-example) | Build a feature from scratch with BDD | 25 min |
 
 ## Prerequisites
 

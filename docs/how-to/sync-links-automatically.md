@@ -242,12 +242,7 @@ Add `linksAndCovers()` to test, then sync:
 
 ## Bidirectional Sync Explained
 
-| You add link here | sync adds to |
-|-------------------|--------------|
-| Production: `#[TestedBy(...)]` | Test: `linksAndCovers()` or `#[LinksAndCovers]` |
-| Test: `linksAndCovers()` or `#[LinksAndCovers]` | Production: `#[TestedBy(...)]` |
-
-Both sides also get `@see` tags for Cmd+Click navigation.
+See the [sync command reference](/reference/cli/sync#bidirectional-sync-explained) for details on how bidirectional sync works in both directions.
 
 ## Combining Options
 
