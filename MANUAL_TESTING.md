@@ -329,9 +329,77 @@ vendor/bin/testlink pair
 
 ## Phase 6: Sync Features
 
-**Tasks (4):**
+**Tasks (7):**
 
-### 6.1 Link-Only Mode
+### 6.1 Forward Sync (Production → Test)
+
+Production has `#[TestedBy]`, sync adds `linksAndCovers()`/`#[LinksAndCovers]` to test:
+
+```php
+// Production: src/Services/UserService.php
+#[TestedBy(UserServiceTest::class, 'it creates a user')]
+public function create(): User { }
+```
+
+```bash
+# Dry-run shows test file modification
+vendor/bin/testlink sync --dry-run
+
+# Output should show:
+# Modified Files
+#   ✓ tests/Unit/UserServiceTest.php
+#     + UserService::create
+
+vendor/bin/testlink sync
+```
+
+Verify test file has `->linksAndCovers(UserService::class.'::create')` (Pest) or `#[LinksAndCovers(UserService::class, 'create')]` (PHPUnit).
+
+### 6.2 Reverse Sync (Test → Production)
+
+Test has `linksAndCovers()`/`#[LinksAndCovers]`, sync adds `#[TestedBy]` to production:
+
+Pest:
+```php
+// tests/Unit/PaymentServiceTest.php
+test('processes payment', function () {
+    // ...
+})->linksAndCovers(PaymentService::class.'::process');
+```
+
+PHPUnit:
+```php
+// tests/Unit/PaymentServiceTest.php
+#[LinksAndCovers(PaymentService::class, 'process')]
+public function test_processes_payment(): void { }
+```
+
+```bash
+# Dry-run shows production file modification
+vendor/bin/testlink sync --dry-run
+
+# Output should show:
+# Would add #[TestedBy] to
+#   ✓ PaymentService::process
+#     + #[TestedBy] PaymentServiceTest::processes payment
+
+vendor/bin/testlink sync
+```
+
+Verify production file has `#[TestedBy(PaymentServiceTest::class, 'processes payment')]` (or test method name).
+
+### 6.3 Bidirectional Sync Display
+
+```bash
+# Run sync with both directions
+vendor/bin/testlink sync --dry-run
+```
+
+Output should show both:
+- "Modified Files" (forward: production → test)
+- "Would add #[TestedBy] to" (reverse: test → production)
+
+### 6.4 Link-Only Mode
 
 ```bash
 # Uses links() instead of linksAndCovers()
@@ -339,7 +407,7 @@ vendor/bin/testlink sync --link-only --dry-run
 vendor/bin/testlink sync --link-only
 ```
 
-### 6.2 Add Orphan Link
+### 6.5 Add Orphan Link
 
 Manually add a link to a deleted method in test file:
 
@@ -349,14 +417,14 @@ test('some test', function () {
 })->linksAndCovers(DeletedService::class.'::deletedMethod');
 ```
 
-### 6.3 Prune Without Force
+### 6.6 Prune Without Force
 
 ```bash
 # Should error without --force
 vendor/bin/testlink sync --prune
 ```
 
-### 6.4 Prune With Force
+### 6.7 Prune With Force
 
 ```bash
 # Dry-run shows what will be deleted
@@ -628,7 +696,28 @@ abstract class BaseService
 }
 ```
 
-All method types should get @see tags via sync.
+**Forward Sync:** All method types should get @see tags via sync.
+
+```bash
+vendor/bin/testlink sync --dry-run
+vendor/bin/testlink sync
+```
+
+Verify @see tags added to all three methods (abstract, static, final).
+
+**Reverse Sync:** Test `linksAndCovers` to static methods:
+
+```php
+// Test file
+#[LinksAndCovers(BaseService::class, 'getInstance')]
+public function test_static(): void { }
+```
+
+```bash
+vendor/bin/testlink sync --dry-run
+```
+
+Output should show `#[TestedBy]` would be added to `getInstance()` static method.
 
 ---
 
@@ -845,6 +934,19 @@ After each phase, verify:
 - [ ] `--dry-run` does not modify files
 - [ ] `--verbose` shows more information
 
+### Sync Specific Checks
+
+- [ ] Forward sync: `#[TestedBy]` → `linksAndCovers()`/`#[LinksAndCovers]`
+- [ ] Reverse sync: `linksAndCovers()`/`#[LinksAndCovers]` → `#[TestedBy]`
+- [ ] CLI shows both forward and reverse actions
+- [ ] Static methods work with reverse sync
+- [ ] Abstract methods work with forward sync (@see tags)
+- [ ] Final methods work with sync
+- [ ] Multiple `#[TestedBy]` on same method supported
+- [ ] `--link-only` uses `links()` instead of `linksAndCovers()`
+- [ ] `--prune` requires `--force`
+- [ ] Orphan links removed with `--prune --force`
+
 ### @see Tag Specific Checks
 
 - [ ] @see tag created after sync
@@ -925,4 +1027,27 @@ echo -e "\n4. Validate FQCN"
 vendor/bin/testlink validate --fix --dry-run
 
 echo -e "\n=== @see Tag tests completed ==="
+```
+
+### Bidirectional Sync Test Script
+
+```bash
+#!/bin/bash
+set -e
+
+echo "=== Bidirectional Sync Tests ==="
+
+echo -e "\n1. Sync Dry-Run (shows both forward and reverse)"
+vendor/bin/testlink sync --dry-run
+
+echo -e "\n2. Sync (apply changes)"
+vendor/bin/testlink sync
+
+echo -e "\n3. Report (shows all links)"
+vendor/bin/testlink report
+
+echo -e "\n4. Validate (verify consistency)"
+vendor/bin/testlink validate
+
+echo -e "\n=== Bidirectional Sync tests completed ==="
 ```
