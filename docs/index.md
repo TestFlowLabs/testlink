@@ -189,13 +189,13 @@ $ ./vendor/bin/testlink validate
 <div class="feature-section">
 <div class="feature-text">
 
-## 🔄 Auto-Sync & Placeholders
+## 🔄 Auto-Sync
 
 Don't manually maintain links. **Sync generates them automatically.**
 
-Writing tests before classes exist? Use `@placeholder` markers during TDD, resolve them later.
+Add links in your tests, run `testlink sync`, and TestLink adds the corresponding `@see` tags to production code. Both sides stay synchronized.
 
-[Sync workflow →](/how-to/sync-links-automatically) · [Placeholders →](/explanation/placeholder-strategy)
+[Sync workflow →](/how-to/sync-links-automatically)
 
 </div>
 <div class="feature-code">
@@ -211,7 +211,42 @@ $ ./vendor/bin/testlink sync
       + @see UserServiceTest::test_creates_user
       + @see UserServiceTest::test_validates_email
 
-  Modified 1 file(s). Added 2 link(s).
+    ✓ OrderService::process
+      + @see OrderServiceTest::test_processes_order
+
+  Modified 2 file(s). Added 3 link(s).
+```
+
+</div>
+</div>
+
+<div class="feature-section">
+<div class="feature-text">
+
+## ⚡ TDD Placeholders
+
+Writing tests before classes exist? **Use `@placeholder` markers.**
+
+During rapid TDD, you don't know the final class name yet. Use placeholders like `@user-create` in both test and production code, then resolve them with `testlink pair`.
+
+[Placeholder strategy →](/explanation/placeholder-strategy)
+
+</div>
+<div class="feature-code">
+
+```php
+// Test written BEFORE the class exists
+test('calculates discount', function () {
+    $calc = new PriceCalculator();
+    expect($calc->calculate(100, 0.1))->toBe(90);
+})->linksAndCovers('@discount');
+
+// Production code (written after test passes)
+#[TestedBy('@discount')]
+public function calculate(int $price, float $discount): int
+{
+    return (int) ($price * (1 - $discount));
+}
 ```
 
 ```bash
@@ -220,9 +255,9 @@ $ ./vendor/bin/testlink pair
   Resolving Placeholders
   ──────────────────────
 
-  ✓ @user-create  1 production × 2 tests = 2 links
+  ✓ @discount  1 production × 1 test = 1 link
 
-  Resolved 1 placeholder. Modified 3 file(s).
+  Resolved 1 placeholder. Modified 2 file(s).
 ```
 
 </div>
