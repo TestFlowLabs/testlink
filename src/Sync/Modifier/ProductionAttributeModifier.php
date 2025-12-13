@@ -206,8 +206,9 @@ final class ProductionAttributeModifier
     private function findMethodDeclarationLine(array $lines, string $methodName): ?int
     {
         foreach ($lines as $i => $line) {
-            // Look for: public function methodName or protected function methodName
-            if (preg_match('/^\s*(public|protected|private)?\s*function\s+'.preg_quote($methodName, '/').'\s*\(/', $line)) {
+            // Look for: public function methodName, protected static function methodName, etc.
+            // Handles visibility (public/protected/private), static modifier, and readonly/final modifiers
+            if (preg_match('/^\s*(public|protected|private)?\s*(static)?\s*(readonly)?\s*(final)?\s*function\s+'.preg_quote($methodName, '/').'\s*\(/', $line)) {
                 return $i;
             }
         }
