@@ -240,3 +240,120 @@
 .vp-doc div[class*='language-terminal'] > span.lang {
   display: none;
 }
+
+/* ==========================================
+   Homepage Feature Sections (Alternating Layout)
+   ========================================== */
+
+.feature-sections {
+  max-width: 1152px;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+}
+
+.feature-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 48px;
+  padding: 64px 0;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.feature-section:last-child {
+  border-bottom: none;
+}
+
+/* Alternate layout: even sections have code on left */
+.feature-section:nth-child(even) {
+  flex-direction: row-reverse;
+}
+
+.feature-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.feature-text h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--vp-c-text-1);
+  margin: 0 0 16px;
+  line-height: 1.3;
+}
+
+.feature-text p {
+  font-size: 1.1rem;
+  color: var(--vp-c-text-2);
+  line-height: 1.7;
+  margin: 0 0 16px;
+}
+
+.feature-text p:last-child {
+  margin-bottom: 0;
+}
+
+.feature-text a {
+  color: var(--vp-c-brand-1);
+  font-weight: 500;
+}
+
+.feature-text a:hover {
+  color: var(--vp-c-brand-2);
+}
+
+.feature-code {
+  flex: 1.2;
+  min-width: 0;
+}
+
+.feature-code div[class*='language-'] {
+  margin: 0;
+}
+
+/* Remove extra margin from code blocks in feature sections */
+.feature-code .vp-adaptive-theme {
+  margin: 0;
+}
+
+/* Responsive: Stack on mobile */
+@media (max-width: 768px) {
+  .feature-section,
+  .feature-section:nth-child(even) {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .feature-text h2 {
+    font-size: 1.5rem;
+  }
+
+  .feature-sections {
+    padding: 0 16px 48px;
+  }
+
+  .feature-section {
+    padding: 48px 0;
+  }
+}
+
+/* Tabs inside feature sections */
+.feature-code .vp-tabs {
+  margin: 0;
+}
+
+/* Feature section icon/badge styling */
+.feature-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--vp-c-brand-1);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.feature-badge .icon {
+  font-size: 1.25rem;
+}

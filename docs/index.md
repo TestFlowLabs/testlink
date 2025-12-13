@@ -15,312 +15,240 @@ hero:
     - theme: alt
       text: View on GitHub
       link: https://github.com/testflowlabs/testlink
-
-features:
-  - icon: 🔗
-    title: Bidirectional Links
-    details: Production code knows its tests. Tests know what they cover. Both stay in sync.
-    link: /explanation/bidirectional-linking
-  - icon: 🧪
-    title: Pest & PHPUnit
-    details: Use Pest's ->linksAndCovers() or PHPUnit's #[LinksAndCovers]. Mix both in one project.
-    link: /reference/pest-methods
-  - icon: ✅
-    title: Catch Broken Links
-    details: Renamed a method? Deleted a test? Validation catches orphaned and missing links instantly.
-    link: /how-to/run-validation-in-ci
-  - icon: 🔄
-    title: Auto-Sync
-    details: Generate missing links automatically. From #[TestedBy] to tests, or tests to production.
-    link: /how-to/sync-links-automatically
-  - icon: ⚡
-    title: TDD/BDD Placeholders
-    details: Write tests before classes exist. Use @placeholder markers, resolve them later with testlink pair.
-    link: /explanation/placeholder-strategy
-  - icon: 🧭
-    title: IDE Navigation
-    details: Click @see tags to jump between tests and production code. PHPStorm, VS Code, and more.
-    link: /how-to/setup-ide-navigation
 ---
 
-::: code-group
+<div class="feature-sections">
 
-```php [Production]
-<?php
+<div class="feature-section">
+<div class="feature-text">
 
-namespace App\Services;
+## 🔗 Bidirectional Links
 
-use TestFlowLabs\TestingAttributes\TestedBy;
+Production code knows its tests. Tests know what they cover. **Both stay in sync.**
 
+Add `#[TestedBy]` to production methods to declare which tests verify them. Add links in your tests pointing back to production. TestLink validates that both sides match.
+
+[Learn more →](/explanation/bidirectional-linking)
+
+</div>
+<div class="feature-code">
+
+```php
+// Production code declares its tests
 class UserService
 {
-    /**
-     * @see \Tests\UserServiceTest::creates a user
-     * @see \Tests\UserServiceTest::validates email
-     * @see \Tests\UserFlowTest::complete registration
-     */
-    #[TestedBy(UserServiceTest::class, 'creates a user')]
-    #[TestedBy(UserServiceTest::class, 'validates email')]
-    #[TestedBy(UserFlowTest::class, 'complete registration')]
+    #[TestedBy(UserServiceTest::class, 'creates user')]
     public function create(array $data): User
     {
-        // Click any @see tag to jump to the test
+        // ...
     }
 }
 ```
 
-```php [Tests (Pest)]
-/**
- * @see \App\Services\UserService::create
- */
-test('creates a user', function () {
-    $user = app(UserService::class)->create([
-        'name' => 'John',
-        'email' => 'john@example.com',
-    ]);
-
+```php
+// Test declares what it covers
+test('creates user', function () {
+    $user = app(UserService::class)->create([...]);
     expect($user)->toBeInstanceOf(User::class);
 })->linksAndCovers(UserService::class.'::create');
+```
 
+</div>
+</div>
+
+<div class="feature-section">
+<div class="feature-text">
+
+## 🧪 Pest & PHPUnit
+
+Use Pest's `->linksAndCovers()` chain or PHPUnit's `#[LinksAndCovers]` attribute. **Mix both in one project.**
+
+Choose your style—TestLink supports all of them:
+
+- **Pest** — Method chains
+- **PHPUnit** — PHP 8 attributes
+- **PHPUnit** — `@see` DocBlock tags
+
+[See all methods →](/reference/pest-methods)
+
+</div>
+<div class="feature-code">
+
+:::tabs key:stack
+== Pest
+
+```php
+test('creates user', function () {
+    // ...
+})->linksAndCovers(UserService::class.'::create');
+```
+
+== PHPUnit + Attributes
+
+```php
+#[LinksAndCovers(UserService::class, 'create')]
+public function test_creates_user(): void
+{
+    // ...
+}
+```
+
+== PHPUnit + @see
+
+```php
 /**
  * @see \App\Services\UserService::create
  */
-test('validates email', function () {
-    // ...
-})->linksAndCovers(UserService::class.'::create');
-
-// Integration test - links without coverage
-test('complete registration', function () {
-    // ...
-})->links(UserService::class.'::create');
-```
-
-```php [Tests (PHPUnit)]
-use TestFlowLabs\TestingAttributes\LinksAndCovers;
-use TestFlowLabs\TestingAttributes\Links;
-
-class UserServiceTest extends TestCase
+public function test_creates_user(): void
 {
-    /**
-     * @see \App\Services\UserService::create
-     */
-    #[LinksAndCovers(UserService::class, 'create')]
-    public function test_creates_a_user(): void
-    {
-        // Unit test with coverage
-    }
-
-    /**
-     * @see \App\Services\UserService::create
-     */
-    #[Links(UserService::class, 'create')]
-    public function test_complete_registration(): void
-    {
-        // Integration test - link only, no coverage
-    }
+    // ...
 }
 ```
 
-```php [Placeholders]
-// TDD: Write test BEFORE the class exists!
+:::
 
-test('calculates discount', function () {
-    $calc = new PriceCalculator();
-    expect($calc->calculate(100, 0.1))->toBe(90);
-})->linksAndCovers('@price-calc');
+</div>
+</div>
 
-// Production code (written after test)
-#[TestedBy('@price-calc')]
-public function calculate(int $price, float $discount): int
-{
-    return (int) ($price * (1 - $discount));
-}
+<div class="feature-section">
+<div class="feature-text">
 
-// Later, resolve placeholders to real references:
-// $ ./vendor/bin/testlink pair
-```
+## ✅ Catch Broken Links
 
-```bash [CLI]
-$ ./vendor/bin/testlink report
+Renamed a method? Deleted a test? **Validation catches it instantly.**
 
-  Coverage Links Report
-  ─────────────────────
+Run `testlink validate` in CI to ensure all links are valid. No more orphaned `#[TestedBy]` attributes pointing to deleted tests.
 
-  App\Services\UserService
-    create()
-    → UserServiceTest::creates a user
-    → UserServiceTest::validates email
-    → UserFlowTest::complete registration
+[Set up CI validation →](/how-to/run-validation-in-ci)
 
-  Summary
-    Methods with tests: 1
-    Total test links: 3
+</div>
+<div class="feature-code">
 
+```bash
 $ ./vendor/bin/testlink validate
 
   Validation Report
   ─────────────────
 
-  Link Summary
-    Pest method chain links: 3
-    Total links: 3
+  ✗ Orphan TestedBy
+    App\UserService::create
+      → UserServiceTest::deleted_test (test not found)
 
-  All links are valid!
+  ✗ Missing TestedBy
+    UserServiceTest::creates_user
+      → UserService::create (no #[TestedBy])
 
-$ ./vendor/bin/testlink sync --dry-run
+  Found 2 issue(s). Run sync to fix.
+```
+
+</div>
+</div>
+
+<div class="feature-section">
+<div class="feature-text">
+
+## 🔄 Auto-Sync
+
+Don't manually maintain both sides. **Let TestLink sync them for you.**
+
+Add links in your tests, run `testlink sync`, and TestLink adds the corresponding `#[TestedBy]` attributes to production code automatically.
+
+[Learn sync workflow →](/how-to/sync-links-automatically)
+
+</div>
+<div class="feature-code">
+
+```bash
+$ ./vendor/bin/testlink sync
 
   Syncing Coverage Links
   ──────────────────────
-  Running in dry-run mode. No files will be modified.
 
-  Would add @see tags to
+  Adding links
     ✓ UserService::create
-      + @see UserServiceTest::creates a user
+      + #[TestedBy(UserServiceTest::class, 'creates user')]
+      + #[TestedBy(UserServiceTest::class, 'validates email')]
 
-  Would add 1 @see tag(s).
+  Modified 1 file(s). Added 2 link(s).
+```
 
+</div>
+</div>
+
+<div class="feature-section">
+<div class="feature-text">
+
+## ⚡ TDD/BDD Placeholders
+
+Write tests before classes exist. **Use `@placeholder` markers, resolve them later.**
+
+During rapid TDD, you don't know the final class name yet. Use placeholders like `@user-create` in both test and production code. Run `testlink pair` when ready.
+
+[Placeholder strategy →](/explanation/placeholder-strategy)
+
+</div>
+<div class="feature-code">
+
+```php
+// Test written BEFORE the class exists
+test('calculates discount', function () {
+    $calc = new PriceCalculator();
+    expect($calc->calculate(100, 0.1))->toBe(90);
+})->linksAndCovers('@discount');
+
+// Production code (written after test passes)
+#[TestedBy('@discount')]
+public function calculate(int $price, float $discount): int
+{
+    return (int) ($price * (1 - $discount));
+}
+```
+
+```bash
 $ ./vendor/bin/testlink pair
 
   Pairing Placeholders
   ────────────────────
 
-  Found Placeholders
-    ✓ @price-calc  1 production × 1 tests = 1 links
+  ✓ @discount  1 production × 1 test = 1 link
 
-  Pairing complete. Modified 2 file(s) with 2 change(s).
+  Resolved 1 placeholder. Modified 2 file(s).
 ```
 
-:::
+</div>
+</div>
 
-## Synchronized Tabs Demo
+<div class="feature-section">
+<div class="feature-text">
 
-Select your stack once — all code examples across the documentation will update to match your choice.
+## 🧭 IDE Navigation
 
-### Production Code
+Click `@see` tags to jump between tests and production code. **PHPStorm, VS Code, and more.**
 
-:::tabs key:stack
-== Pest
+TestLink adds `@see` tags that IDEs recognize. Ctrl+Click to navigate instantly. No more searching for related tests.
 
-```php
-use TestFlowLabs\TestingAttributes\TestedBy;
+[Configure IDE →](/how-to/setup-ide-navigation)
 
-class UserService
-{
-    #[TestedBy(UserServiceTest::class, 'it creates a user')]
-    #[TestedBy(UserServiceTest::class, 'it validates email')]
-    public function create(array $data): User
-    {
-        // Your production code
-    }
-}
-```
-
-== PHPUnit + Attributes
+</div>
+<div class="feature-code">
 
 ```php
-use TestFlowLabs\TestingAttributes\TestedBy;
-
-class UserService
-{
-    #[TestedBy(UserServiceTest::class, 'test_create')]
-    #[TestedBy(UserServiceTest::class, 'test_validates_email')]
-    public function create(array $data): User
-    {
-        // Your production code
-    }
-}
-```
-
-== PHPUnit + @see
-
-```php
-class UserService
+class OrderService
 {
     /**
-     * @see \Tests\UserServiceTest::test_create
-     * @see \Tests\UserServiceTest::test_validates_email
+     * @see \Tests\OrderServiceTest::test_creates_order
+     * @see \Tests\OrderServiceTest::test_validates_items
+     * @see \Tests\OrderFlowTest::test_complete_checkout
      */
-    public function create(array $data): User
+    #[TestedBy(OrderServiceTest::class, 'test_creates_order')]
+    public function create(array $items): Order
     {
-        // Your production code
+        // Ctrl+Click any @see tag to jump to the test
     }
 }
 ```
 
-:::
+</div>
+</div>
 
-### Test Code
-
-:::tabs key:stack
-== Pest
-
-```php
-it('creates a user', function () {
-    $user = app(UserService::class)->create([
-        'name' => 'John',
-        'email' => 'john@example.com',
-    ]);
-
-    expect($user)->toBeInstanceOf(User::class);
-})->linksAndCovers(UserService::class, 'create');
-
-it('validates email', function () {
-    // ...
-})->linksAndCovers(UserService::class, 'create');
-```
-
-== PHPUnit + Attributes
-
-```php
-use TestFlowLabs\TestingAttributes\LinksAndCovers;
-
-class UserServiceTest extends TestCase
-{
-    #[LinksAndCovers(UserService::class, 'create')]
-    public function test_create(): void
-    {
-        $user = app(UserService::class)->create([
-            'name' => 'John',
-            'email' => 'john@example.com',
-        ]);
-
-        $this->assertInstanceOf(User::class, $user);
-    }
-
-    #[LinksAndCovers(UserService::class, 'create')]
-    public function test_validates_email(): void
-    {
-        // ...
-    }
-}
-```
-
-== PHPUnit + @see
-
-```php
-class UserServiceTest extends TestCase
-{
-    /**
-     * @see \App\Services\UserService::create
-     */
-    public function test_create(): void
-    {
-        $user = app(UserService::class)->create([
-            'name' => 'John',
-            'email' => 'john@example.com',
-        ]);
-
-        $this->assertInstanceOf(User::class, $user);
-    }
-
-    /**
-     * @see \App\Services\UserService::create
-     */
-    public function test_validates_email(): void
-    {
-        // ...
-    }
-}
-```
-
-:::
+</div>
