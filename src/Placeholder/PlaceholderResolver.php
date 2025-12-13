@@ -56,6 +56,31 @@ final class PlaceholderResolver
                 continue;
             }
 
+            // Check for @@prefix with Pest tests (unsupported)
+            foreach ($testEntries as $testEntry) {
+                if ($testEntry->useSeeTag && $testEntry->isPest()) {
+                    $errors[] = sprintf(
+                        'Placeholder %s uses @@prefix (for @see tags) but Pest tests do not support @see tags. Use @%s instead.',
+                        $placeholderId,
+                        substr($placeholderId, 2) // Remove @@ prefix, suggest @
+                    );
+                }
+            }
+
+            // Skip creating actions if there are @@ + Pest errors
+            $hasSeeTagPestError = false;
+            foreach ($testEntries as $testEntry) {
+                if ($testEntry->useSeeTag && $testEntry->isPest()) {
+                    $hasSeeTagPestError = true;
+
+                    break;
+                }
+            }
+
+            if ($hasSeeTagPestError) {
+                continue;
+            }
+
             // Create N:M actions (all combinations)
             foreach ($productionEntries as $productionEntry) {
                 foreach ($testEntries as $testEntry) {
@@ -148,6 +173,23 @@ final class PlaceholderResolver
                 errors: $errors,
                 warnings: $warnings,
             );
+        }
+
+        // Check for @@prefix with Pest tests (unsupported)
+        foreach ($testEntries as $testEntry) {
+            if ($testEntry->useSeeTag && $testEntry->isPest()) {
+                $errors[] = sprintf(
+                    'Placeholder %s uses @@prefix (for @see tags) but Pest tests do not support @see tags. Use @%s instead.',
+                    $placeholderId,
+                    substr($placeholderId, 2) // Remove @@ prefix, suggest @
+                );
+
+                return new PlaceholderResult(
+                    actions: $actions,
+                    errors: $errors,
+                    warnings: $warnings,
+                );
+            }
         }
 
         // Create N:M actions (all combinations)

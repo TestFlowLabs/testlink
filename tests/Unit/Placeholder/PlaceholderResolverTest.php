@@ -147,6 +147,85 @@ describe('PlaceholderResolver', function (): void {
                 'actions' => false,
                 'errors'  => false,
             ]);
+
+        it('returns error when @@prefix placeholder is used with Pest test')
+            ->linksAndCovers(PlaceholderResolver::class.'::resolve')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+                $registry->registerProductionPlaceholder('@@A', 'UserService', 'create', '/prod.php', 10);
+                $registry->registerTestPlaceholder('@@A', 'UserServiceTest::test', '/test.php', 20, 'pest');
+
+                $resolver = new PlaceholderResolver();
+                $result   = $resolver->resolve($registry);
+
+                return [
+                    'has_errors'        => $result->hasErrors(),
+                    'has_actions'       => $result->hasActions(),
+                    'error_contains_at' => str_contains($result->errors[0], '@@A'),
+                    'error_mentions_see' => str_contains($result->errors[0], '@see'),
+                    'error_mentions_pest' => str_contains($result->errors[0], 'Pest'),
+                ];
+            })
+            ->toMatchArray([
+                'has_errors'        => true,
+                'has_actions'       => false,
+                'error_contains_at' => true,
+                'error_mentions_see' => true,
+                'error_mentions_pest' => true,
+            ]);
+
+        it('creates action for @@prefix placeholder with PHPUnit test')
+            ->linksAndCovers(PlaceholderResolver::class.'::resolve')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+                $registry->registerProductionPlaceholder('@@A', 'UserService', 'create', '/prod.php', 10);
+                $registry->registerTestPlaceholder('@@A', 'UserServiceTest::testCreate', '/test.php', 20, 'phpunit');
+
+                $resolver = new PlaceholderResolver();
+                $result   = $resolver->resolve($registry);
+
+                return [
+                    'has_errors'         => $result->hasErrors(),
+                    'action_count'       => count($result->actions),
+                    'use_see_production' => $result->actions[0]->useSeeTagOnProduction(),
+                    'use_see_test'       => $result->actions[0]->useSeeTagOnTest(),
+                ];
+            })
+            ->toMatchArray([
+                'has_errors'         => false,
+                'action_count'       => 1,
+                'use_see_production' => true,
+                'use_see_test'       => true,
+            ]);
+
+        it('returns error for mixed Pest tests when @@prefix used')
+            ->linksAndCovers(PlaceholderResolver::class.'::resolve')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+                $registry->registerProductionPlaceholder('@@A', 'UserService', 'create', '/prod.php', 10);
+                $registry->registerTestPlaceholder('@@A', 'Test1::test1', '/test1.php', 10, 'phpunit');
+                $registry->registerTestPlaceholder('@@A', 'Test2::test2', '/test2.php', 20, 'pest'); // This should cause error
+
+                $resolver = new PlaceholderResolver();
+                $result   = $resolver->resolve($registry);
+
+                return $result->hasErrors();
+            })
+            ->toBeTrue();
+
+        it('skips action creation when @@prefix Pest error occurs')
+            ->linksAndCovers(PlaceholderResolver::class.'::resolve')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+                $registry->registerProductionPlaceholder('@@A', 'UserService', 'create', '/prod.php', 10);
+                $registry->registerTestPlaceholder('@@A', 'Test::test', '/test.php', 10, 'pest');
+
+                $resolver = new PlaceholderResolver();
+                $result   = $resolver->resolve($registry);
+
+                return count($result->actions);
+            })
+            ->toBe(0);
     });
 
     describe('resolvePlaceholder', function (): void {
@@ -231,6 +310,59 @@ describe('PlaceholderResolver', function (): void {
                 $result   = $resolver->resolvePlaceholder('@orphan', $registry);
 
                 return $result->hasErrors();
+            })
+            ->toBeTrue();
+
+        it('returns error when @@prefix placeholder used with Pest in resolvePlaceholder')
+            ->linksAndCovers(PlaceholderResolver::class.'::resolvePlaceholder')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+                $registry->registerProductionPlaceholder('@@A', 'UserService', 'create', '/prod.php', 10);
+                $registry->registerTestPlaceholder('@@A', 'Test::test', '/test.php', 20, 'pest');
+
+                $resolver = new PlaceholderResolver();
+                $result   = $resolver->resolvePlaceholder('@@A', $registry);
+
+                return [
+                    'has_errors'  => $result->hasErrors(),
+                    'has_actions' => $result->hasActions(),
+                ];
+            })
+            ->toMatchArray([
+                'has_errors'  => true,
+                'has_actions' => false,
+            ]);
+
+        it('resolves @@prefix placeholder with PHPUnit in resolvePlaceholder')
+            ->linksAndCovers(PlaceholderResolver::class.'::resolvePlaceholder')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+                $registry->registerProductionPlaceholder('@@A', 'UserService', 'create', '/prod.php', 10);
+                $registry->registerTestPlaceholder('@@A', 'UserServiceTest::testCreate', '/test.php', 20, 'phpunit');
+
+                $resolver = new PlaceholderResolver();
+                $result   = $resolver->resolvePlaceholder('@@A', $registry);
+
+                return [
+                    'has_errors'   => $result->hasErrors(),
+                    'action_count' => count($result->actions),
+                ];
+            })
+            ->toMatchArray([
+                'has_errors'   => false,
+                'action_count' => 1,
+            ]);
+
+        it('accepts @@prefix as valid placeholder format')
+            ->linksAndCovers(PlaceholderResolver::class.'::resolvePlaceholder')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+
+                $resolver = new PlaceholderResolver();
+                $result   = $resolver->resolvePlaceholder('@@valid-name', $registry);
+
+                // Should fail with "not found" not "invalid format"
+                return str_contains($result->errors[0], 'not found');
             })
             ->toBeTrue();
     });
