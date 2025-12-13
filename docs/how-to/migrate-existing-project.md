@@ -50,7 +50,7 @@ Start with the most critical production code:
 
 Start with tests:
 
-1. Add `linksAndCovers()` to existing tests
+1. Add test links (`->linksAndCovers()` / `#[LinksAndCovers]` / `@see`) to existing tests
 2. Run sync to add production links
 3. Validate and expand
 

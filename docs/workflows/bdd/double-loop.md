@@ -129,8 +129,8 @@ class UserRegistrationTest extends TestCase
 
 :::
 
-::: info Using `links()` for Acceptance Tests
-We use `links()` instead of `linksAndCovers()` for acceptance tests. This creates traceability without affecting code coverage metrics. Unit tests will provide the actual coverage.
+::: info Using `links()` / `#[Links]` for Acceptance Tests
+We use `links()` (Pest) or `#[Links]` (PHPUnit) instead of `linksAndCovers()` / `#[LinksAndCovers]` for acceptance tests. This creates traceability without affecting code coverage metrics. Unit tests will provide the actual coverage.
 :::
 
 Run the test—it fails because nothing exists yet:
@@ -577,9 +577,9 @@ Link Summary
 ## Key Takeaways
 
 1. **Start with acceptance test** - Describe the behavior you want
-2. **Use `links()` for acceptance tests** - Traceability without coverage impact
+2. **Use `links()` / `#[Links]` for acceptance tests** - Traceability without coverage impact
 3. **Build with unit tests** - Drive implementation piece by piece
-4. **Use `linksAndCovers()` for unit tests** - Full traceability and coverage
+4. **Use `linksAndCovers()` / `#[LinksAndCovers]` for unit tests** - Full traceability and coverage
 
 ## What's Next?
 

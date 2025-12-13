@@ -739,7 +739,7 @@ Summary
 ## What You Learned
 
 1. **BDD structure** - Acceptance tests drive unit tests
-2. **links() vs linksAndCovers()** - Use `links()` for acceptance, `linksAndCovers()` for unit
+2. **links() vs linksAndCovers()** - Use `links()` / `#[Links]` for acceptance, `linksAndCovers()` / `#[LinksAndCovers]` for unit
 3. **Double-loop workflow** - Outer acceptance loop, inner unit loop
 4. **Complete traceability** - From user stories to implementation
 

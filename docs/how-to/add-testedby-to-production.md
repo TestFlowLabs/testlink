@@ -135,7 +135,7 @@ After adding attributes, validate:
 
 This checks:
 - All `#[TestedBy]` references point to existing tests
-- The corresponding tests have `linksAndCovers()`
+- The corresponding tests have links (`->linksAndCovers()` / `#[LinksAndCovers]` / `@see`)
 
 ## Common Patterns
 

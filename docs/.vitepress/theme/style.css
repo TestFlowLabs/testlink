@@ -153,3 +153,90 @@
   max-width: 100%;
   height: auto;
 }
+
+/* ==========================================
+   Terminal Window Style for Shell Code Blocks
+   ========================================== */
+
+:root {
+  --terminal-dot-red: #ff5f56;
+  --terminal-dot-yellow: #ffbd2e;
+  --terminal-dot-green: #27c93f;
+  --terminal-header-bg: #e4e4e4;
+  --terminal-title-color: #666;
+}
+
+.dark {
+  --terminal-header-bg: #3a3a3a;
+  --terminal-title-color: #999;
+}
+
+/* Terminal window styling for bash/shell code blocks */
+.vp-doc div[class*='language-bash'],
+.vp-doc div[class*='language-shell'],
+.vp-doc div[class*='language-sh'],
+.vp-doc div[class*='language-zsh'],
+.vp-doc div[class*='language-terminal'] {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+/* Terminal header bar background */
+.vp-doc div[class*='language-bash']::before,
+.vp-doc div[class*='language-shell']::before,
+.vp-doc div[class*='language-sh']::before,
+.vp-doc div[class*='language-zsh']::before,
+.vp-doc div[class*='language-terminal']::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: transparent;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  z-index: 5;
+}
+
+/* Terminal dots */
+.vp-doc div[class*='language-bash']::after,
+.vp-doc div[class*='language-shell']::after,
+.vp-doc div[class*='language-sh']::after,
+.vp-doc div[class*='language-zsh']::after,
+.vp-doc div[class*='language-terminal']::after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 12px;
+  left: 14px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--terminal-dot-red);
+  border-radius: 50%;
+  box-shadow:
+    20px 0 0 var(--terminal-dot-yellow),
+    40px 0 0 var(--terminal-dot-green);
+  z-index: 10;
+}
+
+/* Adjust code padding to make room for header bar */
+.vp-doc div[class*='language-bash'] > pre,
+.vp-doc div[class*='language-shell'] > pre,
+.vp-doc div[class*='language-sh'] > pre,
+.vp-doc div[class*='language-zsh'] > pre,
+.vp-doc div[class*='language-terminal'] > pre {
+  padding-top: 48px !important;
+}
+
+/* Hide the language label for terminal blocks (optional - cleaner look) */
+.vp-doc div[class*='language-bash'] > span.lang,
+.vp-doc div[class*='language-shell'] > span.lang,
+.vp-doc div[class*='language-sh'] > span.lang,
+.vp-doc div[class*='language-zsh'] > span.lang,
+.vp-doc div[class*='language-terminal'] > span.lang {
+  display: none;
+}

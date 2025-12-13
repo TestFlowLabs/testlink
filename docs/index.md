@@ -3,15 +3,15 @@ layout: home
 
 hero:
   name: TestLink
-  text: Test Coverage Traceability
-  tagline: Framework-agnostic test-to-code linking for PHP. Works with Pest and PHPUnit.
+  text: Bidirectional Test Linking
+  tagline: Connect your tests to production code—and back. For Pest and PHPUnit.
   image:
     src: /testlink-logo.svg
     alt: TestLink Logo
   actions:
     - theme: brand
       text: Get Started
-      link: /introduction/what-is-testlink
+      link: /tutorials/getting-started
     - theme: alt
       text: View on GitHub
       link: https://github.com/testflowlabs/testlink
@@ -19,33 +19,33 @@ hero:
 features:
   - icon: 🔗
     title: Bidirectional Links
-    details: Create explicit links between production code and tests using TestedBy and LinksAndCovers attributes.
-    link: /guide/test-coverage-links
-  - icon: 🎯
-    title: Framework Agnostic
-    details: Works seamlessly with Pest, PHPUnit, or both in the same project. No lock-in to a single framework.
-    link: /guide/covers-method-helper
+    details: Production code knows its tests. Tests know what they cover. Both stay in sync.
+    link: /explanation/bidirectional-linking
+  - icon: 🧪
+    title: Pest & PHPUnit
+    details: Use Pest's ->linksAndCovers() or PHPUnit's #[LinksAndCovers]. Mix both in one project.
+    link: /reference/pest-methods
   - icon: ✅
-    title: Link Validation
-    details: Validate that all links are synchronized and catch broken references before they reach production.
-    link: /guide/validation
+    title: Catch Broken Links
+    details: Renamed a method? Deleted a test? Validation catches orphaned and missing links instantly.
+    link: /how-to/run-validation-in-ci
   - icon: 🔄
     title: Auto-Sync
-    details: Automatically generate missing links in either direction. Keep production and test code in sync.
-    link: /sync/
-  - icon: 🚀
-    title: CI/CD Ready
-    details: JSON output, exit codes, and strict mode for seamless integration with GitHub Actions, GitLab CI, and more.
-    link: /best-practices/ci-integration
-  - icon: 🛠️
-    title: Standalone CLI
-    details: Simple command-line interface with report, validate, sync, and pair commands. No runtime overhead.
-    link: /guide/cli-commands
+    details: Generate missing links automatically. From #[TestedBy] to tests, or tests to production.
+    link: /how-to/sync-links-automatically
+  - icon: ⚡
+    title: TDD/BDD Placeholders
+    details: Write tests before classes exist. Use @placeholder markers, resolve them later with testlink pair.
+    link: /explanation/placeholder-strategy
+  - icon: 🧭
+    title: IDE Navigation
+    details: Click @see tags to jump between tests and production code. PHPStorm, VS Code, and more.
+    link: /how-to/setup-ide-navigation
 ---
 
 ::: code-group
 
-```php [Production Code]
+```php [Production]
 <?php
 
 namespace App\Services;
@@ -54,17 +54,26 @@ use TestFlowLabs\TestingAttributes\TestedBy;
 
 class UserService
 {
-    #[TestedBy(UserServiceTest::class, 'test_creates_a_new_user')]
-    #[TestedBy(UserServiceTest::class, 'test_validates_user_email')]
+    /**
+     * @see \Tests\UserServiceTest::creates a user
+     * @see \Tests\UserServiceTest::validates email
+     * @see \Tests\UserFlowTest::complete registration
+     */
+    #[TestedBy(UserServiceTest::class, 'creates a user')]
+    #[TestedBy(UserServiceTest::class, 'validates email')]
+    #[TestedBy(UserFlowTest::class, 'complete registration')]
     public function create(array $data): User
     {
-        // Implementation
+        // Click any @see tag to jump to the test
     }
 }
 ```
 
-```php [Test Code (Pest)]
-test('creates a new user', function () {
+```php [Tests (Pest)]
+/**
+ * @see \App\Services\UserService::create
+ */
+test('creates a user', function () {
     $user = app(UserService::class)->create([
         'name' => 'John',
         'email' => 'john@example.com',
@@ -73,20 +82,202 @@ test('creates a new user', function () {
     expect($user)->toBeInstanceOf(User::class);
 })->linksAndCovers(UserService::class.'::create');
 
-test('validates user email', function () {
-    expect(fn () => app(UserService::class)->create([
-        'email' => 'invalid',
-    ]))->toThrow(ValidationException::class);
+/**
+ * @see \App\Services\UserService::create
+ */
+test('validates email', function () {
+    // ...
 })->linksAndCovers(UserService::class.'::create');
+
+// Integration test - links without coverage
+test('complete registration', function () {
+    // ...
+})->links(UserService::class.'::create');
 ```
 
-```php [Test Code (PHPUnit)]
+```php [Tests (PHPUnit)]
+use TestFlowLabs\TestingAttributes\LinksAndCovers;
+use TestFlowLabs\TestingAttributes\Links;
+
+class UserServiceTest extends TestCase
+{
+    /**
+     * @see \App\Services\UserService::create
+     */
+    #[LinksAndCovers(UserService::class, 'create')]
+    public function test_creates_a_user(): void
+    {
+        // Unit test with coverage
+    }
+
+    /**
+     * @see \App\Services\UserService::create
+     */
+    #[Links(UserService::class, 'create')]
+    public function test_complete_registration(): void
+    {
+        // Integration test - link only, no coverage
+    }
+}
+```
+
+```php [Placeholders]
+// TDD: Write test BEFORE the class exists!
+
+test('calculates discount', function () {
+    $calc = new PriceCalculator();
+    expect($calc->calculate(100, 0.1))->toBe(90);
+})->linksAndCovers('@price-calc');
+
+// Production code (written after test)
+#[TestedBy('@price-calc')]
+public function calculate(int $price, float $discount): int
+{
+    return (int) ($price * (1 - $discount));
+}
+
+// Later, resolve placeholders to real references:
+// $ ./vendor/bin/testlink pair
+```
+
+```bash [CLI]
+$ ./vendor/bin/testlink report
+
+  Coverage Links Report
+  ─────────────────────
+
+  App\Services\UserService
+    create()
+    → UserServiceTest::creates a user
+    → UserServiceTest::validates email
+    → UserFlowTest::complete registration
+
+  Summary
+    Methods with tests: 1
+    Total test links: 3
+
+$ ./vendor/bin/testlink validate
+
+  Validation Report
+  ─────────────────
+
+  Link Summary
+    Pest method chain links: 3
+    Total links: 3
+
+  All links are valid!
+
+$ ./vendor/bin/testlink sync --dry-run
+
+  Syncing Coverage Links
+  ──────────────────────
+  Running in dry-run mode. No files will be modified.
+
+  Would add @see tags to
+    ✓ UserService::create
+      + @see UserServiceTest::creates a user
+
+  Would add 1 @see tag(s).
+
+$ ./vendor/bin/testlink pair
+
+  Pairing Placeholders
+  ────────────────────
+
+  Found Placeholders
+    ✓ @price-calc  1 production × 1 tests = 1 links
+
+  Pairing complete. Modified 2 file(s) with 2 change(s).
+```
+
+:::
+
+## Synchronized Tabs Demo
+
+Select your stack once — all code examples across the documentation will update to match your choice.
+
+### Production Code
+
+:::tabs key:stack
+== Pest
+
+```php
+use TestFlowLabs\TestingAttributes\TestedBy;
+
+class UserService
+{
+    #[TestedBy(UserServiceTest::class, 'it creates a user')]
+    #[TestedBy(UserServiceTest::class, 'it validates email')]
+    public function create(array $data): User
+    {
+        // Your production code
+    }
+}
+```
+
+== PHPUnit + Attributes
+
+```php
+use TestFlowLabs\TestingAttributes\TestedBy;
+
+class UserService
+{
+    #[TestedBy(UserServiceTest::class, 'test_create')]
+    #[TestedBy(UserServiceTest::class, 'test_validates_email')]
+    public function create(array $data): User
+    {
+        // Your production code
+    }
+}
+```
+
+== PHPUnit + @see
+
+```php
+class UserService
+{
+    /**
+     * @see \Tests\UserServiceTest::test_create
+     * @see \Tests\UserServiceTest::test_validates_email
+     */
+    public function create(array $data): User
+    {
+        // Your production code
+    }
+}
+```
+
+:::
+
+### Test Code
+
+:::tabs key:stack
+== Pest
+
+```php
+it('creates a user', function () {
+    $user = app(UserService::class)->create([
+        'name' => 'John',
+        'email' => 'john@example.com',
+    ]);
+
+    expect($user)->toBeInstanceOf(User::class);
+})->linksAndCovers(UserService::class, 'create');
+
+it('validates email', function () {
+    // ...
+})->linksAndCovers(UserService::class, 'create');
+```
+
+== PHPUnit + Attributes
+
+```php
 use TestFlowLabs\TestingAttributes\LinksAndCovers;
 
 class UserServiceTest extends TestCase
 {
     #[LinksAndCovers(UserService::class, 'create')]
-    public function test_creates_a_new_user(): void
+    public function test_create(): void
     {
         $user = app(UserService::class)->create([
             'name' => 'John',
@@ -97,86 +288,39 @@ class UserServiceTest extends TestCase
     }
 
     #[LinksAndCovers(UserService::class, 'create')]
-    public function test_validates_user_email(): void
+    public function test_validates_email(): void
     {
-        $this->expectException(ValidationException::class);
-
-        app(UserService::class)->create([
-            'email' => 'invalid',
-        ]);
+        // ...
     }
 }
 ```
 
-```bash [CLI: report]
-$ testlink report
+== PHPUnit + @see
 
-  Coverage Links Report
-  ─────────────────────
+```php
+class UserServiceTest extends TestCase
+{
+    /**
+     * @see \App\Services\UserService::create
+     */
+    public function test_create(): void
+    {
+        $user = app(UserService::class)->create([
+            'name' => 'John',
+            'email' => 'john@example.com',
+        ]);
 
-  App\Services\UserService
+        $this->assertInstanceOf(User::class, $user);
+    }
 
-    create()
-      → Tests\Unit\UserServiceTest::test_creates_a_new_user
-      → Tests\Unit\UserServiceTest::test_validates_user_email
-
-  Summary
-    Methods with tests: 1
-    Total test links: 2
-```
-
-```bash [CLI: validate]
-$ testlink validate
-
-  Validation Report
-  ─────────────────
-
-  Link Summary
-    PHPUnit attribute links: 2
-    Pest method chain links: 0
-    Total links: 2
-
-  ✓ All links are valid!
-```
-
-```bash [CLI: sync --dry-run]
-$ testlink sync --dry-run
-
-  Syncing Coverage Links
-  ──────────────────────
-  Running in dry-run mode. No files will be modified.
-
-  Scanning test files for coverage links...
-
-  Changes to apply:
-    tests/Unit/UserServiceTest.php
-      + linksAndCovers(UserService::class.'::create')
-
-  Dry run complete. Would modify 1 file(s).
-
-    Run without --dry-run to apply changes:
-    testlink sync
-```
-
-```bash [CLI: pair --dry-run]
-$ testlink pair --dry-run
-
-  Pairing Placeholders
-  ────────────────────
-  Running in dry-run mode. No files will be modified.
-
-  Found Placeholders
-    ✓ @user-create  1 production × 2 tests = 2 links
-
-  Production Files
-    src/Services/UserService.php
-      @user-create → UserServiceTest::test_creates_a_new_user
-
-  Test Files
-    tests/Unit/UserServiceTest.php
-      @user-create → UserService::create
-
-  Dry run complete. Would modify 2 file(s) with 2 change(s).
+    /**
+     * @see \App\Services\UserService::create
+     */
+    public function test_validates_email(): void
+    {
+        // ...
+    }
+}
 ```
 
 :::

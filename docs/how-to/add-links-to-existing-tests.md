@@ -22,9 +22,9 @@ test('creates a new user', function () {
 });
 ```
 
-### Step 2: Add linksAndCovers()
+### Step 2: Add Test-Side Link
 
-Chain the `linksAndCovers()` method:
+Add a link to your test (Pest example shown, see tabs for PHPUnit alternatives):
 
 ```php
 test('creates a new user', function () {
@@ -112,7 +112,7 @@ class UserService
 ./vendor/bin/testlink sync
 ```
 
-This automatically adds the corresponding `linksAndCovers()` to your tests.
+This automatically adds the corresponding test links (`->linksAndCovers()` for Pest, `@see` tags for PHPUnit).
 
 ### Step 3: Preview first (recommended)
 

@@ -116,7 +116,7 @@ CartService
 
 ## Linking Unit Tests
 
-Use `linksAndCovers()` for primary coverage:
+Use `linksAndCovers()` (Pest) or `#[LinksAndCovers]` (PHPUnit) for primary coverage:
 
 ```php
 test('adds item to cart', function () {
@@ -240,7 +240,7 @@ DiscountService
 - Any test that exercises code as part of a larger flow
 - Tests where the method being called isn't the primary focus
 
-### Use `linksAndCovers()` For
+### Use `linksAndCovers()` / `#[LinksAndCovers]` For
 
 - Unit tests
 - Tests that specifically verify one method's behavior

@@ -373,7 +373,7 @@ Placeholders enable true outside-in BDD by:
 3. Creating full traceability when resolved
 4. Supporting N:M relationships naturally
 
-The key is using `links()` for acceptance tests (traceability) and `linksAndCovers()` for unit tests (coverage).
+The key is using `links()` / `#[Links]` for acceptance tests (traceability) and `linksAndCovers()` / `#[LinksAndCovers]` for unit tests (coverage).
 
 ## See Also
 

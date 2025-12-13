@@ -467,7 +467,7 @@ See the complete picture with the report command:
 
 ## What Happens When Links Don't Match?
 
-If you add a `#[TestedBy]` without a corresponding `linksAndCovers()`, validation will fail:
+If you add a `#[TestedBy]` without a corresponding test link (`->linksAndCovers()` in Pest, `#[LinksAndCovers]` in PHPUnit, or `@see` tag), validation will fail:
 
 ```bash
 ./vendor/bin/testlink validate

@@ -124,7 +124,7 @@ public function test_complete_registration_flow(): void
 
 ## LinksAndCovers: Primary Coverage
 
-Use `linksAndCovers()` when:
+Use `linksAndCovers()` (Pest) or `#[LinksAndCovers]` (PHPUnit) when:
 
 ### 1. Unit Tests
 

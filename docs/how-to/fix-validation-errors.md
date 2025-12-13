@@ -19,7 +19,7 @@ This guide shows how to identify and fix common TestLink validation errors.
       → Tests\UserServiceTest::test_creates_user (test not found)
 ```
 
-**Cause:** A `#[TestedBy]` attribute exists in production code, but the test doesn't have a corresponding `linksAndCovers()`.
+**Cause:** A `#[TestedBy]` attribute exists in production code, but the test doesn't have a corresponding test link (`->linksAndCovers()` in Pest, `#[LinksAndCovers]` in PHPUnit, or `@see` tag).
 
 **Solutions:**
 
@@ -81,7 +81,7 @@ Option C: Run sync to auto-fix:
       → App\UserService::create (no TestedBy attribute)
 ```
 
-**Cause:** A test has `linksAndCovers()`, but the production method doesn't have `#[TestedBy]`.
+**Cause:** A test has a link (`->linksAndCovers()`, `#[LinksAndCovers]`, or `@see`), but the production method doesn't have `#[TestedBy]`.
 
 **Solutions:**
 
@@ -184,7 +184,7 @@ public function create(array $data): User
       → App\UserService::nonexistent (method not found)
 ```
 
-**Cause:** The `linksAndCovers()` points to a method that doesn't exist.
+**Cause:** The test link points to a method that doesn't exist.
 
 **Solution:** Fix the method reference:
 

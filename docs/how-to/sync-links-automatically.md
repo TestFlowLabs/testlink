@@ -182,7 +182,7 @@ Adds @see tags to production methods pointing back to tests.
 ### After adding new tests
 
 ```bash
-# 1. Write your test with linksAndCovers()
+# 1. Write your test with test link (->linksAndCovers() / #[LinksAndCovers] / @see)
 # 2. Sync to update production code
 ./vendor/bin/testlink sync --link-only
 
@@ -217,7 +217,7 @@ Adds @see tags to production methods pointing back to tests.
 | Source | Target | What's Added |
 |--------|--------|--------------|
 | `#[TestedBy]` on method | Test file | @see tag or method chain |
-| `linksAndCovers()` in test | Production file | @see tag (with --link-only) |
+| Test link in test | Production file | @see tag (with --link-only) |
 
 ### What sync doesn't do
 

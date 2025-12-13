@@ -129,7 +129,7 @@ Output:
       Status: Test not found
 ```
 
-## Removing Orphan linksAndCovers()
+## Removing Orphan Test Links
 
 ### Manual removal from Pest
 
