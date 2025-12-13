@@ -171,8 +171,14 @@ final class PestLinkScanner
      */
     private function namespaceFromPath(string $filePath): string
     {
-        $projectRoot  = $this->projectRoot ?? $this->detectProjectRoot();
-        $relativePath = str_replace($projectRoot.'/', '', $filePath);
+        $projectRoot = $this->projectRoot ?? $this->detectProjectRoot();
+
+        // Normalize paths using realpath to handle symlinks (especially on macOS)
+        $realFilePath    = realpath($filePath) ?: $filePath;
+        $realProjectRoot = realpath($projectRoot) ?: $projectRoot;
+
+        // Compute relative path
+        $relativePath = str_replace($realProjectRoot.'/', '', $realFilePath);
 
         // Remove .php extension
         $relativePath = preg_replace('/\.php$/', '', $relativePath);
@@ -181,16 +187,57 @@ final class PestLinkScanner
             return 'Tests';
         }
 
+        // Try to get the namespace prefix from composer.json autoload-dev
+        $namespacePrefix = $this->getTestNamespacePrefix($projectRoot);
+
         // Convert path to namespace-like format
-        // tests/Unit/ExampleTest -> Tests\Unit\ExampleTest
+        // tests/Actor/MachineTest -> Actor\MachineTest
         $namespace = str_replace('/', '\\', $relativePath);
 
-        // Capitalize 'tests' to 'Tests'
+        // Remove "tests\" prefix if present
         if (str_starts_with($namespace, 'tests\\')) {
-            return 'Tests\\'.substr($namespace, 6);
+            $namespace = substr($namespace, 6);
         }
 
-        return $namespace;
+        return $namespacePrefix.$namespace;
+    }
+
+    /**
+     * Get the test namespace prefix from composer.json autoload-dev.
+     */
+    private function getTestNamespacePrefix(string $projectRoot): string
+    {
+        $composerPath = $projectRoot.'/composer.json';
+
+        if (!file_exists($composerPath)) {
+            return 'Tests\\';
+        }
+
+        $composerJson = file_get_contents($composerPath);
+
+        if ($composerJson === false) {
+            return 'Tests\\';
+        }
+
+        /** @var array{autoload-dev?: array{psr-4?: array<string, string>}} $composer */
+        $composer = json_decode($composerJson, true);
+
+        if (!is_array($composer)) {
+            return 'Tests\\';
+        }
+
+        $autoloadDev = $composer['autoload-dev']['psr-4'] ?? [];
+
+        // Find namespace that maps to 'tests' or 'tests/' directory
+        foreach ($autoloadDev as $namespace => $path) {
+            $normalizedPath = rtrim($path, '/');
+
+            if ($normalizedPath === 'tests') {
+                return $namespace;
+            }
+        }
+
+        return 'Tests\\';
     }
 
     /**
