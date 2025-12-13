@@ -55,6 +55,65 @@ describe('PlaceholderRegistry', function (): void {
             ->linksAndCovers(PlaceholderRegistry::class.'::isPlaceholder')
             ->expect(fn () => PlaceholderRegistry::isPlaceholder(''))
             ->toBeFalse();
+
+        it('returns true for @@ prefix placeholder @@A')
+            ->linksAndCovers(PlaceholderRegistry::class.'::isPlaceholder')
+            ->expect(fn () => PlaceholderRegistry::isPlaceholder('@@A'))
+            ->toBeTrue();
+
+        it('returns true for @@ prefix placeholder @@user-create')
+            ->linksAndCovers(PlaceholderRegistry::class.'::isPlaceholder')
+            ->expect(fn () => PlaceholderRegistry::isPlaceholder('@@user-create'))
+            ->toBeTrue();
+
+        it('returns false for just @@')
+            ->linksAndCovers(PlaceholderRegistry::class.'::isPlaceholder')
+            ->expect(fn () => PlaceholderRegistry::isPlaceholder('@@'))
+            ->toBeFalse();
+    });
+
+    describe('isSeeTagPlaceholder', function (): void {
+        it('returns true for @@ prefix placeholder @@A')
+            ->linksAndCovers(PlaceholderRegistry::class.'::isSeeTagPlaceholder')
+            ->expect(fn () => PlaceholderRegistry::isSeeTagPlaceholder('@@A'))
+            ->toBeTrue();
+
+        it('returns true for @@ prefix placeholder @@user-create')
+            ->linksAndCovers(PlaceholderRegistry::class.'::isSeeTagPlaceholder')
+            ->expect(fn () => PlaceholderRegistry::isSeeTagPlaceholder('@@user-create'))
+            ->toBeTrue();
+
+        it('returns false for single @ prefix placeholder @A')
+            ->linksAndCovers(PlaceholderRegistry::class.'::isSeeTagPlaceholder')
+            ->expect(fn () => PlaceholderRegistry::isSeeTagPlaceholder('@A'))
+            ->toBeFalse();
+
+        it('returns false for just @@')
+            ->linksAndCovers(PlaceholderRegistry::class.'::isSeeTagPlaceholder')
+            ->expect(fn () => PlaceholderRegistry::isSeeTagPlaceholder('@@'))
+            ->toBeFalse();
+
+        it('returns false for @@ followed by number')
+            ->linksAndCovers(PlaceholderRegistry::class.'::isSeeTagPlaceholder')
+            ->expect(fn () => PlaceholderRegistry::isSeeTagPlaceholder('@@123'))
+            ->toBeFalse();
+    });
+
+    describe('normalizePlaceholder', function (): void {
+        it('normalizes @@A to @A')
+            ->linksAndCovers(PlaceholderRegistry::class.'::normalizePlaceholder')
+            ->expect(fn () => PlaceholderRegistry::normalizePlaceholder('@@A'))
+            ->toBe('@A');
+
+        it('normalizes @@user-create to @user-create')
+            ->linksAndCovers(PlaceholderRegistry::class.'::normalizePlaceholder')
+            ->expect(fn () => PlaceholderRegistry::normalizePlaceholder('@@user-create'))
+            ->toBe('@user-create');
+
+        it('returns @A unchanged for single @ prefix')
+            ->linksAndCovers(PlaceholderRegistry::class.'::normalizePlaceholder')
+            ->expect(fn () => PlaceholderRegistry::normalizePlaceholder('@A'))
+            ->toBe('@A');
     });
 
     describe('registerProductionPlaceholder', function (): void {
@@ -94,6 +153,26 @@ describe('PlaceholderRegistry', function (): void {
                 return count($registry->getProductionEntries('@A'));
             })
             ->toBe(2);
+
+        it('sets useSeeTag to false for @ prefix')
+            ->linksAndCovers(PlaceholderRegistry::class.'::registerProductionPlaceholder')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+                $registry->registerProductionPlaceholder('@A', 'UserService', 'create', '/path', 10);
+
+                return $registry->getProductionEntries('@A')[0]->useSeeTag;
+            })
+            ->toBeFalse();
+
+        it('sets useSeeTag to true for @@ prefix')
+            ->linksAndCovers(PlaceholderRegistry::class.'::registerProductionPlaceholder')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+                $registry->registerProductionPlaceholder('@@A', 'UserService', 'create', '/path', 10);
+
+                return $registry->getProductionEntries('@@A')[0]->useSeeTag;
+            })
+            ->toBeTrue();
     });
 
     describe('registerTestPlaceholder', function (): void {
@@ -140,6 +219,26 @@ describe('PlaceholderRegistry', function (): void {
                 return $entries[0]->framework;
             })
             ->toBe('phpunit');
+
+        it('sets useSeeTag to false for @ prefix')
+            ->linksAndCovers(PlaceholderRegistry::class.'::registerTestPlaceholder')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+                $registry->registerTestPlaceholder('@A', 'Test::test', '/path', 10, 'pest');
+
+                return $registry->getTestEntries('@A')[0]->useSeeTag;
+            })
+            ->toBeFalse();
+
+        it('sets useSeeTag to true for @@ prefix')
+            ->linksAndCovers(PlaceholderRegistry::class.'::registerTestPlaceholder')
+            ->expect(function () {
+                $registry = new PlaceholderRegistry();
+                $registry->registerTestPlaceholder('@@A', 'Test::test', '/path', 10, 'phpunit');
+
+                return $registry->getTestEntries('@@A')[0]->useSeeTag;
+            })
+            ->toBeTrue();
     });
 
     describe('getAllPlaceholderIds', function (): void {

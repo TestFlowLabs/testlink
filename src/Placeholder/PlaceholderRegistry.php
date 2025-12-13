@@ -9,14 +9,23 @@ namespace TestFlowLabs\TestLink\Placeholder;
  *
  * Stores placeholder entries from both production code (#[TestedBy('@A')])
  * and test code (linksAndCovers('@A') or #[LinksAndCovers('@A')]).
+ *
+ * Supports two placeholder types:
+ * - Single @ prefix (@A): Resolves to attributes
+ * - Double @@ prefix (@@A): Resolves to @see tags (PHPUnit only)
  */
 final class PlaceholderRegistry
 {
     /**
      * Regex pattern for valid placeholder identifiers.
-     * Must start with @ followed by a letter, then letters, numbers, underscores, or hyphens.
+     * Must start with @ or @@ followed by a letter, then letters, numbers, underscores, or hyphens.
      */
-    private const PLACEHOLDER_PATTERN = '/^@[A-Za-z][A-Za-z0-9_-]*$/';
+    private const PLACEHOLDER_PATTERN = '/^@@?[A-Za-z][A-Za-z0-9_-]*$/';
+
+    /**
+     * Regex pattern for @see tag placeholders (@@prefix).
+     */
+    private const SEE_TAG_PLACEHOLDER_PATTERN = '/^@@[A-Za-z][A-Za-z0-9_-]*$/';
 
     /**
      * Production placeholder entries indexed by placeholder ID.
@@ -35,12 +44,12 @@ final class PlaceholderRegistry
     /**
      * Check if a string is a valid placeholder identifier.
      *
-     * Valid: @A, @B, @user-create, @UserCreate123
+     * Valid: @A, @B, @user-create, @UserCreate123, @@A, @@user-create
      * Invalid: @, @123, @invalid!, UserService::class, App\Services\UserService::create
      */
     public static function isPlaceholder(string $value): bool
     {
-        if ($value === '' || $value === '@') {
+        if ($value === '' || $value === '@' || $value === '@@') {
             return false;
         }
 
@@ -48,9 +57,34 @@ final class PlaceholderRegistry
     }
 
     /**
+     * Check if a placeholder should use @see tags (@@prefix).
+     *
+     * @@A, @@user-create → true
+     * @A, @user-create → false
+     */
+    public static function isSeeTagPlaceholder(string $value): bool
+    {
+        return preg_match(self::SEE_TAG_PLACEHOLDER_PATTERN, $value) === 1;
+    }
+
+    /**
+     * Normalize a placeholder ID by removing the extra @ for @see tag placeholders.
+     *
+     * @@A → @A, @A → @A
+     */
+    public static function normalizePlaceholder(string $value): string
+    {
+        if (self::isSeeTagPlaceholder($value)) {
+            return '@'.substr($value, 2);
+        }
+
+        return $value;
+    }
+
+    /**
      * Register a production placeholder entry.
      *
-     * @param  string  $placeholder  The placeholder (e.g., '@A')
+     * @param  string  $placeholder  The placeholder (e.g., '@A' or '@@A')
      * @param  string  $className  The fully qualified class name
      * @param  string  $methodName  The method name
      * @param  string  $filePath  Absolute path to the file
@@ -64,6 +98,7 @@ final class PlaceholderRegistry
         int $line,
     ): void {
         $identifier = $className.'::'.$methodName;
+        $useSeeTag  = self::isSeeTagPlaceholder($placeholder);
 
         $entry = new PlaceholderEntry(
             placeholder: $placeholder,
@@ -71,6 +106,7 @@ final class PlaceholderRegistry
             filePath: $filePath,
             line: $line,
             type: 'production',
+            useSeeTag: $useSeeTag,
         );
 
         $this->productionEntries[$placeholder][] = $entry;
@@ -79,7 +115,7 @@ final class PlaceholderRegistry
     /**
      * Register a test placeholder entry.
      *
-     * @param  string  $placeholder  The placeholder (e.g., '@A')
+     * @param  string  $placeholder  The placeholder (e.g., '@A' or '@@A')
      * @param  string  $testIdentifier  The test identifier (e.g., 'Tests\Unit\UserServiceTest::it creates user')
      * @param  string  $filePath  Absolute path to the test file
      * @param  int  $line  Line number
@@ -92,6 +128,8 @@ final class PlaceholderRegistry
         int $line,
         string $framework,
     ): void {
+        $useSeeTag = self::isSeeTagPlaceholder($placeholder);
+
         $entry = new PlaceholderEntry(
             placeholder: $placeholder,
             identifier: $testIdentifier,
@@ -99,6 +137,7 @@ final class PlaceholderRegistry
             line: $line,
             type: 'test',
             framework: $framework,
+            useSeeTag: $useSeeTag,
         );
 
         $this->testEntries[$placeholder][] = $entry;
