@@ -37,8 +37,8 @@ From production code, click to see which tests verify it. From tests, click to s
 class UserService
 {
     /**
-     * @see \Tests\UserServiceTest::test_creates_user      ← Cmd+Click
-     * @see \Tests\UserServiceTest::test_validates_email   ← Cmd+Click
+     * @see \Tests\UserServiceTest::creates_user      ← Cmd+Click
+     * @see \Tests\UserServiceTest::validates_email   ← Cmd+Click
      */
     public function create(array $data): User
     {
@@ -75,11 +75,11 @@ One test covers multiple methods? Visible instantly. No more guessing which code
 
 ```php
 /**
- * @see \Tests\OrderServiceTest::test_creates_order
- * @see \Tests\OrderServiceTest::test_validates_items
- * @see \Tests\OrderServiceTest::test_calculates_total
- * @see \Tests\OrderFlowTest::test_complete_checkout
- * @see \Tests\OrderFlowTest::test_payment_flow
+ * @see \Tests\OrderServiceTest::creates_order
+ * @see \Tests\OrderServiceTest::validates_items
+ * @see \Tests\OrderServiceTest::calculates_total
+ * @see \Tests\OrderFlowTest::complete_checkout
+ * @see \Tests\OrderFlowTest::payment_flow
  */
 public function create(array $items): Order
 {
@@ -92,11 +92,11 @@ $ ./vendor/bin/testlink report
 
   OrderService
     create()
-    → OrderServiceTest::test_creates_order
-    → OrderServiceTest::test_validates_items
-    → OrderServiceTest::test_calculates_total
-    → OrderFlowTest::test_complete_checkout
-    → OrderFlowTest::test_payment_flow
+    → OrderServiceTest::creates_order
+    → OrderServiceTest::validates_items
+    → OrderServiceTest::calculates_total
+    → OrderFlowTest::complete_checkout
+    → OrderFlowTest::payment_flow
 ```
 
 </div>
@@ -128,8 +128,9 @@ test('creates user', function () {
 == PHPUnit + Attributes
 
 ```php
+#[Test]
 #[LinksAndCovers(UserService::class, 'create')]
-public function test_creates_user(): void
+public function creates_user(): void
 {
     // ...
 }
@@ -141,7 +142,8 @@ public function test_creates_user(): void
 /**
  * @see \App\Services\UserService::create
  */
-public function test_creates_user(): void
+#[Test]
+public function creates_user(): void
 {
     // ...
 }
@@ -174,11 +176,11 @@ $ ./vendor/bin/testlink validate
 
   ✗ Broken link
     UserService::create
-      → UserServiceTest::test_old_name (test not found)
+      → UserServiceTest::old_name (not found)
 
   ✗ Missing link
-    UserServiceTest::test_creates_user
-      → UserService::create (no @see in production)
+    UserServiceTest::creates_user
+      → UserService::create (no @see)
 
   Found 2 issue(s). Run sync to fix.
 ```
@@ -191,9 +193,9 @@ $ ./vendor/bin/testlink validate
 
 ## 🔄 Auto-Sync
 
-Don't manually maintain links. **Sync generates them automatically.**
+Don't manually maintain links. **Sync generates them bidirectionally.**
 
-Add links in your tests, run `testlink sync`, and TestLink adds the corresponding `@see` tags to production code. Both sides stay synchronized.
+Add a link on **either side**—production or tests—and `testlink sync` propagates it to the other side. Start from whichever side feels natural for your workflow.
 
 [Sync workflow →](/how-to/sync-links-automatically)
 
@@ -203,18 +205,17 @@ Add links in your tests, run `testlink sync`, and TestLink adds the correspondin
 ```bash
 $ ./vendor/bin/testlink sync
 
-  Syncing Links
-  ─────────────
+  Syncing Coverage Links
+  ──────────────────────
 
-  Adding @see tags
-    ✓ UserService::create
-      + @see UserServiceTest::test_creates_user
-      + @see UserServiceTest::test_validates_email
+  Modified Files
+    ✓ src/Services/UserService.php (1 change)
+      + #[TestedBy(UserServiceTest::class, 'creates_user')]
 
-    ✓ OrderService::process
-      + @see OrderServiceTest::test_processes_order
+    ✓ tests/Unit/OrderServiceTest.php (1 change)
+      + linksAndCovers(OrderService::class.'::process')
 
-  Modified 2 file(s). Added 3 link(s).
+  Sync complete. Modified 2 file(s).
 ```
 
 </div>

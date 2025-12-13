@@ -177,13 +177,27 @@ Don't maintain links by hand. Use sync:
 ```bash
 $ ./vendor/bin/testlink sync
 
-  Adding @see tags
-    ✓ UserService::create
-      + @see UserServiceTest::test_creates_user
-      + @see UserServiceTest::test_validates_email
+  Syncing Coverage Links
+  ──────────────────────
+
+  Modified Files
+    ✓ src/Services/UserService.php (1 change)
+      + #[TestedBy(UserServiceTest::class, 'test_creates_user')]
+
+    ✓ tests/Unit/UserServiceTest.php (1 change)
+      + linksAndCovers(OrderService::class.'::process')
+
+  Sync complete. Modified 2 file(s).
 ```
 
-This adds `@see` tags based on your test declarations, keeping both sides synchronized.
+Sync works **bidirectionally**:
+
+| You add link here | Sync adds to |
+|-------------------|--------------|
+| Production: `#[TestedBy(...)]` | Test: `linksAndCovers()` or `#[LinksAndCovers]` |
+| Test: `linksAndCovers()` or `#[LinksAndCovers]` | Production: `#[TestedBy(...)]` |
+
+Add a link on either side, run sync, and the other side gets updated automatically.
 
 ## Additional Benefits
 
