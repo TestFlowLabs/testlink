@@ -219,17 +219,28 @@ final class PestLinkScanner
             return 'Tests\\';
         }
 
-        /** @var array{autoload-dev?: array{psr-4?: array<string, string>}} $composer */
         $composer = json_decode($composerJson, true);
 
         if (!is_array($composer)) {
             return 'Tests\\';
         }
 
-        $autoloadDev = $composer['autoload-dev']['psr-4'] ?? [];
+        $autoloadDev = is_array($composer['autoload-dev'] ?? null)
+            ? ($composer['autoload-dev']['psr-4'] ?? null)
+            : null;
+
+        if (!is_array($autoloadDev)) {
+            return 'Tests\\';
+        }
 
         // Find namespace that maps to 'tests' or 'tests/' directory
         foreach ($autoloadDev as $namespace => $path) {
+            if (!is_string($path)) {
+                continue;
+            }
+            if (!is_string($namespace)) {
+                continue;
+            }
             $normalizedPath = rtrim($path, '/');
 
             if ($normalizedPath === 'tests') {
