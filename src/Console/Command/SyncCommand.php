@@ -80,8 +80,9 @@ final class SyncCommand
         $prunedFiles     = $result->prunedFiles;
         $seeActions      = $result->seeActions;
         $seePruneActions = $result->seePruneActions;
+        $reverseActions  = $result->reverseActions;
 
-        if ($modifiedFiles === [] && $prunedFiles === [] && $seeActions === [] && $seePruneActions === []) {
+        if ($modifiedFiles === [] && $prunedFiles === [] && $seeActions === [] && $seePruneActions === [] && $reverseActions === []) {
             $output->success('No changes needed. All links are up to date.');
             $output->newLine();
 
@@ -152,11 +153,25 @@ final class SyncCommand
             $output->newLine();
         }
 
+        // Report reverse #[TestedBy] additions (test → production)
+        if ($reverseActions !== []) {
+            $action = $dryRun ? 'Would add #[TestedBy] to' : 'Added #[TestedBy] to';
+            $output->section($action);
+
+            foreach ($reverseActions as $reverseAction) {
+                $output->writeln('    '.$output->green('✓').' '.$this->shortenMethod($reverseAction->methodIdentifier));
+                $output->writeln('      + '.$output->cyan('#[TestedBy] '.$this->shortenMethod($reverseAction->testIdentifier)));
+            }
+
+            $output->newLine();
+        }
+
         // Summary
-        $modifiedCount = count($modifiedFiles);
-        $prunedCount   = count($prunedFiles);
-        $seeTagCount   = $result->seeTagsAdded;
-        $seePruneCount = $result->seeTagsPruned;
+        $modifiedCount      = count($modifiedFiles);
+        $prunedCount        = count($prunedFiles);
+        $seeTagCount        = $result->seeTagsAdded;
+        $seePruneCount      = $result->seeTagsPruned;
+        $reverseActionCount = count($reverseActions);
 
         if ($dryRun) {
             if ($modifiedCount > 0) {
@@ -173,6 +188,10 @@ final class SyncCommand
 
             if ($seePruneCount > 0) {
                 $output->info("Would remove {$seePruneCount} orphan @see tag(s).");
+            }
+
+            if ($reverseActionCount > 0) {
+                $output->info("Would add {$reverseActionCount} #[TestedBy] attribute(s).");
             }
 
             $output->newLine();
@@ -193,6 +212,10 @@ final class SyncCommand
 
             if ($seePruneCount > 0) {
                 $output->success("Removed {$seePruneCount} orphan @see tag(s).");
+            }
+
+            if ($reverseActionCount > 0) {
+                $output->success("Added {$reverseActionCount} #[TestedBy] attribute(s).");
             }
         }
 
