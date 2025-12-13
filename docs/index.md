@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: TestLink
-  text: Bidirectional Test Linking
-  tagline: Connect your tests to production code—and back. For Pest and PHPUnit.
+  text: Navigate Tests ↔ Production
+  tagline: Cmd+Click to jump between your tests and production code. Instantly.
   image:
     src: /testlink-logo.svg
     alt: TestLink Logo
@@ -22,35 +22,81 @@ hero:
 <div class="feature-section">
 <div class="feature-text">
 
-## 🔗 Bidirectional Links
+## 🔗 Click to Navigate
 
-Production code knows its tests. Tests know what they cover. **Both stay in sync.**
+**No more searching for tests.** Cmd+Click any `@see` tag to jump directly to the related code.
 
-Add `#[TestedBy]` to production methods to declare which tests verify them. Add links in your tests pointing back to production. TestLink validates that both sides match.
+From production code, click to see which tests verify it. From tests, click to see which production code they cover. Both directions, instantly navigable.
 
-[Learn more →](/explanation/bidirectional-linking)
+[How it works →](/explanation/bidirectional-linking)
 
 </div>
 <div class="feature-code">
 
 ```php
-// Production code declares its tests
 class UserService
 {
-    #[TestedBy(UserServiceTest::class, 'creates user')]
+    /**
+     * @see \Tests\UserServiceTest::test_creates_user      ← Cmd+Click
+     * @see \Tests\UserServiceTest::test_validates_email   ← Cmd+Click
+     */
     public function create(array $data): User
     {
-        // ...
+        // Which tests verify this method? Just click above.
     }
 }
 ```
 
 ```php
-// Test declares what it covers
+/**
+ * @see \App\Services\UserService::create   ← Cmd+Click
+ */
 test('creates user', function () {
-    $user = app(UserService::class)->create([...]);
-    expect($user)->toBeInstanceOf(User::class);
-})->linksAndCovers(UserService::class.'::create');
+    // What does this test cover? Just click above.
+});
+```
+
+</div>
+</div>
+
+<div class="feature-section">
+<div class="feature-text">
+
+## 📊 See All Relationships
+
+One method tested by 5 different tests? **See them all at a glance.**
+
+One test covers multiple methods? Visible instantly. No more guessing which code is tested, or which tests cover what.
+
+[Understanding reports →](/tutorials/understanding-reports)
+
+</div>
+<div class="feature-code">
+
+```php
+/**
+ * @see \Tests\OrderServiceTest::test_creates_order
+ * @see \Tests\OrderServiceTest::test_validates_items
+ * @see \Tests\OrderServiceTest::test_calculates_total
+ * @see \Tests\OrderFlowTest::test_complete_checkout
+ * @see \Tests\OrderFlowTest::test_payment_flow
+ */
+public function create(array $items): Order
+{
+    // 5 tests verify this method - all visible here
+}
+```
+
+```bash
+$ ./vendor/bin/testlink report
+
+  OrderService
+    create()
+    → OrderServiceTest::test_creates_order
+    → OrderServiceTest::test_validates_items
+    → OrderServiceTest::test_calculates_total
+    → OrderFlowTest::test_complete_checkout
+    → OrderFlowTest::test_payment_flow
 ```
 
 </div>
@@ -61,13 +107,9 @@ test('creates user', function () {
 
 ## 🧪 Pest & PHPUnit
 
-Use Pest's `->linksAndCovers()` chain or PHPUnit's `#[LinksAndCovers]` attribute. **Mix both in one project.**
+Works with your existing framework. **Pest method chains, PHPUnit attributes, or `@see` tags.**
 
-Choose your style—TestLink supports all of them:
-
-- **Pest** — Method chains
-- **PHPUnit** — PHP 8 attributes
-- **PHPUnit** — `@see` DocBlock tags
+Mix all three in the same project. TestLink recognizes them all.
 
 [See all methods →](/reference/pest-methods)
 
@@ -113,11 +155,11 @@ public function test_creates_user(): void
 <div class="feature-section">
 <div class="feature-text">
 
-## ✅ Catch Broken Links
+## ✅ Keep Links Valid
 
-Renamed a method? Deleted a test? **Validation catches it instantly.**
+Renamed a method? Deleted a test? **Validation catches broken links instantly.**
 
-Run `testlink validate` in CI to ensure all links are valid. No more orphaned `#[TestedBy]` attributes pointing to deleted tests.
+Run in CI/CD to ensure your navigation links stay accurate as code evolves.
 
 [Set up CI validation →](/how-to/run-validation-in-ci)
 
@@ -130,13 +172,13 @@ $ ./vendor/bin/testlink validate
   Validation Report
   ─────────────────
 
-  ✗ Orphan TestedBy
-    App\UserService::create
-      → UserServiceTest::deleted_test (test not found)
+  ✗ Broken link
+    UserService::create
+      → UserServiceTest::test_old_name (test not found)
 
-  ✗ Missing TestedBy
-    UserServiceTest::creates_user
-      → UserService::create (no #[TestedBy])
+  ✗ Missing link
+    UserServiceTest::test_creates_user
+      → UserService::create (no @see in production)
 
   Found 2 issue(s). Run sync to fix.
 ```
@@ -147,13 +189,13 @@ $ ./vendor/bin/testlink validate
 <div class="feature-section">
 <div class="feature-text">
 
-## 🔄 Auto-Sync
+## 🔄 Auto-Sync & Placeholders
 
-Don't manually maintain both sides. **Let TestLink sync them for you.**
+Don't manually maintain links. **Sync generates them automatically.**
 
-Add links in your tests, run `testlink sync`, and TestLink adds the corresponding `#[TestedBy]` attributes to production code automatically.
+Writing tests before classes exist? Use `@placeholder` markers during TDD, resolve them later.
 
-[Learn sync workflow →](/how-to/sync-links-automatically)
+[Sync workflow →](/how-to/sync-links-automatically) · [Placeholders →](/explanation/placeholder-strategy)
 
 </div>
 <div class="feature-code">
@@ -161,91 +203,26 @@ Add links in your tests, run `testlink sync`, and TestLink adds the correspondin
 ```bash
 $ ./vendor/bin/testlink sync
 
-  Syncing Coverage Links
-  ──────────────────────
+  Syncing Links
+  ─────────────
 
-  Adding links
+  Adding @see tags
     ✓ UserService::create
-      + #[TestedBy(UserServiceTest::class, 'creates user')]
-      + #[TestedBy(UserServiceTest::class, 'validates email')]
+      + @see UserServiceTest::test_creates_user
+      + @see UserServiceTest::test_validates_email
 
   Modified 1 file(s). Added 2 link(s).
-```
-
-</div>
-</div>
-
-<div class="feature-section">
-<div class="feature-text">
-
-## ⚡ TDD/BDD Placeholders
-
-Write tests before classes exist. **Use `@placeholder` markers, resolve them later.**
-
-During rapid TDD, you don't know the final class name yet. Use placeholders like `@user-create` in both test and production code. Run `testlink pair` when ready.
-
-[Placeholder strategy →](/explanation/placeholder-strategy)
-
-</div>
-<div class="feature-code">
-
-```php
-// Test written BEFORE the class exists
-test('calculates discount', function () {
-    $calc = new PriceCalculator();
-    expect($calc->calculate(100, 0.1))->toBe(90);
-})->linksAndCovers('@discount');
-
-// Production code (written after test passes)
-#[TestedBy('@discount')]
-public function calculate(int $price, float $discount): int
-{
-    return (int) ($price * (1 - $discount));
-}
 ```
 
 ```bash
 $ ./vendor/bin/testlink pair
 
-  Pairing Placeholders
-  ────────────────────
+  Resolving Placeholders
+  ──────────────────────
 
-  ✓ @discount  1 production × 1 test = 1 link
+  ✓ @user-create  1 production × 2 tests = 2 links
 
-  Resolved 1 placeholder. Modified 2 file(s).
-```
-
-</div>
-</div>
-
-<div class="feature-section">
-<div class="feature-text">
-
-## 🧭 IDE Navigation
-
-Click `@see` tags to jump between tests and production code. **PHPStorm, VS Code, and more.**
-
-TestLink adds `@see` tags that IDEs recognize. Ctrl+Click to navigate instantly. No more searching for related tests.
-
-[Configure IDE →](/how-to/setup-ide-navigation)
-
-</div>
-<div class="feature-code">
-
-```php
-class OrderService
-{
-    /**
-     * @see \Tests\OrderServiceTest::test_creates_order
-     * @see \Tests\OrderServiceTest::test_validates_items
-     * @see \Tests\OrderFlowTest::test_complete_checkout
-     */
-    #[TestedBy(OrderServiceTest::class, 'test_creates_order')]
-    public function create(array $items): Order
-    {
-        // Ctrl+Click any @see tag to jump to the test
-    }
-}
+  Resolved 1 placeholder. Modified 3 file(s).
 ```
 
 </div>

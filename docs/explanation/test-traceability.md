@@ -1,6 +1,6 @@
 # Test Traceability
 
-What test traceability means, why it matters, and how TestLink implements it.
+Test traceability is the foundation for **Cmd+Click navigation** between tests and production code. It's what makes your codebase navigable—click any `@see` tag to jump to related code.
 
 ## What is Test Traceability?
 
@@ -205,18 +205,20 @@ TestLink validates that links are correct:
 
 Unlike comments or documentation, these links are verified.
 
-### IDE-Navigable
+### Navigable Code (Primary Benefit)
+
+The main reason for traceability: **Cmd+Click to jump between tests and production**.
 
 Links generate `@see` tags that IDEs understand:
 
 ```php
 /**
- * @see \Tests\UserServiceTest::test_creates_user
+ * @see \Tests\UserServiceTest::test_creates_user   ← Cmd+Click
  */
 public function create(): User
 ```
 
-Ctrl+Click (or Cmd+Click) jumps directly to the test.
+Click any `@see` tag and your IDE jumps directly to that code. No searching, no guessing.
 
 ## Traceability Matrix
 
@@ -371,15 +373,15 @@ public function processRefund(): void  // Where's the TestedBy?
 
 ## Summary
 
-Test traceability creates explicit, verifiable, navigable relationships between your tests and production code. It transforms testing from "I think this is tested" to "I know this is tested, and here's the proof."
+Test traceability exists for one primary purpose: **Cmd+Click navigation between tests and production code.**
 
 TestLink implements traceability through:
+- `@see` tags that IDEs recognize as clickable links
 - PHP 8 attributes (`#[TestedBy]`, `#[LinksAndCovers]`)
 - Pest method chains (`->linksAndCovers()`)
-- Validation to ensure accuracy
-- Reports for visibility
+- Validation to ensure links stay accurate
 
-The result is a codebase where every method knows its tests, every test knows its purpose, and you can prove it.
+The result: click any `@see` tag to jump directly to the related code. No searching, no guessing. Just click.
 
 ## See Also
 

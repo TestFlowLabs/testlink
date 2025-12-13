@@ -1,6 +1,8 @@
 # Getting Started
 
-This tutorial will guide you through installing TestLink and running your first report. By the end, you'll have TestLink set up and ready to use in your project.
+By the end of this tutorial, you'll be able to **Cmd+Click** from production code to its tests, and from tests back to production code.
+
+No more searching for which tests cover a method. No more guessing what a test is supposed to verify. Just click.
 
 ## Prerequisites
 
@@ -225,7 +227,13 @@ You should see output like:
     Total test links: 1
 ```
 
-Congratulations! You've created your first bidirectional link between production code and tests.
+You've created your first bidirectional link. Now try this in your IDE:
+
+1. Open `src/Calculator.php`
+2. **Cmd+Click** (or Ctrl+Click) on the `@see` tag
+3. Your IDE jumps directly to the test
+
+The same works in reverse—from the test's `@see` tag back to production code. This is the core value of TestLink: instant navigation.
 
 ## Step 5: Validate Your Links
 
@@ -252,11 +260,11 @@ You should see:
 
 ## What's Next?
 
-Now that you have TestLink set up, continue with these tutorials:
+You now have navigable code—Cmd+Click works between tests and production. To get the most out of TestLink:
 
-- [Your First Bidirectional Link](./first-bidirectional-link) - Learn more about linking patterns
-- [Understanding Reports](./understanding-reports) - Learn to read report output
-- [TDD Workflow](./tdd/) - Integrate TestLink into your TDD workflow
+- [Your First Bidirectional Link](./first-bidirectional-link) - More linking patterns
+- [Understanding Reports](./understanding-reports) - See all relationships at a glance
+- [Keep Links Valid](/how-to/run-validation-in-ci) - Ensure links stay accurate
 
 ## Quick Reference
 

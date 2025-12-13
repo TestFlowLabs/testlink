@@ -44,13 +44,13 @@ export default defineConfig({
         collapsed: false,
         items: [
           {
-            text: 'Basic Tasks',
+            text: 'Navigation & Linking',
             collapsed: false,
             items: [
+              { text: 'IDE Navigation Reference', link: '/how-to/setup-ide-navigation' },
+              { text: 'Use @see Tags', link: '/how-to/use-see-tags' },
               { text: 'Add Links to Existing Tests', link: '/how-to/add-links-to-existing-tests' },
               { text: 'Add #[TestedBy] to Production', link: '/how-to/add-testedby-to-production' },
-              { text: 'Run Validation in CI', link: '/how-to/run-validation-in-ci' },
-              { text: 'Fix Validation Errors', link: '/how-to/fix-validation-errors' },
             ]
           },
           {
@@ -62,6 +62,14 @@ export default defineConfig({
               { text: 'Resolve Placeholders', link: '/how-to/resolve-placeholders' },
               { text: 'Prune Orphan Links', link: '/how-to/prune-orphan-links' },
               { text: 'Handle N:M Relationships', link: '/how-to/handle-nm-relationships' },
+            ]
+          },
+          {
+            text: 'Validation & Maintenance',
+            collapsed: false,
+            items: [
+              { text: 'Run Validation in CI', link: '/how-to/run-validation-in-ci' },
+              { text: 'Fix Validation Errors', link: '/how-to/fix-validation-errors' },
             ]
           },
           {
@@ -100,9 +108,7 @@ export default defineConfig({
             collapsed: false,
             items: [
               { text: 'Migrate Existing Project', link: '/how-to/migrate-existing-project' },
-              { text: 'Setup IDE Navigation', link: '/how-to/setup-ide-navigation' },
               { text: 'Organize Tests with Describe', link: '/how-to/organize-tests-with-describe' },
-              { text: 'Use @see Tags', link: '/how-to/use-see-tags' },
               { text: 'Debug Parsing Issues', link: '/how-to/debug-parsing-issues' },
             ]
           },

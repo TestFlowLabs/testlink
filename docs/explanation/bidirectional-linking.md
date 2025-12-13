@@ -1,34 +1,105 @@
 # Bidirectional Linking
 
-What is bidirectional linking and why it matters for test maintainability.
+**The goal: Cmd+Click to navigate between tests and production code.**
 
-## The Problem
+Bidirectional linking makes this possible by creating explicit, clickable connections in both directions.
 
-In most codebases, the relationship between tests and production code is implicit:
+## Why It Matters
 
-```
-src/UserService.php          tests/UserServiceTest.php
-├── create()                 ├── test_creates_user()
-├── update()                 ├── test_updates_user()
-└── delete()                 └── test_deletes_user()
-```
+### The Navigation Problem
 
-The connection exists only through:
-- Naming conventions (`UserService` → `UserServiceTest`)
-- Developer knowledge
-- Hope that someone documented it
-
-This creates several problems:
-
-### 1. Lost Context
-
-When reading production code, you can't easily find its tests:
+In most codebases, finding related tests requires searching:
 
 ```php
 class UserService
 {
-    // Which tests verify this method works correctly?
-    // Is it tested at all?
+    public function create(array $data): User
+    {
+        // Which tests verify this method?
+        // Is it tested at all?
+        // Time to search through test files...
+    }
+}
+```
+
+With bidirectional links, just **Cmd+Click**:
+
+```php
+class UserService
+{
+    /**
+     * @see \Tests\UserServiceTest::test_creates_user      ← Click!
+     * @see \Tests\UserServiceTest::test_validates_email   ← Click!
+     */
+    public function create(array $data): User
+    {
+        // Two tests verify this. Click to jump directly.
+    }
+}
+```
+
+The same works in reverse—from tests to production:
+
+```php
+/**
+ * @see \App\Services\UserService::create   ← Click!
+ */
+public function test_creates_user(): void
+{
+    // This test covers UserService::create. Click to jump.
+}
+```
+
+### See All Relationships at a Glance
+
+Without links, you have to hunt for relationships. With links, they're visible instantly:
+
+```php
+/**
+ * @see \Tests\Unit\OrderServiceTest::test_creates_order
+ * @see \Tests\Unit\OrderServiceTest::test_validates_items
+ * @see \Tests\Unit\OrderServiceTest::test_calculates_total
+ * @see \Tests\Feature\OrderFlowTest::test_complete_checkout
+ */
+public function create(array $items): Order
+{
+    // Four tests verify this method.
+    // Two are unit tests, two are feature tests.
+    // All visible here, all clickable.
+}
+```
+
+## How It Works
+
+### Both Directions Required
+
+Bidirectional means links exist on **both sides**:
+
+```
+Production → Test:  @see tags point to tests
+Test → Production:  @see tags (or attributes) point to production
+```
+
+Why both? Each direction answers a different question:
+
+| From | You want to know | Link direction |
+|------|-----------------|----------------|
+| Production code | "What tests verify this?" | Prod → Test |
+| Test code | "What does this test cover?" | Test → Prod |
+
+With both directions, navigation works from anywhere.
+
+### Production Side Links
+
+Add `@see` tags pointing to tests:
+
+```php
+class UserService
+{
+    /**
+     * @see \Tests\UserServiceTest::test_creates_user
+     * @see \Tests\UserServiceTest::test_validates_email
+     */
     public function create(array $data): User
     {
         // ...
@@ -36,78 +107,30 @@ class UserService
 }
 ```
 
-### 2. Orphaned Tests
-
-When production code changes, tests can become orphaned:
-
-```php
-// Production: method was renamed
-public function createUser(array $data): User  // was: create()
-
-// Test: still references old name mentally
-public function test_creates_user(): void
-{
-    // This test might still pass but no longer tests what we think
-}
-```
-
-### 3. Missing Coverage
-
-Without explicit links, it's hard to know what's tested:
-
-```php
-class OrderService
-{
-    public function process(): void { }      // Tested? Maybe?
-    public function validate(): void { }     // Tested? Who knows?
-    public function calculateTax(): void { } // Probably tested... somewhere?
-}
-```
-
-## The Solution: Bidirectional Links
-
-TestLink creates explicit, verifiable links in both directions:
-
-```
-Production → Test:  "This method is tested by these tests"
-Test → Production:  "This test covers these methods"
-```
-
-### Production Side
-
-```php
-use TestFlowLabs\TestingAttributes\TestedBy;
-
-class UserService
-{
-    #[TestedBy(UserServiceTest::class, 'test_creates_user')]
-    #[TestedBy(UserServiceTest::class, 'test_creates_user_with_role')]
-    public function create(array $data): User
-    {
-        // Now we KNOW exactly which tests verify this method
-    }
-}
-```
-
-### Test Side
+### Test Side Links
 
 :::tabs key:stack
 == Pest
 
 ```php
+/**
+ * @see \App\Services\UserService::create
+ */
 test('creates user', function () {
     // ...
 })->linksAndCovers(UserService::class.'::create');
-// Now we KNOW exactly what production code this test covers
 ```
 
 == PHPUnit + Attributes
 
 ```php
+/**
+ * @see \App\Services\UserService::create
+ */
 #[LinksAndCovers(UserService::class, 'create')]
 public function test_creates_user(): void
 {
-    // Now we KNOW exactly what production code this test covers
+    // ...
 }
 ```
 
@@ -119,199 +142,128 @@ public function test_creates_user(): void
  */
 public function test_creates_user(): void
 {
-    // Now we KNOW exactly what production code this test covers
+    // ...
 }
 ```
 
 :::
 
-## Why Bidirectional?
+## Keeping Links Valid
 
-### One Direction Isn't Enough
-
-You might think one direction is sufficient:
-
-:::tabs key:stack
-== Pest
-
-```php
-// Only test → production?
-test('creates user', function () {
-    // ...
-})->linksAndCovers(UserService::class.'::create');
-```
-
-But then you can't answer: "What tests cover `UserService::create`?" without searching through all test files.
-
-== PHPUnit + Attributes
-
-```php
-// Only test → production?
-#[LinksAndCovers(UserService::class, 'create')]
-public function test_creates_user(): void { }
-```
-
-But then you can't answer: "What tests cover `UserService::create`?" without searching through all test files.
-
-== PHPUnit + @see
-
-```php
-// Only test → production?
-/**
- * @see \App\Services\UserService::create
- */
-public function test_creates_user(): void { }
-```
-
-But then you can't answer: "What tests cover `UserService::create`?" without searching through all test files.
-
-:::
-
-```php
-// Only production → test?
-#[TestedBy(UserServiceTest::class, 'test_creates_user')]
-public function create(array $data): User
-```
-
-But then you can't answer: "What does this test actually test?" without reading the test file.
-
-### Bidirectional Enables Verification
-
-With both directions, TestLink can verify they match:
+Links break when code changes. TestLink catches this:
 
 ```bash
-./vendor/bin/testlink validate
+$ ./vendor/bin/testlink validate
+
+  ✗ Broken link
+    UserService::create
+      → UserServiceTest::test_old_name (test not found)
+
+  ✗ Missing link
+    UserServiceTest::test_creates_user
+      → UserService::create (no @see in production)
 ```
 
-```
-✓ UserService::create
-  ↔ UserServiceTest::test_creates_user (synchronized)
-
-✗ OrderService::process
-  → OrderServiceTest::test_processes_order (missing test link)
-```
-
-If either side is missing or mismatched, validation fails.
-
-## Benefits
-
-### 1. Navigable Code
-
-IDEs can follow the links:
-
-```php
-/**
- * @see \Tests\UserServiceTest::test_creates_user  ← Click to jump
- */
-public function create(array $data): User
-```
-
-```php
-/**
- * @see \App\UserService::create  ← Click to jump
- */
-public function test_creates_user(): void
-```
-
-### 2. Verifiable Coverage
-
-Run validation in CI to ensure all links are synchronized:
+Run validation in CI/CD to ensure navigation links stay accurate:
 
 ```yaml
 - run: ./vendor/bin/testlink validate
 ```
 
-If someone adds a test without linking, or removes a method without updating tests, CI fails.
+## Generating Links Automatically
 
-### 3. Discoverable Relationships
-
-View all relationships at once:
+Don't maintain links by hand. Use sync:
 
 ```bash
-./vendor/bin/testlink report
+$ ./vendor/bin/testlink sync
+
+  Adding @see tags
+    ✓ UserService::create
+      + @see UserServiceTest::test_creates_user
+      + @see UserServiceTest::test_validates_email
 ```
 
-```
-UserService
-├── create()
-│   ├── UserServiceTest::test_creates_user
-│   └── UserServiceTest::test_creates_user_with_role
-├── update()
-│   └── UserServiceTest::test_updates_user
-└── delete()
-    └── (no tests)  ← Immediately visible gap
-```
+This adds `@see` tags based on your test declarations, keeping both sides synchronized.
 
-### 4. Refactoring Confidence
+## Additional Benefits
 
-When renaming or moving code, the links tell you exactly what needs updating:
+### Refactoring Confidence
+
+When you rename a method, validation tells you exactly what breaks:
 
 ```bash
-# After renaming UserService::create to UserService::createUser
-./vendor/bin/testlink validate
+$ ./vendor/bin/testlink validate
 
-✗ Validation failed:
-  UserServiceTest::test_creates_user
-    → linksAndCovers(UserService::create) - method not found
+  ✗ UserServiceTest::test_creates_user
+      → linksAndCovers(UserService::create) - method not found
+
+  Did you rename UserService::create?
 ```
 
-### 5. Documentation
+### Living Documentation
 
-Links serve as living documentation:
+The links document your test coverage:
 
 ```php
-#[TestedBy(UserServiceTest::class, 'test_creates_user')]
-#[TestedBy(UserServiceTest::class, 'test_creates_user_validates_email')]
-#[TestedBy(UserServiceTest::class, 'test_creates_user_hashes_password')]
-#[TestedBy(UserFlowTest::class, 'test_registration_flow')]
+/**
+ * @see \Tests\UserServiceTest::test_creates_user
+ * @see \Tests\UserServiceTest::test_creates_user_validates_email
+ * @see \Tests\UserServiceTest::test_creates_user_hashes_password
+ * @see \Tests\UserFlowTest::test_registration_flow
+ */
 public function create(array $data): User
 ```
 
-Just by reading the attributes, you understand:
+Reading the `@see` tags tells you:
 - The method is tested
 - What aspects are tested (email validation, password hashing)
 - It's part of a larger flow (registration)
 
-## The Bidirectional Contract
+### Coverage Reports
 
-TestLink enforces a contract:
+See all relationships at once:
 
-| Production Says | Test Says | Status |
-|-----------------|-----------|--------|
-| "Tested by X" | "Covers Y" | ✗ Mismatch |
-| "Tested by X" | "Covers X" | ✓ Valid |
-| Nothing | "Covers X" | ⚠ Warning |
-| "Tested by X" | Nothing | ✗ Orphan |
+```bash
+$ ./vendor/bin/testlink report
 
-This contract ensures your test documentation stays accurate as code evolves.
+  UserService
+    create()
+      → UserServiceTest::test_creates_user
+      → UserServiceTest::test_validates_email
+    update()
+      → UserServiceTest::test_updates_user
+    delete()
+      → (no tests linked)  ← Gap visible immediately
+```
 
-## When to Use Bidirectional Links
+## When to Use
 
-### Always Use For
+### Always Link
 
-- **Unit tests** - Direct method-to-test relationships
-- **Core business logic** - Critical code that must be tested
-- **Public APIs** - Methods others depend on
+- **Unit tests** — Direct method-to-test relationships
+- **Core business logic** — Critical code that must be tested
+- **Public APIs** — Methods others depend on
 
-### Consider For
+### Consider Linking
 
-- **Integration tests** - Use `#[Links]` for secondary coverage
-- **Helper methods** - May not need individual links
+- **Integration tests** — Use `#[Links]` for secondary coverage
+- **Helper methods** — May not need individual links
 
-### Skip For
+### Skip Linking
 
-- **Trivial code** - Getters/setters without logic
-- **Generated code** - Auto-generated files
-- **Third-party wrappers** - Simple delegation
+- **Trivial code** — Getters/setters without logic
+- **Generated code** — Auto-generated files
 
 ## Summary
 
-Bidirectional linking creates explicit, verifiable connections between your tests and production code. This transforms implicit "I think this is tested" into explicit "This IS tested by THESE tests, and I can prove it."
+Bidirectional linking exists for one primary purpose: **Cmd+Click navigation between tests and production code.**
 
-The result is a more maintainable, navigable, and trustworthy test suite.
+Everything else—validation, sync, reports—supports this by keeping your navigation links accurate and up-to-date.
+
+The result: No more searching for tests. Just click.
 
 ## See Also
 
 - [Tutorial: First Bidirectional Link](/tutorials/first-bidirectional-link)
 - [Test Traceability](./test-traceability)
-- [#[TestedBy] Reference](/reference/attributes/testedby)
+- [Keep Links Valid](/how-to/run-validation-in-ci)

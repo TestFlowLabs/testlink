@@ -1,24 +1,25 @@
 # Use @see Tags
 
-This guide shows how to use @see tags for test traceability and IDE navigation.
+`@see` tags are how TestLink enables **Cmd+Click navigation** between tests and production code. They're the links your IDE follows when you click.
 
-## What are @see Tags?
+## How @see Tags Enable Navigation
 
-@see tags are PHPDoc annotations that reference other code:
+`@see` tags are PHPDoc annotations that IDEs recognize as clickable references:
 
 ```php
-/**
- * @see \Tests\UserServiceTest::test_creates_user
- */
-public function create(array $data): User
+class UserService
+{
+    /**
+     * @see \Tests\UserServiceTest::test_creates_user   ← Cmd+Click to jump
+     */
+    public function create(array $data): User
+    {
+        // ...
+    }
+}
 ```
 
-## Benefits of @see Tags
-
-1. **IDE navigation** - Click to jump to referenced code
-2. **Documentation** - Shows related code at a glance
-3. **Framework agnostic** - Works without attributes
-4. **TestLink integration** - Scannable for validation
+When you Cmd+Click (or Ctrl+Click) on the `@see` tag, your IDE jumps directly to that test. This works in both directions—from production to tests, and from tests to production.
 
 ## Adding @see Tags
 
@@ -170,8 +171,8 @@ public function create(array $data): User
 }
 ```
 
-- `@see` provides IDE navigation
-- `#[TestedBy]` enables validation
+- `@see` enables Cmd+Click navigation
+- `#[TestedBy]` enables validation and sync
 
 ## Validating @see Tags
 
@@ -216,27 +217,30 @@ This removes:
  */
 ```
 
-## @see vs Attributes
+## @see Tags vs Attributes
+
+`@see` tags are essential for navigation—they're what your IDE clicks on. Attributes provide validation.
 
 | Feature | @see Tags | Attributes |
 |---------|-----------|------------|
-| IDE navigation | ✓ | ✗ |
-| Static validation | Limited | ✓ Full |
-| Framework support | All | PHP 8+ |
+| Cmd+Click navigation | ✓ | ✗ |
+| Validation in CI | Limited | ✓ Full |
+| PHP version | All | PHP 8+ |
 | Visible in docs | ✓ | ✗ |
-| Auto-sync support | ✓ | ✓ |
 
-### When to use @see
+### Use both together
 
-- Want IDE navigation
-- Need framework-agnostic solution
-- Want documentation visibility
+For full functionality (navigation + validation), use both:
 
-### When to use attributes
+```php
+/**
+ * @see \Tests\UserServiceTest::test_creates_user   ← For navigation
+ */
+#[TestedBy('Tests\UserServiceTest', 'test_creates_user')]  // For validation
+public function create(array $data): User
+```
 
-- Need strict validation
-- Want type-safe references
-- Prefer explicit over implicit
+TestLink's `sync` command can generate `@see` tags from your attributes automatically.
 
 ## Best Practices
 

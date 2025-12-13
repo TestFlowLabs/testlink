@@ -1,228 +1,172 @@
-# Setup IDE Navigation
+# IDE Navigation Reference
 
-This guide shows how to configure your IDE to navigate between production code and tests using @see tags.
+TestLink's core purpose is enabling **Cmd+Click navigation** between tests and production code. This page covers IDE-specific details and troubleshooting.
 
-## How It Works
+## How Navigation Works
 
-TestLink uses @see tags in docblocks for IDE navigation:
+TestLink uses `@see` tags that all major PHP IDEs recognize:
+
+```php
+class UserService
+{
+    /**
+     * @see \Tests\UserServiceTest::test_creates_user    ← Cmd+Click
+     * @see \Tests\UserServiceTest::test_validates_email ← Cmd+Click
+     */
+    public function create(array $data): User
+    {
+        // Click any @see tag to jump to that test
+    }
+}
+```
+
+The same works from tests to production:
 
 ```php
 /**
- * @see \Tests\UserServiceTest::test_creates_user
+ * @see \App\Services\UserService::create   ← Cmd+Click
  */
-public function create(array $data): User
+public function test_creates_user(): void
+{
+    // Click to jump to the production method
+}
 ```
 
-Most IDEs recognize @see tags and allow Ctrl+Click (or Cmd+Click) to jump to the referenced code.
+## PhpStorm
 
-## PhpStorm Setup
+PhpStorm supports `@see` navigation out of the box. No configuration needed.
 
-### Enable @see tag navigation
+### Navigate
 
-PhpStorm supports @see navigation out of the box:
-
-1. Hold `Ctrl` (Windows/Linux) or `Cmd` (Mac)
-2. Click on the class or method reference
+1. Hold `Cmd` (Mac) or `Ctrl` (Windows/Linux)
+2. Click on the class or method reference in the `@see` tag
 3. PhpStorm jumps to that location
 
-### Verify it works
+### Keyboard Shortcuts
 
-In your production code with @see tags:
+| Action | Shortcut |
+|--------|----------|
+| Navigate to definition | `Cmd+Click` or `Cmd+B` |
+| Find usages | `Cmd+Shift+F7` |
+| Navigate back | `Cmd+[` |
 
-```php
-/**
- * @see \Tests\Unit\UserServiceTest::test_creates_user
- */
-public function create(array $data): User
-```
-
-`Ctrl+Click` on `test_creates_user` should jump to the test.
-
-### Troubleshooting PhpStorm
+### Troubleshooting
 
 **@see links not clickable:**
-
-1. Ensure the class is fully qualified (`\Tests\...`)
-2. Run `composer dump-autoload`
-3. Invalidate caches: File → Invalidate Caches
+1. Ensure the class is fully qualified (`\Tests\...` with leading backslash)
+2. Run `composer dump-autoload` to update autoloading
+3. Invalidate caches: File → Invalidate Caches → Invalidate and Restart
 
 **Wrong file opens:**
+1. Check the namespace matches the file location
+2. Verify the method name is spelled correctly
 
-1. Check the namespace is correct
-2. Verify the method name matches exactly
+## VS Code
 
-## VS Code Setup
+VS Code requires the Intelephense extension for `@see` navigation.
 
-### Install PHP Intelephense
+### Setup
 
-The Intelephense extension provides @see navigation:
-
-1. Open Extensions (`Ctrl+Shift+X`)
+1. Open Extensions (`Cmd+Shift+X`)
 2. Search for "PHP Intelephense"
 3. Click Install
 
-### Configure Intelephense
-
-Add to `.vscode/settings.json`:
+Optional configuration in `.vscode/settings.json`:
 
 ```json
 {
   "intelephense.files.associations": ["*.php"],
-  "intelephense.environment.documentRoot": "${workspaceFolder}",
   "intelephense.environment.includePaths": [
     "${workspaceFolder}/vendor"
   ]
 }
 ```
 
-### Using navigation
+### Navigate
 
-1. Hold `Ctrl` (Windows/Linux) or `Cmd` (Mac)
-2. Click on the @see reference
+1. Hold `Cmd` (Mac) or `Ctrl` (Windows/Linux)
+2. Click on the `@see` reference
 3. VS Code jumps to the target
 
-## Adding @see Tags
+### Keyboard Shortcuts
 
-### Generate with sync
+| Action | Shortcut |
+|--------|----------|
+| Navigate to definition | `Cmd+Click` or `F12` |
+| Navigate back | `Cmd+-` |
 
-Run sync to add @see tags automatically:
+## Other IDEs
+
+| IDE | @see Support |
+|-----|--------------|
+| Sublime Text | With LSP-intelephense plugin |
+| Neovim | With nvim-lspconfig + intelephense |
+| Eclipse PDT | Built-in |
+
+## Generating @see Tags
+
+TestLink's `sync` command generates `@see` tags automatically:
 
 ```bash
 ./vendor/bin/testlink sync
 ```
 
-This adds @see tags to test files pointing to production code.
-
-### Add manually
-
-```php
-/**
- * Creates a new user.
- *
- * @see \Tests\Unit\UserServiceTest::test_creates_user
- * @see \Tests\Unit\UserServiceTest::test_validates_email
- */
-public function create(array $data): User
-```
-
-### In tests
-
-```php
-/**
- * @see \App\Services\UserService::create
- */
-public function test_creates_user(): void
-{
-    // ...
-}
-```
+This scans your test declarations and adds corresponding `@see` tags to both sides, making your code navigable without manual work.
 
 ## @see Tag Format
 
-### Class references
+### Fully Qualified Names Required
+
+Always use fully qualified class names (FQCN) with a leading backslash:
+
+```php
+// Good - navigable in all IDEs
+/** @see \Tests\Unit\UserServiceTest::test_creates_user */
+
+// Bad - may not work in some IDEs
+/** @see UserServiceTest::test_creates_user */
+```
+
+### Class References
 
 ```php
 /** @see \App\Services\UserService */
 ```
 
-### Method references
+### Method References
 
 ```php
 /** @see \App\Services\UserService::create */
 ```
 
-### Multiple references
+### Multiple References
 
 ```php
 /**
- * @see \App\Services\UserService::create
- * @see \App\Services\UserService::validate
- */
-```
-
-## FQCN Requirements
-
-Always use fully qualified class names (FQCN):
-
-```php
-// Good - fully qualified
-/** @see \Tests\Unit\UserServiceTest::test_creates_user */
-
-// Bad - not navigable in all IDEs
-/** @see UserServiceTest::test_creates_user */
-```
-
-## Bidirectional Navigation
-
-For full bidirectional navigation:
-
-### Production code
-
-```php
-/**
- * @see \Tests\Unit\UserServiceTest::test_creates_user
+ * @see \Tests\UserServiceTest::test_creates_user
+ * @see \Tests\UserServiceTest::test_validates_email
+ * @see \Tests\UserFlowTest::test_registration_flow
  */
 public function create(array $data): User
 ```
 
-### Test code
+## Keeping Links Accurate
 
-```php
-/**
- * @see \App\Services\UserService::create
- */
-public function test_creates_user(): void
-```
-
-Now you can:
-- From production → Jump to test
-- From test → Jump to production
-
-## Keyboard Shortcuts
-
-| IDE | Navigate to Definition |
-|-----|----------------------|
-| PhpStorm | `Ctrl+Click` or `Ctrl+B` |
-| VS Code | `Ctrl+Click` or `F12` |
-| Sublime Text | `Ctrl+Click` (with LSP) |
-
-## Validating @see Tags
-
-Check for invalid @see references:
+Navigation only works if links point to real code. Run validation to catch broken links:
 
 ```bash
 ./vendor/bin/testlink validate
 ```
 
 This catches:
-- Misspelled class names
-- Non-existent methods
-- Missing FQCN
+- Misspelled class/method names
+- References to deleted tests
+- Missing FQCN prefixes
 
-## Tips
+Run validation in CI/CD to ensure your navigation links stay accurate as code evolves.
 
-### Keep @see tags up to date
+## See Also
 
-Run sync after refactoring:
-
-```bash
-./vendor/bin/testlink sync --prune
-```
-
-### Use with #[TestedBy]
-
-@see tags complement #[TestedBy] attributes:
-
-```php
-use TestFlowLabs\TestingAttributes\TestedBy;
-
-/**
- * @see \Tests\Unit\UserServiceTest::test_creates_user
- */
-#[TestedBy('Tests\Unit\UserServiceTest', 'test_creates_user')]
-public function create(array $data): User
-```
-
-Both provide navigation, but:
-- @see works in any IDE
-- #[TestedBy] enables validation
+- [Bidirectional Linking](/explanation/bidirectional-linking) - How the linking system works
+- [Sync Command](/reference/cli/sync) - Auto-generate @see tags
+- [Validation in CI](/how-to/run-validation-in-ci) - Keep links accurate

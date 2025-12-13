@@ -251,7 +251,7 @@ After 100 cycles, you have:
 | Tests exist | ✓ | ✓ |
 | Code is tested | ✓ | ✓ |
 | Relationships visible | ✗ | ✓ |
-| IDE navigation | ✗ | ✓ |
+| Cmd+Click navigation | ✗ | ✓ (click @see tags) |
 | Refactoring safe | Partial | Full |
 | Coverage meaningful | Lines hit | Intentional |
 | Self-documenting | Limited | Comprehensive |
@@ -264,9 +264,9 @@ TDD with links transforms testing from:
 
 To:
 
-> "I have proven, navigable, verifiable relationships between every test and the code it verifies"
+> "I can Cmd+Click from any production method to its tests, and from any test to what it covers"
 
-The extra effort of adding links during TDD is minimal (especially with placeholders), but the benefits compound over time into a significantly more maintainable codebase.
+The extra effort of adding links during TDD is minimal (especially with placeholders), but the benefits compound over time: every method becomes navigable, every relationship becomes visible.
 
 ## See Also
 
