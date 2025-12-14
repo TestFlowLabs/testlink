@@ -180,13 +180,22 @@ final class PairCommand
         $modifiedCount = count($result['modified_files']);
         $changeCount   = count($result['changes']);
 
+        // Count unique placeholders resolved
+        $placeholders = [];
+        foreach ($result['changes'] as $change) {
+            $placeholders[$change['placeholder']] = true;
+        }
+        $placeholderCount = count($placeholders);
+
+        $output->summaryHeader($dryRun);
+        $output->summaryLine('Placeholders resolved', $placeholderCount);
+        $output->summaryLine('Total changes', $changeCount);
+        $output->summaryLine('Files modified', $modifiedCount);
+
         if ($dryRun) {
-            $output->info("Dry run complete. Would modify {$modifiedCount} file(s) with {$changeCount} change(s).");
-            $output->newLine();
-            $output->writeln('    Run without --dry-run to apply changes:');
-            $output->writeln('    testlink pair');
+            $output->summaryComplete('Dry-run complete. Use --no-dry-run to apply.');
         } else {
-            $output->success("Pairing complete. Modified {$modifiedCount} file(s) with {$changeCount} change(s).");
+            $output->summaryComplete('Pairing complete.');
         }
 
         $output->newLine();
