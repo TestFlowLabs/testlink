@@ -173,50 +173,17 @@ final class SyncCommand
         $seePruneCount      = $result->seeTagsPruned;
         $reverseActionCount = count($reverseActions);
 
+        $output->summaryHeader($dryRun);
+        $output->summaryLine('Files modified', $modifiedCount);
+        $output->summaryLine('Files pruned', $prunedCount);
+        $output->summaryLine('@see tags added', $seeTagCount);
+        $output->summaryLine('@see tags removed', $seePruneCount);
+        $output->summaryLine('#[TestedBy] added', $reverseActionCount);
+
         if ($dryRun) {
-            if ($modifiedCount > 0) {
-                $output->info("Dry run complete. Would modify {$modifiedCount} file(s).");
-            }
-
-            if ($prunedCount > 0) {
-                $output->info("Would prune from {$prunedCount} file(s).");
-            }
-
-            if ($seeTagCount > 0) {
-                $output->info("Would add {$seeTagCount} @see tag(s).");
-            }
-
-            if ($seePruneCount > 0) {
-                $output->info("Would remove {$seePruneCount} orphan @see tag(s).");
-            }
-
-            if ($reverseActionCount > 0) {
-                $output->info("Would add {$reverseActionCount} #[TestedBy] attribute(s).");
-            }
-
-            $output->newLine();
-            $output->writeln('    Run without --dry-run to apply changes:');
-            $output->writeln('    testlink sync');
+            $output->summaryComplete('Dry-run complete. Use --no-dry-run to apply.');
         } else {
-            if ($modifiedCount > 0) {
-                $output->success("Sync complete. Modified {$modifiedCount} file(s).");
-            }
-
-            if ($prunedCount > 0) {
-                $output->success("Pruned from {$prunedCount} file(s).");
-            }
-
-            if ($seeTagCount > 0) {
-                $output->success("Added {$seeTagCount} @see tag(s).");
-            }
-
-            if ($seePruneCount > 0) {
-                $output->success("Removed {$seePruneCount} orphan @see tag(s).");
-            }
-
-            if ($reverseActionCount > 0) {
-                $output->success("Added {$reverseActionCount} #[TestedBy] attribute(s).");
-            }
+            $output->summaryComplete('Sync complete.');
         }
 
         $output->newLine();
