@@ -746,5 +746,5 @@ Summary
 ## What's Next?
 
 - [Run Validation in CI](/how-to/run-validation-in-ci) - Automate validation
-- [Explanation: TDD Deep Dive](/explanation/tdd/) - Understand the theory
-- [Explanation: BDD Deep Dive](/explanation/bdd/) - Advanced BDD concepts
+- [TDD Workflow](/workflows/tdd/) - Understand the theory
+- [BDD Workflow](/workflows/bdd/) - Advanced BDD concepts

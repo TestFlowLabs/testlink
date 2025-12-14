@@ -271,5 +271,5 @@ The extra effort of adding links during TDD is minimal (especially with placehol
 ## See Also
 
 - [When to Add Links](./when-to-add-links)
-- [Tutorial: Red-Green-Refactor](/tutorials/tdd/red-green-refactor)
+- [Tutorial: Red-Green-Refactor](/workflows/tdd/red-green-refactor)
 - [Test Traceability](/explanation/test-traceability)

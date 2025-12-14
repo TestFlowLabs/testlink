@@ -379,5 +379,5 @@ The key is using `links()` / `#[Links]` for acceptance tests (traceability) and 
 
 - [Acceptance vs Unit Links](./acceptance-vs-unit)
 - [Placeholder Strategy](/explanation/placeholder-strategy)
-- [Tutorial: BDD Complete Example](/tutorials/bdd/complete-example)
+- [Tutorial: BDD Complete Example](/workflows/bdd/complete-example)
 - [How-to: Handle N:M Relationships](/how-to/handle-nm-relationships)
