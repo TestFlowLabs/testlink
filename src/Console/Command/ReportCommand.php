@@ -192,11 +192,11 @@ final class ReportCommand
             }
         }
 
-        $output->newLine();
-        $output->writeln($output->bold('  Summary'));
-        $output->writeln("    Methods with tests: {$totalMethods}");
-        $output->writeln("    Total test links: {$totalTests}");
-        $output->writeln("    @see tags: {$seeCount}");
+        $output->summaryHeader();
+        $output->summaryLine('Methods with tests', $totalMethods);
+        $output->summaryLine('Total test links', $totalTests);
+        $output->summaryLine('@see tags', $seeCount);
+        $output->summaryComplete('Report complete.');
         $output->newLine();
 
         return 0;
