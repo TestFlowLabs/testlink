@@ -46,13 +46,13 @@ Output:
     update()
     → Tests\Unit\UserServiceTest::test_updates_user
 
-    delete()
-    (no tests linked)
-
   Summary
-    Methods with tests: 2
-    Methods without tests: 1
-    Total test links: 3
+  ───────
+    Methods with tests:       2
+    Total test links:         3
+    @see tags:                0
+
+  ✓ Report complete.
 ```
 
 ### JSON output
@@ -134,13 +134,16 @@ Methods with no linked tests show:
 
 ### Summary
 
-Aggregated statistics:
+Aggregated statistics at the end of every report:
 
 ```
   Summary
-    Methods with tests: 2
-    Methods without tests: 1
-    Total test links: 3
+  ───────
+    Methods with tests:       2
+    Total test links:         3
+    @see tags:                0
+
+  ✓ Report complete.
 ```
 
 ## Exit Codes

@@ -97,6 +97,14 @@ $ ./vendor/bin/testlink report
     → OrderServiceTest::calculates_total
     → OrderFlowTest::complete_checkout
     → OrderFlowTest::payment_flow
+
+  Summary
+  ───────
+    Methods with tests:       1
+    Total test links:         5
+    @see tags:                0
+
+  ✓ Report complete.
 ```
 
 </div>
@@ -174,15 +182,21 @@ $ ./vendor/bin/testlink validate
   Validation Report
   ─────────────────
 
-  ✗ Broken link
-    UserService::create
-      → UserServiceTest::old_name (not found)
+  Orphan @see Tags
+    ✗ UserServiceTest::old_name
+      → src/UserService.php:15
 
-  ✗ Missing link
-    UserServiceTest::creates_user
-      → UserService::create (no @see)
+  Summary
+  ───────
+    PHPUnit attribute links:  10
+    Pest method chain links:  5
+    @see tags:                8
+    Total links:              23
 
-  Found 2 issue(s). Run sync to fix.
+    Issues found:             1
+      Orphan @see tags:       1
+
+  ✓ Validation complete with issues.
 ```
 
 </div>
@@ -215,7 +229,15 @@ $ ./vendor/bin/testlink sync
     ✓ tests/Unit/OrderServiceTest.php (1 change)
       + linksAndCovers(OrderService::class.'::process')
 
-  Sync complete. Modified 2 file(s).
+  Summary
+  ───────
+    Files modified:           2
+    Files pruned:             0
+    @see tags added:          0
+    @see tags removed:        0
+    #[TestedBy] added:        1
+
+  ✓ Sync complete.
 ```
 
 </div>
@@ -253,12 +275,19 @@ public function calculate(int $price, float $discount): int
 ```bash
 $ ./vendor/bin/testlink pair
 
-  Resolving Placeholders
-  ──────────────────────
+  Pairing Placeholders
+  ────────────────────
 
-  ✓ @discount  1 production × 1 test = 1 link
+  Found Placeholders
+    ✓ @discount  1 production × 1 tests = 1 links
 
-  Resolved 1 placeholder. Modified 2 file(s).
+  Summary
+  ───────
+    Placeholders resolved:    1
+    Total changes:            2
+    Files modified:           2
+
+  ✓ Pairing complete.
 ```
 
 </div>
@@ -303,7 +332,18 @@ $ ./vendor/bin/testlink validate --fix
       + Tests\TestLink\UserServiceTest::creates
         → \Tests\TestLink\UserServiceTest::creates
 
-  Converted 1 @see tag(s) in 1 file(s).
+  ✓ Converted 1 @see tag(s) in 1 file(s).
+
+  Summary
+  ───────
+    PHPUnit attribute links:  5
+    Pest method chain links:  3
+    @see tags:                4
+    Total links:              12
+
+    Issues fixed:             1
+
+  ✓ Validation complete. All links are valid!
 ```
 
 </div>

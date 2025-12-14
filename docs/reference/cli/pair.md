@@ -64,10 +64,13 @@ Output:
       @order-process → OrderService::create
       @order-process → OrderService::process
 
-  Dry run complete. Would modify 4 file(s) with 8 change(s).
+  Summary (dry-run)
+  ─────────────────
+    Placeholders resolved:    2
+    Total changes:            8
+    Files modified:           4
 
-    Run without --dry-run to apply changes:
-    testlink pair
+  ✓ Dry-run complete. Use --no-dry-run to apply.
 ```
 
 ### Apply pairing
@@ -104,7 +107,13 @@ Output:
       @order-process → OrderService::create
       @order-process → OrderService::process
 
-  Pairing complete. Modified 4 file(s) with 8 change(s).
+  Summary
+  ───────
+    Placeholders resolved:    2
+    Total changes:            8
+    Files modified:           4
+
+  ✓ Pairing complete.
 ```
 
 ### Resolve specific placeholder

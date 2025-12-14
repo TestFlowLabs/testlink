@@ -60,7 +60,15 @@ Output:
     ✓ OrderService::process
       + #[TestedBy(OrderServiceTest::class, 'test_processes_order')]
 
-  Dry run complete. Would modify 3 file(s).
+  Summary (dry-run)
+  ─────────────────
+    Files modified:           3
+    Files pruned:             0
+    @see tags added:          1
+    @see tags removed:        0
+    #[TestedBy] added:        1
+
+  ✓ Dry-run complete. Use --no-dry-run to apply.
 ```
 
 ### Apply sync
@@ -78,7 +86,15 @@ Output:
     ✓ tests/Unit/UserServiceTest.php (2 changes)
     ✓ src/Services/OrderService.php (1 change)
 
-  Sync complete. Modified 2 file(s).
+  Summary
+  ───────
+    Files modified:           2
+    Files pruned:             0
+    @see tags added:          1
+    @see tags removed:        0
+    #[TestedBy] added:        1
+
+  ✓ Sync complete.
 ```
 
 ### Sync with pruning
@@ -92,13 +108,23 @@ Output:
   Syncing Coverage Links
   ──────────────────────
 
-  Adding links
-    ✓ tests/UserServiceTest.php (+1)
+  Modified Files
+    ✓ tests/UserServiceTest.php
+      + linksAndCovers(UserService::class.'::create')
 
-  Pruning orphans
-    ✓ tests/OldTest.php (-2 orphan links)
+  Pruned from Files
+    − tests/OldTest.php
+      - linksAndCovers(DeletedService::class.'::method')
 
-  Sync complete. Modified 2 file(s).
+  Summary
+  ───────
+    Files modified:           1
+    Files pruned:             1
+    @see tags added:          0
+    @see tags removed:        2
+    #[TestedBy] added:        0
+
+  ✓ Sync complete.
 ```
 
 ### Filter by path

@@ -41,13 +41,14 @@ Output (success):
   Validation Report
   ─────────────────
 
-  Link Summary
-    PHPUnit attribute links: 10
-    Pest method chain links: 5
-    @see tags: 0
-    Total links: 15
+  Summary
+  ───────
+    PHPUnit attribute links:  10
+    Pest method chain links:  5
+    @see tags:                0
+    Total links:              15
 
-  All links are valid!
+  ✓ Validation complete. All links are valid!
 ```
 
 Output (failure):
@@ -55,22 +56,25 @@ Output (failure):
   Validation Report
   ─────────────────
 
-  Link Summary
-    PHPUnit attribute links: 10
-    Pest method chain links: 5
-    @see tags: 0
-    Total links: 15
+  Orphan @see Tags
+    ✗ Tests\UserServiceTest::test_old_method
+      → src/UserService.php:25
 
-  ✗ Found 2 orphan TestedBy link(s):
-    App\UserService::create
-      → Tests\UserServiceTest::test_old_method (test not found)
-    App\OrderService::process
-      → Tests\OrderServiceTest::test_removed (test not found)
+  Unresolved Placeholders
+    ⚠ @user-create  (1 production, 1 tests)
 
-  ✗ Found 1 unresolved placeholder(s):
-    @user-create
-      Production: App\UserService::create
-      Tests: Tests\UserServiceTest::test_creates_user
+  Summary
+  ───────
+    PHPUnit attribute links:  10
+    Pest method chain links:  5
+    @see tags:                0
+    Total links:              15
+
+    Issues found:             2
+      Orphan @see tags:       1
+      Unresolved placeholders: 1 (warning)
+
+  ✓ Validation complete with issues.
 ```
 
 ### Strict mode
@@ -207,7 +211,18 @@ Output:
       + Tests\TestLink\UserServiceTest::creates
         → \Tests\TestLink\UserServiceTest::creates
 
-  Converted 1 @see tag(s) in 1 file(s).
+  ✓ Converted 1 @see tag(s) in 1 file(s).
+
+  Summary
+  ───────
+    PHPUnit attribute links:  5
+    Pest method chain links:  3
+    @see tags:                4
+    Total links:              12
+
+    Issues fixed:             1
+
+  ✓ Validation complete. All links are valid!
 ```
 
 The resolver uses PHP `use` statements to determine the correct FQCN.
