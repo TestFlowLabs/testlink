@@ -572,5 +572,122 @@ PHP;
                 return $content === $originalContent;
             })
             ->toBeTrue();
+
+        it('gives each test ALL production methods in N:M @@prefix resolution')
+            ->linksAndCovers(PlaceholderModifier::class.'::apply')
+            ->expect(function () {
+                $testFile = $this->tempDir.'/NMSeeTagTest.php';
+                file_put_contents($testFile, <<<'PHP'
+<?php
+class NMSeeTagTest
+{
+    #[LinksAndCovers('@@A')]
+    public function testOne(): void {}
+
+    #[LinksAndCovers('@@A')]
+    public function testTwo(): void {}
+}
+PHP);
+
+                // 2 production methods
+                $prodEntry1 = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\Service::method1', '/prod.php', 4, 'production', null, true
+                );
+                $prodEntry2 = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\Service::method2', '/prod.php', 8, 'production', null, true
+                );
+
+                // 2 tests with same @@placeholder
+                $testEntry1 = new PlaceholderEntry(
+                    '@@A', 'Tests\\NMSeeTagTest::testOne', $testFile, 4, 'test', 'phpunit', true
+                );
+                $testEntry2 = new PlaceholderEntry(
+                    '@@A', 'Tests\\NMSeeTagTest::testTwo', $testFile, 8, 'test', 'phpunit', true
+                );
+
+                // N:M actions (2 prod × 2 tests = 4 actions)
+                $actions = [
+                    new PlaceholderAction('@@A', $prodEntry1, $testEntry1),
+                    new PlaceholderAction('@@A', $prodEntry1, $testEntry2),
+                    new PlaceholderAction('@@A', $prodEntry2, $testEntry1),
+                    new PlaceholderAction('@@A', $prodEntry2, $testEntry2),
+                ];
+
+                $modifier = new PlaceholderModifier();
+                $modifier->apply($actions, dryRun: false);
+
+                $content = file_get_contents($testFile);
+
+                // Each test should have 2 @see tags (one for each production method)
+                return [
+                    'total_see_tags'   => substr_count($content, '@see'),
+                    'has_method1_x2'   => substr_count($content, 'Service::method1') === 2,
+                    'has_method2_x2'   => substr_count($content, 'Service::method2') === 2,
+                    'no_placeholder'   => !str_contains($content, '@@A'),
+                ];
+            })
+            ->toMatchArray([
+                'total_see_tags'   => 4, // 2 tests × 2 production methods
+                'has_method1_x2'   => true,
+                'has_method2_x2'   => true,
+                'no_placeholder'   => true,
+            ]);
+
+        it('does not add empty lines between @see tags in multi-method docblocks')
+            ->linksAndCovers(PlaceholderModifier::class.'::apply')
+            ->expect(function () {
+                $testFile = $this->tempDir.'/NoEmptyLinesTest.php';
+                // Note: blank line between methods (this was causing the bug)
+                file_put_contents($testFile, <<<'PHP'
+<?php
+class NoEmptyLinesTest
+{
+    #[LinksAndCovers('@@A')]
+    public function testOne(): void {}
+
+    #[LinksAndCovers('@@A')]
+    public function testTwo(): void {}
+}
+PHP);
+
+                $prodEntry1 = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\Service::method1', '/prod.php', 4, 'production', null, true
+                );
+                $prodEntry2 = new PlaceholderEntry(
+                    '@@A', 'App\\Services\\Service::method2', '/prod.php', 8, 'production', null, true
+                );
+                $testEntry1 = new PlaceholderEntry(
+                    '@@A', 'Tests\\NoEmptyLinesTest::testOne', $testFile, 4, 'test', 'phpunit', true
+                );
+                $testEntry2 = new PlaceholderEntry(
+                    '@@A', 'Tests\\NoEmptyLinesTest::testTwo', $testFile, 8, 'test', 'phpunit', true
+                );
+
+                $actions = [
+                    new PlaceholderAction('@@A', $prodEntry1, $testEntry1),
+                    new PlaceholderAction('@@A', $prodEntry1, $testEntry2),
+                    new PlaceholderAction('@@A', $prodEntry2, $testEntry1),
+                    new PlaceholderAction('@@A', $prodEntry2, $testEntry2),
+                ];
+
+                $modifier = new PlaceholderModifier();
+                $modifier->apply($actions, dryRun: false);
+
+                $content = file_get_contents($testFile);
+
+                // Check for pattern "/**\n\n" which indicates empty line after /**
+                $hasEmptyLineAfterDocStart = preg_match('/\/\*\*\s*\n\s*\n/', $content);
+                // Check for pattern "* @see...\n\n" which indicates empty line between @see tags
+                $hasEmptyLineBetweenTags = preg_match('/@see[^\n]+\n\s*\n\s*\*\s*@see/', $content);
+
+                return [
+                    'no_empty_after_docstart'  => $hasEmptyLineAfterDocStart === 0,
+                    'no_empty_between_tags'    => $hasEmptyLineBetweenTags === 0,
+                ];
+            })
+            ->toMatchArray([
+                'no_empty_after_docstart'  => true,
+                'no_empty_between_tags'    => true,
+            ]);
     });
 });

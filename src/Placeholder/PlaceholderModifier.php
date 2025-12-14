@@ -516,9 +516,9 @@ final class PlaceholderModifier
                 $seeTags[] = "@see {$fqcn}";
             }
 
-            // Detect indentation from the attribute line
+            // Detect indentation from the attribute line (only horizontal whitespace)
             $indent = '    ';
-            if (preg_match('/^(\s*)#\[TestedBy/m', $code, $indentMatch)) {
+            if (preg_match('/^([ \t]*)#\[TestedBy/m', $code, $indentMatch)) {
                 $indent = $indentMatch[1];
             }
 
@@ -560,55 +560,39 @@ final class PlaceholderModifier
         $escapedPlaceholder = preg_quote($placeholderId, '/');
         $pattern            = "/#\[(LinksAndCovers|Links)\s*\(\s*['\"]".$escapedPlaceholder."['\"]\s*\)\]/";
 
-        // Count how many placeholder occurrences exist
-        $occurrenceCount = preg_match_all($pattern, $code, $matches);
-
-        if ($occurrenceCount === 0 || $occurrenceCount === false) {
+        if (!preg_match($pattern, $code)) {
             return ['code' => $code, 'changed' => $changed];
         }
 
-        // Detect indentation
+        // Detect indentation (only horizontal whitespace: spaces and tabs)
         $indent = '    ';
-        if (preg_match('/^(\s*)#\[(LinksAndCovers|Links)/m', $code, $indentMatch)) {
+        if (preg_match('/^([ \t]*)#\[(LinksAndCovers|Links)/m', $code, $indentMatch)) {
             $indent = $indentMatch[1];
         }
 
-        if ($occurrenceCount === 1) {
-            // SINGLE placeholder: Add all @see tags
-            $seeTags = [];
-            foreach ($productionMethods as $method) {
-                $fqcn      = $this->formatAsFqcn($method);
-                $seeTags[] = "@see {$fqcn}";
-            }
+        // Build @see tags for all production methods
+        $seeTags = [];
+        foreach ($productionMethods as $method) {
+            $fqcn      = $this->formatAsFqcn($method);
+            $seeTags[] = "@see {$fqcn}";
+        }
 
-            // Build docblock
-            if (count($seeTags) === 1) {
-                $replacement = "/** {$seeTags[0]} */";
-            } else {
-                $replacement = "/**\n";
-                foreach ($seeTags as $tag) {
-                    $replacement .= "{$indent} * {$tag}\n";
-                }
-                $replacement .= "{$indent} */";
-            }
-
-            $result = preg_replace($pattern, $replacement, $code, 1);
-            if ($result !== null) {
-                $code    = $result;
-                $changed = true;
-            }
+        // Build docblock
+        if (count($seeTags) === 1) {
+            $replacement = "/** {$seeTags[0]} */";
         } else {
-            // MULTIPLE placeholders: Replace each with one @see tag
-            foreach ($productionMethods as $method) {
-                $fqcn        = $this->formatAsFqcn($method);
-                $replacement = "/** @see {$fqcn} */";
-                $result      = preg_replace($pattern, $replacement, $code, 1);
-
-                if ($result !== null && $result !== $code) {
-                    $code    = $result;
-                    $changed = true;
-                }
+            $replacement = "/**\n";
+            foreach ($seeTags as $tag) {
+                $replacement .= "{$indent} * {$tag}\n";
             }
+            $replacement .= "{$indent} */";
+        }
+
+        // Replace only the first occurrence (this method is called once per test method)
+        $result = preg_replace($pattern, $replacement, $code, 1);
+        if ($result !== null) {
+            $code    = $result;
+            $changed = true;
         }
 
         return ['code' => $code, 'changed' => $changed];
