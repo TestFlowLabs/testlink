@@ -520,27 +520,52 @@ final class ValidateCommand
             $hasErrors = true;
         }
 
-        // Return early if there are errors
-        if ($hasErrors) {
-            return 1;
-        }
+        // Calculate summary statistics
+        $attributeCount   = $this->countLinks($result['attributeLinks']);
+        $runtimeCount     = $this->countLinks($result['runtimeLinks']);
+        $totalLinks       = $result['totalLinks'];
+        $seeCount         = $seeRegistry->count();
+        $duplicateCount   = count($result['duplicates']);
+        $placeholderCount = count($placeholderIds);
+        $orphanCount      = count($seeOrphans);
+        $fqcnIssueCount   = $fqcnIssues->count();
+        $totalIssues      = $duplicateCount + $orphanCount + $fqcnIssueCount + ($strict ? $placeholderCount : 0);
+        $fixedCount       = $fixResult['fixed'] ?? 0;
 
         // Summary
-        $output->section('Link Summary');
-
-        $attributeCount = $this->countLinks($result['attributeLinks']);
-        $runtimeCount   = $this->countLinks($result['runtimeLinks']);
-        $totalLinks     = $result['totalLinks'];
-        $seeCount       = $seeRegistry->count();
-
-        $output->writeln("    PHPUnit attribute links: {$attributeCount}");
-        $output->writeln("    Pest method chain links: {$runtimeCount}");
-        $output->writeln("    @see tags: {$seeCount}");
-        $output->writeln("    Total links: {$totalLinks}");
+        $output->summaryHeader();
+        $output->summaryLine('PHPUnit attribute links', $attributeCount);
+        $output->summaryLine('Pest method chain links', $runtimeCount);
+        $output->summaryLine('@see tags', $seeCount);
+        $output->summaryLine('Total links', $totalLinks);
         $output->newLine();
 
+        if ($totalIssues > 0 || $placeholderCount > 0) {
+            $output->summaryLine('Issues found', $totalIssues);
+
+            if ($duplicateCount > 0) {
+                $output->writeln("      Duplicates:            {$duplicateCount}");
+            }
+
+            if ($orphanCount > 0) {
+                $output->writeln("      Orphan @see tags:      {$orphanCount}");
+            }
+
+            if ($fqcnIssueCount > 0) {
+                $output->writeln("      Non-FQCN @see tags:    {$fqcnIssueCount}");
+            }
+
+            if ($placeholderCount > 0) {
+                $output->writeln("      Unresolved placeholders: {$placeholderCount}".($strict ? '' : ' (warning)'));
+            }
+
+            if ($fixedCount > 0) {
+                $output->summaryLine('Issues fixed', $fixedCount);
+            }
+        }
+
         if ($totalLinks === 0 && $seeCount === 0) {
-            $output->warning('No coverage links found.');
+            $output->summaryComplete('Validation complete. No links found.');
             $output->newLine();
             $output->comment('Add coverage links to your test files:');
             $output->newLine();
@@ -551,7 +576,14 @@ final class ValidateCommand
             return 0;
         }
 
-        $output->success('All links are valid!');
+        if ($hasErrors) {
+            $output->summaryComplete('Validation complete with issues.');
+            $output->newLine();
+
+            return 1;
+        }
+
+        $output->summaryComplete('Validation complete. All links are valid!');
         $output->newLine();
 
         return 0;
