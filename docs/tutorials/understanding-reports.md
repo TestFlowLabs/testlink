@@ -235,5 +235,5 @@ Methods can be covered by both unit and integration tests.
 Now that you understand reports:
 
 - [Run Validation in CI](/how-to/run-validation-in-ci) - Automate validation
-- [TDD Workflow](./tdd/) - Learn when to add links during development
+- [TDD Workflow](/workflows/tdd/) - Learn when to add links during development
 - [Fix Validation Errors](/how-to/fix-validation-errors) - Resolve common issues

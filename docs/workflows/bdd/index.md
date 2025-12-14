@@ -51,7 +51,7 @@ TestLink adds traceability to BDD workflows:
 |----------|-------------------|
 | [Double-Loop TDD](./double-loop) | The outer acceptance loop and inner unit loop |
 | [Acceptance to Unit](./acceptance-to-unit) | Driving unit tests from acceptance tests |
-| [Placeholder BDD](./placeholder-bdd) | Using placeholders in BDD workflows |
+| [Placeholder BDD](./placeholders) | Using placeholders in BDD workflows |
 | [Complete Example](./complete-example) | Build a ShoppingCart feature using BDD |
 
 ## Quick Example

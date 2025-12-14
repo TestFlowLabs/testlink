@@ -96,8 +96,8 @@ See [How-to: Sync Links Automatically](/how-to/sync-links-automatically) for det
 
 Before starting these tutorials:
 
-- Complete [Getting Started](../getting-started)
-- Complete [Your First Bidirectional Link](../first-bidirectional-link)
+- Complete [Getting Started](/tutorials/getting-started)
+- Complete [Your First Bidirectional Link](/tutorials/first-bidirectional-link)
 - Have a basic understanding of TDD concepts
 
 Ready to begin? Start with [Red-Green-Refactor](./red-green-refactor)!
