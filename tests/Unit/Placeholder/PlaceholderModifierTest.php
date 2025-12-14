@@ -620,17 +620,17 @@ PHP);
 
                 // Each test should have 2 @see tags (one for each production method)
                 return [
-                    'total_see_tags'   => substr_count($content, '@see'),
-                    'has_method1_x2'   => substr_count($content, 'Service::method1') === 2,
-                    'has_method2_x2'   => substr_count($content, 'Service::method2') === 2,
-                    'no_placeholder'   => !str_contains($content, '@@A'),
+                    'total_see_tags' => substr_count($content, '@see'),
+                    'has_method1_x2' => substr_count($content, 'Service::method1') === 2,
+                    'has_method2_x2' => substr_count($content, 'Service::method2') === 2,
+                    'no_placeholder' => !str_contains($content, '@@A'),
                 ];
             })
             ->toMatchArray([
-                'total_see_tags'   => 4, // 2 tests × 2 production methods
-                'has_method1_x2'   => true,
-                'has_method2_x2'   => true,
-                'no_placeholder'   => true,
+                'total_see_tags' => 4, // 2 tests × 2 production methods
+                'has_method1_x2' => true,
+                'has_method2_x2' => true,
+                'no_placeholder' => true,
             ]);
 
         it('does not add empty lines between @see tags in multi-method docblocks')
@@ -681,13 +681,13 @@ PHP);
                 $hasEmptyLineBetweenTags = preg_match('/@see[^\n]+\n\s*\n\s*\*\s*@see/', $content);
 
                 return [
-                    'no_empty_after_docstart'  => $hasEmptyLineAfterDocStart === 0,
-                    'no_empty_between_tags'    => $hasEmptyLineBetweenTags === 0,
+                    'no_empty_after_docstart' => $hasEmptyLineAfterDocStart === 0,
+                    'no_empty_between_tags'   => $hasEmptyLineBetweenTags === 0,
                 ];
             })
             ->toMatchArray([
-                'no_empty_after_docstart'  => true,
-                'no_empty_between_tags'    => true,
+                'no_empty_after_docstart' => true,
+                'no_empty_between_tags'   => true,
             ]);
     });
 });
