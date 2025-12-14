@@ -133,6 +133,38 @@ final class Output
     }
 
     /**
+     * Write a summary section header.
+     */
+    public function summaryHeader(bool $dryRun = false): self
+    {
+        $title = $dryRun ? 'Summary (dry-run)' : 'Summary';
+
+        $this->writeln();
+        $this->writeln($this->bold('  '.$title));
+        $this->writeln($this->gray('  '.str_repeat('─', mb_strlen($title))));
+
+        return $this;
+    }
+
+    /**
+     * Write a summary line with aligned values.
+     */
+    public function summaryLine(string $label, int|string $value, int $labelWidth = 28): self
+    {
+        return $this->writeln('    '.str_pad($label.':', $labelWidth).$value);
+    }
+
+    /**
+     * Write a summary completion message with checkmark.
+     */
+    public function summaryComplete(string $message): self
+    {
+        $this->writeln();
+
+        return $this->writeln($this->green('  ✓ '.$message));
+    }
+
+    /**
      * Write a list item.
      */
     public function listItem(string $item, string $prefix = '•'): self
