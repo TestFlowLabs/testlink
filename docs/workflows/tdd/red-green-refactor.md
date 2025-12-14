@@ -8,7 +8,7 @@ We'll build a `StringCalculator` class that adds numbers from a string input. Th
 
 ## Prerequisites
 
-- Completed [Getting Started](../getting-started)
+- Completed [Getting Started](/tutorials/getting-started)
 - TestLink installed in your project
 
 ## The TDD Cycle with Links

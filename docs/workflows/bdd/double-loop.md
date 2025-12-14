@@ -584,4 +584,4 @@ Link Summary
 ## What's Next?
 
 - [Acceptance to Unit](./acceptance-to-unit) - More patterns for driving unit tests
-- [Placeholder BDD](./placeholder-bdd) - Using placeholders in BDD workflows
+- [Placeholder BDD](./placeholders) - Using placeholders in BDD workflows

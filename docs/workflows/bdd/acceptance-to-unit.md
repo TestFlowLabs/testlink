@@ -468,5 +468,5 @@ Acceptance: Order is fulfilled
 
 ## What's Next?
 
-- [Placeholder BDD](./placeholder-bdd) - Use placeholders during BDD
+- [Placeholder BDD](./placeholders) - Use placeholders during BDD
 - [Complete Example](./complete-example) - Full BDD example with shopping cart
